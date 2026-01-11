@@ -1338,6 +1338,7 @@ def update_venue(venue_id):
         
         if name:
             venue_metadata[venue_id]['name'] = name
+            save_data()  # Save updated venue name
         
         return jsonify({
             'success': True,
