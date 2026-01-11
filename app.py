@@ -147,10 +147,15 @@ def load_data():
                 loaded = json.load(f)
                 if isinstance(loaded, dict):
                     venue_owners.update(loaded)
+                    print(f"   ✅ Loaded {len(venue_owners)} venue owners from venue_owners.json")
+                else:
+                    print(f"   ⚠️ venue_owners.json is not a dict, ignoring")
         except Exception as e:
-            print(f"Error loading venue_owners: {e}")
+            print(f"   ❌ Error loading venue_owners: {e}")
             import traceback
             traceback.print_exc()
+    else:
+        print(f"   ⚠️ venue_owners.json does not exist yet")
     
     # Load venue tables
     if os.path.exists(VENUE_TABLES_FILE):
@@ -179,13 +184,22 @@ def load_data():
 def save_data():
     """Save all data to JSON files"""
     try:
+        # Ensure data directory exists
+        os.makedirs(DATA_DIR, exist_ok=True)
+        
+        print(f"💾 Saving data to {DATA_DIR}...")
+        print(f"   venue_metadata keys: {list(venue_metadata.keys())}")
+        print(f"   venue_owners keys: {list(venue_owners.keys())}")
+        
         # Save venue metadata
         with open(VENUE_METADATA_FILE, 'w', encoding='utf-8') as f:
             json.dump(venue_metadata, f, indent=2, default=str)
+        print(f"   ✅ Saved venue_metadata ({len(venue_metadata)} venues)")
         
         # Save venue queues
         with open(VENUE_QUEUES_FILE, 'w', encoding='utf-8') as f:
             json.dump(venue_queues, f, indent=2, default=str)
+        print(f"   ✅ Saved venue_queues ({len(venue_queues)} queues)")
         
         # Save task to venue mapping
         with open(TASK_TO_VENUE_FILE, 'w', encoding='utf-8') as f:
@@ -198,6 +212,7 @@ def save_data():
         # Save venue owners
         with open(VENUE_OWNERS_FILE, 'w', encoding='utf-8') as f:
             json.dump(venue_owners, f, indent=2, default=str)
+        print(f"   ✅ Saved venue_owners ({len(venue_owners)} owners)")
         
         # Save venue tables
         with open(VENUE_TABLES_FILE, 'w', encoding='utf-8') as f:
@@ -207,9 +222,16 @@ def save_data():
         with open(TABLE_REQUESTS_FILE, 'w', encoding='utf-8') as f:
             json.dump(table_requests, f, indent=2, default=str)
         
-        print(f"✅ Data saved successfully")
+        # Verify files were created
+        if os.path.exists(VENUE_METADATA_FILE):
+            file_size = os.path.getsize(VENUE_METADATA_FILE)
+            print(f"   ✅ Verified: venue_metadata.json exists ({file_size} bytes)")
+        else:
+            print(f"   ❌ ERROR: venue_metadata.json was not created!")
+        
+        print(f"✅ All data saved successfully")
     except Exception as e:
-        print(f"❌ Error saving data: {e}")
+        print(f"❌ ERROR saving data: {e}")
         import traceback
         traceback.print_exc()
 
@@ -1270,7 +1292,9 @@ def venues():
             venue_queues[venue_id] = []
             venue_owners[user_email] = [venue_id]
             user_venue_ids = [venue_id]
+            print(f"💾 Auto-created venue {venue_id} for user {user_email}, saving...")
             save_data()  # Save new venue data
+            print(f"✅ Auto-created venue saved")
         
         base_url = get_base_url() or ''
         return render_template('admin_venues.html', base_url=base_url, user_name=session.get('user_name', 'User'), is_admin=False, user_venue_ids=user_venue_ids)
