@@ -368,7 +368,7 @@
                     const data = await response.json();
                     if (data.success) {
                         // Redirect will be handled by server based on user type
-                        window.location.href = data.redirect || '/venue/dashboard';
+                        window.location.href = data.redirect || '/venues';
                     } else {
                         alert('Error: ' + (data.error || 'Failed to create account'));
                         submitBtn.disabled = false;

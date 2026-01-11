@@ -951,7 +951,7 @@ def signup():
         session['is_admin'] = users[email].get('is_admin', False)
         
         if request.is_json:
-            redirect_url = '/admin/venues' if users[email].get('is_admin', False) else '/venue/dashboard'
+            redirect_url = '/venues'
             return jsonify({
                 'success': True, 
                 'message': 'Account created successfully',
