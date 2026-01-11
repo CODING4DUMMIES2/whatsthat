@@ -534,7 +534,17 @@ def call_suno_generate_music(prompt: str, venue_id: str = None, table_id: str = 
     - Lyrics are auto-generated from the prompt
     - We can just describe the vibe/genre in plain English
     """
+    print("=" * 60)
+    print("🎵 call_suno_generate_music called")
+    print(f"   prompt: {prompt}")
+    print(f"   venue_id: {venue_id}")
+    print(f"   table_id: {table_id}")
+    print(f"   genre: {genre}")
+    print(f"   SUNO_API_KEY exists: {bool(SUNO_API_KEY)}")
+    print(f"   SUNO_API_BASE: {SUNO_API_BASE}")
+    
     if not SUNO_API_KEY:
+        print("❌ ERROR: SUNO_API_KEY not configured")
         return {
             'status': 'disabled',
             'message': 'SUNO_API_KEY not configured on server'
@@ -544,6 +554,7 @@ def call_suno_generate_music(prompt: str, venue_id: str = None, table_id: str = 
         # Use provided genre, or detect from message, or leave empty
         if not genre:
             genre = detect_genre(prompt)
+            print(f"   Detected genre: {genre}")
         
         if genre:
             # Strongly hint the genre to Suno
@@ -553,9 +564,13 @@ def call_suno_generate_music(prompt: str, venue_id: str = None, table_id: str = 
             final_prompt = f"Make a full vocal song about: {prompt}"
 
         final_prompt = final_prompt[:500]  # non-custom mode prompt limit
+        print(f"   Final prompt: {final_prompt}")
 
         url = f"{SUNO_API_BASE}/api/v1/generate"
         callback_base_url = get_callback_base_url()
+        print(f"   API URL: {url}")
+        print(f"   Callback base URL: {callback_base_url}")
+        
         payload = {
             "customMode": False,          # non-custom mode
             "instrumental": False,        # we want vocals (not instrumental)
@@ -565,23 +580,38 @@ def call_suno_generate_music(prompt: str, venue_id: str = None, table_id: str = 
         # Only add callback URL if we have a public URL (not localhost)
         if callback_base_url:
             payload["callBackUrl"] = f"{callback_base_url}/callback/music"
-        # If no callback URL, we'll rely on polling (which works fine)
+            print(f"   Callback URL added: {payload['callBackUrl']}")
+        else:
+            print("   ⚠️ WARNING: No callback URL available")
+        
         headers = {
             "Authorization": f"Bearer {SUNO_API_KEY}",
             "Content-Type": "application/json",
         }
+        print(f"   Payload: {payload}")
+        print(f"   Headers: {dict(headers)}")
 
+        print("   📡 Sending request to Suno API...")
         resp = requests.post(url, json=payload, headers=headers, timeout=20)
+        print(f"   📡 Response status: {resp.status_code}")
+        print(f"   📡 Response text (first 500 chars): {resp.text[:500]}")
+        
         data = resp.json()
+        print(f"   📥 Parsed response: {data}")
 
         if resp.status_code != 200 or data.get("code") != 200:
+            error_msg = data.get("msg") or f"HTTP {resp.status_code}"
+            print(f"   ❌ Suno API Error: {error_msg}")
             return {
                 'status': 'error',
-                'message': data.get("msg") or f"HTTP {resp.status_code}"
+                'message': error_msg
             }
 
         task_id = (data.get("data") or {}).get("taskId")
+        print(f"   🎯 Task ID: {task_id}")
+        
         if not task_id:
+            print("   ❌ ERROR: No taskId returned from Suno")
             return {
                 'status': 'error',
                 'message': 'No taskId returned from Suno'
@@ -590,7 +620,9 @@ def call_suno_generate_music(prompt: str, venue_id: str = None, table_id: str = 
         # If venue_id is provided, store the mapping for later queue addition
         if venue_id:
             task_to_venue[task_id] = venue_id
-            print(f"Music generation for venue {venue_id} started with task_id: {task_id}")
+            print(f"   ✅ Mapped task {task_id} to venue {venue_id}")
+        else:
+            print("   ⚠️ WARNING: No venue_id provided")
         
         # If table_id is provided, track the request
         if table_id:
@@ -601,16 +633,26 @@ def call_suno_generate_music(prompt: str, venue_id: str = None, table_id: str = 
                 'timestamp': datetime.now().isoformat(),
                 'status': 'processing'
             })
-            print(f"Music generation for table {table_id} started with task_id: {task_id}")
+            print(f"   ✅ Tracked request for table {table_id}")
 
-        return {
+        result = {
             'status': 'processing',
             'task_id': task_id,
             'message': 'Music generation started',
             'venue_id': venue_id,
             'table_id': table_id
         }
+        print(f"   ✅ Success! Returning: {result}")
+        print("=" * 60)
+        return result
     except Exception as e:
+        import traceback
+        error_trace = traceback.format_exc()
+        print("=" * 60)
+        print("❌ ERROR IN call_suno_generate_music")
+        print(f"   Error: {str(e)}")
+        print(f"   Traceback:\n{error_trace}")
+        print("=" * 60)
         return {
             'status': 'error',
             'message': str(e)
