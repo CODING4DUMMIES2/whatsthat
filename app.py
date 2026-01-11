@@ -1449,9 +1449,12 @@ def venues():
     
     # For admins, show all venues. For normal users, show only their venue
     if is_admin:
-        # Admin sees all venues
+        # Admin sees all venues - reload data and get all venue IDs
+        load_data()
+        all_venue_ids = list(venue_metadata.keys())
+        print(f"🔍 Admin user - loading all {len(all_venue_ids)} venues: {all_venue_ids}")
         base_url = get_base_url() or ''
-        return render_template('admin_venues.html', base_url=base_url, user_name=session.get('user_name', 'User'), is_admin=True, user_venue_ids=[])
+        return render_template('admin_venues.html', base_url=base_url, user_name=session.get('user_name', 'User'), is_admin=True, user_venue_ids=all_venue_ids)
     else:
         # Normal user sees only their venue
         # RELOAD data before checking to ensure we have latest
