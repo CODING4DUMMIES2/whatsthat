@@ -706,7 +706,21 @@ def serve_audio(filename):
 @app.route('/img/<filename>')
 def serve_image(filename):
     """Serve image files from the img directory"""
-    return send_from_directory(IMG_DIR, filename)
+    try:
+        print(f"📸 Serving image: {filename} from {IMG_DIR}")
+        print(f"   IMG_DIR exists: {os.path.exists(IMG_DIR)}")
+        file_path = os.path.join(IMG_DIR, filename)
+        print(f"   File path: {file_path}")
+        print(f"   File exists: {os.path.exists(file_path)}")
+        if not os.path.exists(file_path):
+            print(f"   ❌ File not found! Listing directory: {os.listdir(IMG_DIR) if os.path.exists(IMG_DIR) else 'IMG_DIR does not exist'}")
+            return jsonify({'error': f'Image not found: {filename}'}), 404
+        return send_from_directory(IMG_DIR, filename)
+    except Exception as e:
+        import traceback
+        error_msg = f"Error serving image {filename}: {str(e)}\n{traceback.format_exc()}"
+        print(f"❌ {error_msg}")
+        return jsonify({'error': error_msg}), 500
 
 
 @app.route('/status/<task_id>')
