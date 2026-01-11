@@ -349,30 +349,10 @@ def save_data():
         import traceback
         traceback.print_exc()
 
-# Copy images from Git repo to persistent volume on startup
-if PERSISTENT_DATA_DIR and os.path.exists(PERSISTENT_DATA_DIR):
-    import shutil
-    git_img_dir = os.path.join(BASE_DIR, "img")  # Git repo location
-    
-    # Always copy images from Git repo to persistent volume if they don't exist
-    if os.path.exists(git_img_dir):
-        if not os.path.exists(IMG_DIR):
-            try:
-                shutil.copytree(git_img_dir, IMG_DIR)
-                print(f"✅ Copied images from Git repo ({git_img_dir}) to persistent volume ({IMG_DIR})")
-            except Exception as e:
-                print(f"⚠️ Could not copy images from Git repo: {e}")
-        else:
-            # Copy individual files that might be missing
-            try:
-                for filename in os.listdir(git_img_dir):
-                    git_file = os.path.join(git_img_dir, filename)
-                    vol_file = os.path.join(IMG_DIR, filename)
-                    if os.path.isfile(git_file) and not os.path.exists(vol_file):
-                        shutil.copy2(git_file, vol_file)
-                        print(f"✅ Copied {filename} to persistent volume")
-            except Exception as e:
-                print(f"⚠️ Could not sync images: {e}")
+# Ensure img directory exists (for static images from Git repo)
+if not os.path.exists(IMG_DIR):
+    os.makedirs(IMG_DIR, exist_ok=True)
+    print(f"📁 Created img directory: {IMG_DIR}")
     
     # Migrate venue_logos directory
     if os.path.exists(old_logos_dir) and not os.path.exists(VENUE_LOGOS_DIR):
