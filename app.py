@@ -192,9 +192,10 @@ OPENAI_API_KEY = os.environ.get("OPENAI_API_KEY", "")
 # Table song requests: table_id -> list of {task_id, timestamp, status}
 table_requests = {}
 
-# Data persistence files
-DATA_DIR = os.path.join(BASE_DIR, "data")
+# Data persistence files - MUST use DATA_BASE_DIR (persistent volume) not BASE_DIR!
+DATA_DIR = os.path.join(DATA_BASE_DIR, "data")
 os.makedirs(DATA_DIR, exist_ok=True)
+print(f"📁 DATA_DIR set to: {DATA_DIR} (using {'persistent volume' if PERSISTENT_DATA_DIR and os.path.exists(PERSISTENT_DATA_DIR) else 'local directory'})")
 VENUE_METADATA_FILE = os.path.join(DATA_DIR, "venue_metadata.json")
 VENUE_QUEUES_FILE = os.path.join(DATA_DIR, "venue_queues.json")
 TASK_TO_VENUE_FILE = os.path.join(DATA_DIR, "task_to_venue.json")
