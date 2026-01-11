@@ -958,11 +958,7 @@ def signup():
                 'redirect': redirect_url
             })
         
-        # Redirect based on user type
-        if users[email].get('is_admin', False):
-            return redirect(url_for('admin_venues'))
-        else:
-            return redirect(url_for('venues'))
+        return redirect(url_for('venues'))
     
     return render_template('signup.html')
 
