@@ -599,6 +599,7 @@ def get_venue_info(venue_id):
             'qr_code': table_data['qr_code']
         })
     
+    base_url = get_base_url() or ''
     return jsonify({
         'success': True,
         'venue_id': venue_id,
