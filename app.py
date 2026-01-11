@@ -1462,6 +1462,17 @@ def venues():
         user_venue_ids = venue_owners.get(user_email, [])
         print(f"🔍 User {user_email} has venues: {user_venue_ids}")
         print(f"   All venue_owners: {dict(venue_owners)}")
+        print(f"   All venue_metadata keys: {list(venue_metadata.keys())}")
+        # Also check venue_metadata for venues owned by this user (backup check)
+        for venue_id, metadata in venue_metadata.items():
+            if metadata.get('owner_email') == user_email and venue_id not in user_venue_ids:
+                print(f"   ⚠️ Found venue {venue_id} owned by {user_email} in metadata but not in venue_owners - fixing...")
+                if user_email not in venue_owners:
+                    venue_owners[user_email] = []
+                venue_owners[user_email].append(venue_id)
+                user_venue_ids.append(venue_id)
+                save_data()  # Save the fix
+        print(f"   ✅ Final user_venue_ids: {user_venue_ids}")
         if not user_venue_ids:
             # If no venue exists (shouldn't happen after signup, but handle it)
             import uuid
