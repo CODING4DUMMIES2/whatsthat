@@ -1985,6 +1985,28 @@ def demo_request():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@app.route('/debug/data')
+@require_login
+def debug_data():
+    """Debug endpoint to check data persistence"""
+    load_data()  # Reload from disk
+    return jsonify({
+        'data_dir': DATA_DIR,
+        'data_dir_exists': os.path.exists(DATA_DIR),
+        'venue_metadata_file': VENUE_METADATA_FILE,
+        'venue_metadata_file_exists': os.path.exists(VENUE_METADATA_FILE),
+        'venue_owners_file': VENUE_OWNERS_FILE,
+        'venue_owners_file_exists': os.path.exists(VENUE_OWNERS_FILE),
+        'in_memory_venues': len(venue_metadata),
+        'in_memory_venue_ids': list(venue_metadata.keys()),
+        'in_memory_owners': len(venue_owners),
+        'in_memory_owner_emails': list(venue_owners.keys()),
+        'current_user': session.get('user_id'),
+        'user_venues': venue_owners.get(session.get('user_id'), []),
+        'persistent_data_dir': PERSISTENT_DATA_DIR,
+        'data_base_dir': DATA_BASE_DIR,
+    })
+
 if __name__ == '__main__':
     # Use PORT from environment variable (Railway/Heroku) or default to 8000
     port = int(os.environ.get('PORT', 8000))
