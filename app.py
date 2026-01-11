@@ -11,12 +11,110 @@ import qrcode
 from PIL import Image, ImageDraw, ImageFont
 import base64
 from io import BytesIO
+from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import JSON
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production-' + str(hash('whatsthat')))
 # Make sessions permanent so users stay logged in
 from datetime import timedelta
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
+
+# Database configuration
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if DATABASE_URL and DATABASE_URL.startswith('postgres://'):
+    DATABASE_URL = DATABASE_URL.replace('postgres://', 'postgresql://', 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL or 'sqlite:///whatsthat.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy(app)
+
+# Database models
+class Venue(db.Model):
+    """Venue model"""
+    __tablename__ = 'venues'
+    id = db.Column(db.String(8), primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    owner_email = db.Column(db.String(255), nullable=False, index=True)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    logo_path = db.Column(db.String(255), nullable=True)
+    qr_background = db.Column(db.String(255), nullable=True)
+    allowed_genres = db.Column(JSON, nullable=True)
+    
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'logo_path': self.logo_path,
+            'qr_background': self.qr_background,
+            'allowed_genres': self.allowed_genres or [],
+            'owner_email': self.owner_email
+        }
+
+class VenueQueue(db.Model):
+    """Venue queue item model"""
+    __tablename__ = 'venue_queues'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    venue_id = db.Column(db.String(8), db.ForeignKey('venues.id', ondelete='CASCADE'), nullable=False, index=True)
+    filename = db.Column(db.String(255), nullable=False)
+    title = db.Column(db.String(255), nullable=True)
+    task_id = db.Column(db.String(255), nullable=True)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    position = db.Column(db.Integer, nullable=False, default=0)
+    
+    def to_dict(self):
+        return {
+            'filename': self.filename,
+            'title': self.title,
+            'task_id': self.task_id,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None
+        }
+
+class VenueTable(db.Model):
+    """Venue table model"""
+    __tablename__ = 'venue_tables'
+    id = db.Column(db.String(8), primary_key=True)
+    venue_id = db.Column(db.String(8), db.ForeignKey('venues.id', ondelete='CASCADE'), nullable=False, index=True)
+    name = db.Column(db.String(255), nullable=False)
+    created_at = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    submit_url = db.Column(db.String(500), nullable=False)
+    qr_code = db.Column(db.String(500), nullable=True)
+    
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'created_at': self.created_at.isoformat() if self.created_at else None,
+            'submit_url': self.submit_url,
+            'qr_code': self.qr_code
+        }
+
+class TableRequest(db.Model):
+    """Table request model"""
+    __tablename__ = 'table_requests'
+    id = db.Column(db.Integer, primary_key=True, autoincrement=True)
+    table_id = db.Column(db.String(8), db.ForeignKey('venue_tables.id', ondelete='CASCADE'), nullable=False, index=True)
+    task_id = db.Column(db.String(255), nullable=False)
+    timestamp = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    status = db.Column(db.String(50), default='pending', nullable=False)
+    
+    def to_dict(self):
+        return {
+            'task_id': self.task_id,
+            'timestamp': self.timestamp.isoformat() if self.timestamp else None,
+            'status': self.status
+        }
+
+class TaskMapping(db.Model):
+    """Task to venue mapping"""
+    __tablename__ = 'task_mappings'
+    task_id = db.Column(db.String(255), primary_key=True)
+    venue_id = db.Column(db.String(8), db.ForeignKey('venues.id', ondelete='CASCADE'), nullable=False, index=True)
+
+class SongTitle(db.Model):
+    """Song title mapping"""
+    __tablename__ = 'song_titles'
+    task_id = db.Column(db.String(255), primary_key=True)
+    title = db.Column(db.String(255), nullable=False)
 
 @app.before_request
 def make_session_permanent():
@@ -25,11 +123,23 @@ def make_session_permanent():
 
 # Create directories if they don't exist
 BASE_DIR = os.path.dirname(__file__)
-MESSAGES_DIR = os.path.join(BASE_DIR, "messages")
-AUDIO_DIR = os.path.join(BASE_DIR, "audio")
-IMG_DIR = os.path.join(BASE_DIR, "img")
-VENUE_LOGOS_DIR = os.path.join(BASE_DIR, "venue_logos")
-VENUE_QR_CODES_DIR = os.path.join(BASE_DIR, "venue_qr_codes")
+
+# Use persistent volume if available (Railway Volumes), otherwise use local directory
+PERSISTENT_DATA_DIR = os.environ.get('PERSISTENT_DATA_DIR', None)
+if PERSISTENT_DATA_DIR and os.path.exists(PERSISTENT_DATA_DIR):
+    # Use Railway volume for persistent storage
+    DATA_BASE_DIR = PERSISTENT_DATA_DIR
+    print(f"✅ Using persistent volume at: {DATA_BASE_DIR}")
+else:
+    # Fall back to local directory
+    DATA_BASE_DIR = BASE_DIR
+    print(f"📁 Using local directory: {DATA_BASE_DIR}")
+
+MESSAGES_DIR = os.path.join(DATA_BASE_DIR, "messages")
+AUDIO_DIR = os.path.join(DATA_BASE_DIR, "audio")
+IMG_DIR = os.path.join(DATA_BASE_DIR, "img")
+VENUE_LOGOS_DIR = os.path.join(DATA_BASE_DIR, "venue_logos")
+VENUE_QR_CODES_DIR = os.path.join(DATA_BASE_DIR, "venue_qr_codes")
 os.makedirs(MESSAGES_DIR, exist_ok=True)
 os.makedirs(AUDIO_DIR, exist_ok=True)
 os.makedirs(IMG_DIR, exist_ok=True)
