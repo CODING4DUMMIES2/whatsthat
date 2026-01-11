@@ -673,6 +673,110 @@
             padding: 0;
         }
 
+        /* Stream Player Styles */
+        .stream-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 2px solid transparent;
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .stream-section .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: background 0.2s;
+        }
+
+        .stream-section .section-header:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .stream-section .section-toggle {
+            font-size: 18px;
+            transition: transform 0.2s;
+        }
+
+        .stream-content {
+            display: block;
+        }
+
+        .now-playing-stream {
+            background: rgba(45, 27, 78, 0.3);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .song-title-stream {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: white;
+        }
+
+        .status-indicator-stream {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator-stream.playing {
+            background: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.6);
+        }
+
+        .status-indicator-stream.waiting {
+            background: #ffa500;
+        }
+
+        .audio-player-stream {
+            margin-top: 15px;
+        }
+
+        .audio-player-stream audio {
+            width: 100%;
+            outline: none;
+        }
+
+        .queue-section-stream {
+            background: rgba(45, 27, 78, 0.3);
+            border-radius: 12px;
+            padding: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .queue-count-stream {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        .queue-list-stream {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
         .tables-section {
             margin-top: 24px;
             padding-top: 24px;
