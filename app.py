@@ -1432,7 +1432,11 @@ def venues():
         return render_template('admin_venues.html', base_url=base_url, user_name=session.get('user_name', 'User'), is_admin=True, user_venue_ids=[])
     else:
         # Normal user sees only their venue
+        # RELOAD data before checking to ensure we have latest
+        load_data()
         user_venue_ids = venue_owners.get(user_email, [])
+        print(f"🔍 User {user_email} has venues: {user_venue_ids}")
+        print(f"   All venue_owners: {dict(venue_owners)}")
         if not user_venue_ids:
             # If no venue exists (shouldn't happen after signup, but handle it)
             import uuid
