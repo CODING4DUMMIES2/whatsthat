@@ -207,17 +207,24 @@ def load_data():
     """Load all data from JSON files"""
     global venue_metadata, venue_queues, task_to_venue, song_titles, venue_owners, venue_tables, table_requests
     
+    print(f"📂 Loading data from {DATA_DIR}...")
+    
     # Load venue metadata
     if os.path.exists(VENUE_METADATA_FILE):
         try:
             with open(VENUE_METADATA_FILE, 'r', encoding='utf-8') as f:
                 loaded = json.load(f)
                 if isinstance(loaded, dict):
+                    venue_metadata.clear()  # Clear first to avoid stale data
                     venue_metadata.update(loaded)
+                    print(f"   ✅ Loaded {len(venue_metadata)} venues from venue_metadata.json")
+                    print(f"   Venue IDs: {list(venue_metadata.keys())}")
         except Exception as e:
-            print(f"Error loading venue_metadata: {e}")
+            print(f"   ❌ Error loading venue_metadata: {e}")
             import traceback
             traceback.print_exc()
+    else:
+        print(f"   ⚠️ venue_metadata.json does not exist yet")
     
     # Load venue queues
     if os.path.exists(VENUE_QUEUES_FILE):
