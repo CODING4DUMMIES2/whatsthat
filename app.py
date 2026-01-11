@@ -646,63 +646,78 @@ def check_and_process_pending_tasks(venue_id=None):
         
         for task_id, v_id in list(pending_tasks.items()):
             try:
-                # Check status from Suno
-                status_response = requests.get(
-                    f"{SUNO_API_BASE}/api/v1/get/{task_id}",
-                    headers={"Authorization": f"Bearer {SUNO_API_KEY}"},
-                    timeout=10
-                )
+                print(f"🔍 Polling task {task_id} for venue {v_id}...")
+                # Use the same endpoint as get_suno_music_status
+                url = f"{SUNO_API_BASE}/api/v1/generate/record-info"
+                headers = {
+                    "Authorization": f"Bearer {SUNO_API_KEY}",
+                    "Content-Type": "application/json",
+                }
+                params = {"taskId": task_id}
+                
+                status_response = requests.get(url, headers=headers, params=params, timeout=20)
                 
                 if status_response.status_code == 200:
                     status_data = status_response.json()
+                    print(f"   Status response for {task_id}: code={status_data.get('code')}")
                     
                     if status_data.get("code") == 200:
-                        tracks = status_data.get("data", [])
-                        if tracks and len(tracks) > 0:
-                            first_track = tracks[0]
-                            status = first_track.get("status", "")
+                        # Parse the nested structure (same as get_suno_music_status)
+                        record = status_data.get("data", {})
+                        response = record.get("response", {})
+                        suno_list = response.get("sunoData") or response.get("suno_data") or []
+                        
+                        if suno_list and len(suno_list) > 0:
+                            first_track = suno_list[0]
+                            audio_url = first_track.get("audioUrl") or first_track.get("audio_url")
+                            song_title = first_track.get("title") or first_track.get("song_name") or ""
                             
-                            # If song is complete, download it
-                            if status == "complete":
-                                audio_url = first_track.get("audio_url") or first_track.get("audioUrl")
-                                song_title = first_track.get("title") or first_track.get("song_name") or ""
+                            # If we have an audio URL, the song is complete
+                            if audio_url:
+                                print(f"📥 Found completed song for task {task_id}, downloading...")
+                                if song_title:
+                                    song_titles[task_id] = song_title
+                                    print(f"   Song title: {song_title}")
                                 
-                                if audio_url:
-                                    print(f"📥 Found completed song for task {task_id}, downloading...")
-                                    if song_title:
-                                        song_titles[task_id] = song_title
+                                filename = download_audio_file(audio_url, prefix=task_id)
+                                if filename:
+                                    task_audio_map[task_id] = filename
                                     
-                                    filename = download_audio_file(audio_url, prefix=task_id)
-                                    if filename:
-                                        task_audio_map[task_id] = filename
-                                        
-                                        # Add to venue queue
-                                        if v_id not in venue_queues:
-                                            venue_queues[v_id] = []
-                                        
-                                        song_title_display = song_titles.get(task_id, filename)
-                                        song_entry = {
-                                            'filename': filename,
-                                            'title': song_title_display,
-                                            'task_id': task_id,
-                                            'timestamp': datetime.now().isoformat(),
-                                            'added_at': datetime.now().strftime("%H:%M:%S")
-                                        }
-                                        
-                                        venue_queues[v_id].append(song_entry)
-                                        print(f"✅ Added song '{song_title_display}' to venue {v_id} queue via polling")
-                                        
-                                        # Clean up tracking
-                                        del task_to_venue[task_id]
-                                        
-                                        # Save data
-                                        save_data()
-                                        print(f"✅ Saved queue data to disk (polling)")
-                            elif status in ("pending", "generating"):
-                                # Still processing, skip for now
-                                pass
+                                    # Add to venue queue
+                                    if v_id not in venue_queues:
+                                        venue_queues[v_id] = []
+                                    
+                                    song_title_display = song_titles.get(task_id, filename)
+                                    song_entry = {
+                                        'filename': filename,
+                                        'title': song_title_display,
+                                        'task_id': task_id,
+                                        'timestamp': datetime.now().isoformat(),
+                                        'added_at': datetime.now().strftime("%H:%M:%S")
+                                    }
+                                    
+                                    venue_queues[v_id].append(song_entry)
+                                    print(f"✅ Added song '{song_title_display}' to venue {v_id} queue via polling")
+                                    print(f"   Venue {v_id} now has {len(venue_queues[v_id])} song(s) in queue")
+                                    
+                                    # Clean up tracking
+                                    del task_to_venue[task_id]
+                                    save_data()  # Save updated task_to_venue
+                                    
+                                    # Save data
+                                    save_data()
+                                    print(f"✅ Saved queue data to disk (polling)")
+                                else:
+                                    print(f"❌ Failed to download audio for task {task_id}")
                             else:
-                                print(f"⚠️ Task {task_id} status: {status}")
+                                print(f"⏳ Task {task_id} still processing (no audio URL yet)")
+                        else:
+                            print(f"⏳ Task {task_id} still processing (no tracks yet)")
+                    else:
+                        error_msg = status_data.get("msg", "Unknown error")
+                        print(f"❌ Suno API error for task {task_id}: {error_msg}")
+                else:
+                    print(f"❌ HTTP {status_response.status_code} error polling task {task_id}")
             except Exception as e:
                 print(f"❌ Error polling task {task_id}: {e}")
                 import traceback
