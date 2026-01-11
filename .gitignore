@@ -43,6 +43,7 @@ audio/
 venue_logos/
 venue_qr_codes/
 users.json
+data/
 
 # OS
 .DS_Store

@@ -14,6 +14,8 @@ from io import BytesIO
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production-' + str(hash('whatsthat')))
+# Make sessions permanent so users stay logged in
+app.config['PERMANENT_SESSION_LIFETIME'] = 86400 * 30  # 30 days
 
 # Create directories if they don't exist
 BASE_DIR = os.path.dirname(__file__)
@@ -179,6 +181,9 @@ def create_venue():
             venue_owners[user_email] = []
         venue_owners[user_email].append(venue_id)
     
+    # Save data to disk
+    save_data()
+    
     base_url = get_base_url()
     submit_url = f"{base_url}/venue/{venue_id}/submit"
     stream_url = f"{base_url}/venue/{venue_id}/stream"
@@ -204,6 +209,7 @@ def create_venue():
             
             # Initialize empty request list for this table
             table_requests[table_id] = []
+            save_data()  # Save new table
             
             tables.append({
                 'table_id': table_id,
@@ -516,6 +522,7 @@ def music_callback():
                             if req['task_id'] == task_id:
                                 req['status'] = 'completed'
                                 print(f"✅ Marked table {table_id} request as completed")
+                                save_data()  # Save updated table request status
                 else:
                     print(f"ERROR: download_audio_file returned empty string for task {task_id}")
 
@@ -621,8 +628,9 @@ def call_suno_generate_music(prompt: str, venue_id: str = None, table_id: str = 
         if venue_id:
             task_to_venue[task_id] = venue_id
             print(f"   ✅ Mapped task {task_id} to venue {venue_id}")
+            save_data()  # Save mapping immediately
         else:
-            print("   ⚠️ WARNING: No venue_id provided")
+            print("   ⚠️ WARNING: No venue_id provided - song won't be added to queue!")
         
         # If table_id is provided, track the request
         if table_id:
@@ -1115,6 +1123,7 @@ def venues():
             venue_queues[venue_id] = []
             venue_owners[user_email] = [venue_id]
             user_venue_ids = [venue_id]
+            save_data()  # Save new venue data
         
         base_url = get_base_url() or ''
         return render_template('admin_venues.html', base_url=base_url, user_name=session.get('user_name', 'User'), is_admin=False, user_venue_ids=user_venue_ids)
@@ -1469,6 +1478,7 @@ def _generate_background_for_venue(venue_id):
             f.write(img_response.content)
         
         venue_metadata[venue_id]['qr_background'] = bg_filename
+        save_data()  # Save updated venue metadata
         return bg_filename, None
     except Exception as e:
         return None, str(e)
