@@ -1020,6 +1020,10 @@
                         <span class="sidebar-button-icon"><img src="/img/songs.png" alt="Songs" style="width: 40px; height: 40px; object-fit: contain;"></span>
                         <span class="sidebar-button-text">Songs</span>
                     </a>
+                    <button class="sidebar-button" onclick="toggleStreamSection()" id="streamToggleBtn">
+                        <span class="sidebar-button-icon">🎵</span>
+                        <span class="sidebar-button-text">Stream</span>
+                    </button>
                     <a href="/admin/genres" class="sidebar-button" style="display: {% if is_admin %}flex{% else %}none{% endif %};">
                         <span class="sidebar-button-icon">🎵</span>
                         <span class="sidebar-button-text">Genre Control</span>
@@ -1141,6 +1145,7 @@
         const baseUrl = '{{ base_url }}';
         const isAdmin = {{ 'true' if is_admin else 'false' }};
         const userVenueIds = {{ user_venue_ids|tojson if user_venue_ids else '[]' }};
+        const currentVenueId = userVenueIds.length > 0 ? userVenueIds[0] : null;
 
         function scrollToCreate() {
             document.getElementById('createVenueSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
