@@ -275,11 +275,17 @@ def load_data():
     # Load venue owners
     if os.path.exists(VENUE_OWNERS_FILE):
         try:
+            file_size = os.path.getsize(VENUE_OWNERS_FILE)
+            print(f"   📄 venue_owners.json exists ({file_size} bytes)")
             with open(VENUE_OWNERS_FILE, 'r', encoding='utf-8') as f:
                 loaded = json.load(f)
                 if isinstance(loaded, dict):
+                    venue_owners.clear()  # Clear first to avoid stale data
                     venue_owners.update(loaded)
                     print(f"   ✅ Loaded {len(venue_owners)} venue owners from venue_owners.json")
+                    print(f"   Owner emails: {list(venue_owners.keys())}")
+                    for email, venues in venue_owners.items():
+                        print(f"      {email}: {venues}")
                 else:
                     print(f"   ⚠️ venue_owners.json is not a dict, ignoring")
         except Exception as e:
@@ -287,7 +293,7 @@ def load_data():
             import traceback
             traceback.print_exc()
     else:
-        print(f"   ⚠️ venue_owners.json does not exist yet")
+        print(f"   ⚠️ venue_owners.json does not exist yet at {VENUE_OWNERS_FILE}")
     
     # Load venue tables
     if os.path.exists(VENUE_TABLES_FILE):
