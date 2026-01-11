@@ -866,6 +866,10 @@ def music_callback():
                         print(f"✅ Added song '{song_title}' to venue {venue_id} queue")
                         print(f"   Venue {venue_id} now has {len(venue_queues[venue_id])} song(s) in queue")
                         
+                        # Save queue changes to disk
+                        save_data()
+                        print(f"✅ Saved queue data to disk")
+                        
                         # Clean up the mapping
                         del task_to_venue[task_id]
                     
