@@ -617,12 +617,101 @@ def get_venue_info(venue_id):
 @app.route('/venue/<venue_id>/queue')
 def get_venue_queue(venue_id):
     """Get the current queue for a venue"""
+    # Poll for completed songs before returning queue
+    check_and_process_pending_tasks(venue_id)
     queue = venue_queues.get(venue_id, [])
     return jsonify({
         'venue_id': venue_id,
         'queue': queue,
         'queue_length': len(queue)
     })
+
+
+def check_and_process_pending_tasks(venue_id=None):
+    """Poll Suno API for pending tasks and download/completed songs"""
+    try:
+        # Get all pending tasks (tasks in task_to_venue that haven't been processed)
+        pending_tasks = {}
+        if venue_id:
+            # Check only tasks for this venue
+            pending_tasks = {task_id: v_id for task_id, v_id in task_to_venue.items() if v_id == venue_id}
+        else:
+            # Check all pending tasks
+            pending_tasks = dict(task_to_venue)
+        
+        if not pending_tasks:
+            return
+        
+        print(f"🔍 Polling {len(pending_tasks)} pending task(s)...")
+        
+        for task_id, v_id in list(pending_tasks.items()):
+            try:
+                # Check status from Suno
+                status_response = requests.get(
+                    f"{SUNO_API_BASE}/api/v1/get/{task_id}",
+                    headers={"Authorization": f"Bearer {SUNO_API_KEY}"},
+                    timeout=10
+                )
+                
+                if status_response.status_code == 200:
+                    status_data = status_response.json()
+                    
+                    if status_data.get("code") == 200:
+                        tracks = status_data.get("data", [])
+                        if tracks and len(tracks) > 0:
+                            first_track = tracks[0]
+                            status = first_track.get("status", "")
+                            
+                            # If song is complete, download it
+                            if status == "complete":
+                                audio_url = first_track.get("audio_url") or first_track.get("audioUrl")
+                                song_title = first_track.get("title") or first_track.get("song_name") or ""
+                                
+                                if audio_url:
+                                    print(f"📥 Found completed song for task {task_id}, downloading...")
+                                    if song_title:
+                                        song_titles[task_id] = song_title
+                                    
+                                    filename = download_audio_file(audio_url, prefix=task_id)
+                                    if filename:
+                                        task_audio_map[task_id] = filename
+                                        
+                                        # Add to venue queue
+                                        if v_id not in venue_queues:
+                                            venue_queues[v_id] = []
+                                        
+                                        song_title_display = song_titles.get(task_id, filename)
+                                        song_entry = {
+                                            'filename': filename,
+                                            'title': song_title_display,
+                                            'task_id': task_id,
+                                            'timestamp': datetime.now().isoformat(),
+                                            'added_at': datetime.now().strftime("%H:%M:%S")
+                                        }
+                                        
+                                        venue_queues[v_id].append(song_entry)
+                                        print(f"✅ Added song '{song_title_display}' to venue {v_id} queue via polling")
+                                        
+                                        # Clean up tracking
+                                        del task_to_venue[task_id]
+                                        
+                                        # Save data
+                                        save_data()
+                                        print(f"✅ Saved queue data to disk (polling)")
+                            elif status in ("pending", "generating"):
+                                # Still processing, skip for now
+                                pass
+                            else:
+                                print(f"⚠️ Task {task_id} status: {status}")
+            except Exception as e:
+                print(f"❌ Error polling task {task_id}: {e}")
+                import traceback
+                traceback.print_exc()
+                continue
+    except Exception as e:
+        print(f"❌ Error in check_and_process_pending_tasks: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 @app.route('/venue/<venue_id>/queue/next')
