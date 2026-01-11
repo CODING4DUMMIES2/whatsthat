@@ -326,25 +326,35 @@ def save_data():
         # Save venue metadata
         with open(VENUE_METADATA_FILE, 'w', encoding='utf-8') as f:
             json.dump(venue_metadata, f, indent=2, default=str)
-        print(f"   ✅ Saved venue_metadata ({len(venue_metadata)} venues)")
+            f.flush()  # Force write to disk
+            os.fsync(f.fileno())  # Ensure OS writes to disk
+        print(f"   ✅ Saved venue_metadata ({len(venue_metadata)} venues) to {VENUE_METADATA_FILE}")
         
         # Save venue queues
         with open(VENUE_QUEUES_FILE, 'w', encoding='utf-8') as f:
             json.dump(venue_queues, f, indent=2, default=str)
+            f.flush()
+            os.fsync(f.fileno())
         print(f"   ✅ Saved venue_queues ({len(venue_queues)} queues)")
         
         # Save task to venue mapping
         with open(TASK_TO_VENUE_FILE, 'w', encoding='utf-8') as f:
             json.dump(task_to_venue, f, indent=2, default=str)
+            f.flush()
+            os.fsync(f.fileno())
         
         # Save song titles
         with open(SONG_TITLES_FILE, 'w', encoding='utf-8') as f:
             json.dump(song_titles, f, indent=2, default=str)
+            f.flush()
+            os.fsync(f.fileno())
         
         # Save venue owners
         with open(VENUE_OWNERS_FILE, 'w', encoding='utf-8') as f:
             json.dump(venue_owners, f, indent=2, default=str)
-        print(f"   ✅ Saved venue_owners ({len(venue_owners)} owners)")
+            f.flush()
+            os.fsync(f.fileno())
+        print(f"   ✅ Saved venue_owners ({len(venue_owners)} owners) to {VENUE_OWNERS_FILE}")
         
         # Save venue tables
         with open(VENUE_TABLES_FILE, 'w', encoding='utf-8') as f:
