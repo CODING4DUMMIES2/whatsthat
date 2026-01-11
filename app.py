@@ -325,12 +325,31 @@ def remove_song_from_queue(venue_id):
 @app.route('/send', methods=['POST'])
 def send_message():
     try:
+        print("=" * 60)
+        print("📨 RECEIVED SONG REQUEST")
+        print(f"Request method: {request.method}")
+        print(f"Content-Type: {request.content_type}")
+        print(f"Headers: {dict(request.headers)}")
+        
         data = request.get_json()
+        if not data:
+            print("❌ ERROR: No JSON data received")
+            return jsonify({'success': False, 'error': 'No JSON data received'}), 400
+        
+        print(f"Request data: {data}")
+        
         message = data.get('message', '').strip()
         venue_id = data.get('venue_id')  # Optional venue ID
         table_id = data.get('table_id')  # Optional table ID
+        genre = data.get('genre', '').strip()
+
+        print(f"Message: {message}")
+        print(f"Venue ID: {venue_id}")
+        print(f"Table ID: {table_id}")
+        print(f"Genre: {genre}")
 
         if not message:
+            print("❌ ERROR: Empty message")
             return jsonify({'success': False, 'error': 'Empty message'}), 400
 
         # Save message to file
@@ -340,24 +359,34 @@ def send_message():
 
         with open(filepath, "w", encoding="utf-8") as f:
             f.write(message)
+        print(f"✅ Saved message to: {filepath}")
 
-        # Get genre from request if provided
-        genre = data.get('genre', '').strip()
-        
         # Trigger Suno music generation (non-custom mode, full song with vocals)
+        print("🎵 Calling Suno API...")
         music_info = call_suno_generate_music(prompt=message, venue_id=venue_id, table_id=table_id, genre=genre if genre else None)
+        print(f"🎵 Suno API response: {music_info}")
 
         # Return success with timestamp + music generation info
         display_timestamp = datetime.now().strftime("%H:%M:%S")
-        return jsonify({
+        response_data = {
             'success': True,
             'timestamp': display_timestamp,
             'message': message,
             'music_generation': music_info,
             'venue_id': venue_id
-        })
+        }
+        print(f"✅ Returning success response: {response_data}")
+        print("=" * 60)
+        return jsonify(response_data)
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        import traceback
+        error_trace = traceback.format_exc()
+        print("=" * 60)
+        print("❌ ERROR IN /send ENDPOINT")
+        print(f"Error: {str(e)}")
+        print(f"Traceback:\n{error_trace}")
+        print("=" * 60)
+        return jsonify({'success': False, 'error': str(e), 'traceback': error_trace}), 500
 
 
 @app.route('/audio/<filename>')
