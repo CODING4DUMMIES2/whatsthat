@@ -1,0 +1,2606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>whatsthat - AI Music Requests for Your Venue</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1A1C1E;
+            min-height: 100vh;
+            color: white;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Content Background GIF (below hero) */
+        .content-background-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -2;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .content-background-wrapper img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.3;
+            animation: slowGif 3s ease-in-out infinite;
+        }
+
+        @keyframes slowGif {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.02);
+            }
+        }
+
+        /* Ensure content sections are above the background */
+        .how-it-works,
+        .moments-section,
+        .venue-control-section,
+        .keepsake-section,
+        .revenue-section,
+        .venue-types-section,
+        .proof-section,
+        .setup-section,
+        .faq-section,
+        .cta-section {
+            position: relative;
+            z-index: 1;
+        }
+
+
+        /* Shimmer/Sweep Effect - Light traveling around border */
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        /* Frosted Glass Base Style */
+        .frosted-glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 2px solid transparent;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+            border-radius: 16px;
+        }
+
+        .frosted-glass::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 16px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            position: relative;
+            z-index: 1;
+            padding-top: 80px;
+        }
+
+        .hero {
+            z-index: 0;
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(26, 28, 30, 0.95);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            padding: 16px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .navbar-logo {
+            height: 70px;
+            width: auto;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .navbar-links a:hover {
+            color: white;
+        }
+
+        .navbar-cta {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .navbar-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        /* Hero Section */
+        .hero {
+            text-align: center;
+            padding: 80px 20px;
+            margin-bottom: 100px;
+            min-height: 700px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: visible;
+            background: transparent;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+        }
+
+        .hero > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .hero-headline {
+            font-size: 56px;
+            font-weight: 900;
+            margin-bottom: 30px;
+            line-height: 1.2;
+            color: white;
+        }
+
+        .hero-subtitle {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.7);
+            max-width: 800px;
+            margin: 0 auto 50px;
+            line-height: 1.6;
+            font-weight: 400;
+        }
+
+        .hero-input-container {
+            max-width: 1000px;
+            width: 100%;
+            margin: 0 auto 30px;
+            background: rgba(44, 46, 50, 0.8);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 50px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            border: 2px solid transparent;
+            position: relative;
+        }
+
+        .hero-input-container::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 50px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
+        .hero-input-left-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .hero-icon-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: #3A3C40;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #B0B2B5;
+            font-size: 16px;
+            transition: all 0.2s;
+        }
+
+        .hero-icon-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .hero-icon-btn:hover {
+            background: #4A4C50;
+            color: white;
+        }
+
+        .hero-input-wrapper {
+            flex: 1;
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            min-width: 0;
+        }
+
+        .hero-input {
+            flex: 1;
+            min-width: 500px;
+            padding: 14px 16px;
+            background: transparent;
+            border: none;
+            font-size: 20px;
+            color: white;
+            font-weight: 400;
+            outline: none;
+            position: relative;
+            z-index: 2;
+            line-height: 1.5;
+        }
+
+        .hero-placeholder-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 1;
+            display: flex;
+            align-items: center;
+            padding: 14px 16px;
+            opacity: 1;
+            transition: opacity 0.2s;
+        }
+
+        .hero-placeholder-text {
+            color: #B0B2B5;
+            font-size: 20px;
+            font-weight: 400;
+            white-space: nowrap;
+            overflow: visible;
+            line-height: 1.5;
+            padding-top: 0;
+            padding-bottom: 0;
+        }
+
+        .hero-placeholder-slide {
+            color: #B0B2B5;
+            display: inline-block;
+        }
+
+        .hero-placeholder-cursor {
+            display: inline-block;
+            width: 2px;
+            height: 20px;
+            background: #B0B2B5;
+            margin-left: 2px;
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+            0%, 50% { opacity: 1; }
+            51%, 100% { opacity: 0; }
+        }
+
+        .hero-tag-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .hero-tag-btn {
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .hero-tag-btn.active {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+        }
+
+        .hero-tag-btn.inactive {
+            background: transparent;
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .hero-right-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .hero-tools-btn {
+            padding: 10px 16px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            color: white;
+            font-size: 14px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hero-submit-btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .hero-submit-btn:hover {
+            transform: scale(1.1);
+        }
+
+        .hero-action-buttons {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .hero-action-btn {
+            padding: 12px 20px;
+            border-radius: 12px;
+            background: #2C2E32;
+            border: 2px solid transparent;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: rgba(255, 255, 255, 0.8);
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .hero-action-btn::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 12px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
+        .hero-action-btn:hover {
+            background: #3A3C40;
+            color: white;
+        }
+
+        .hero-action-btn .icon {
+            font-size: 18px;
+        }
+
+        /* Features Section */
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+            margin-bottom: 80px;
+        }
+
+        .feature-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            padding: 30px;
+            border: 2px solid transparent;
+            border-radius: 16px;
+            position: relative;
+        }
+
+        .feature-card::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 16px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
+        .feature-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .feature-card h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: white;
+            font-weight: 800;
+        }
+
+        .feature-card p {
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+            font-size: 16px;
+            font-weight: 500;
+        }
+
+        /* How It Works */
+        .how-it-works {
+            margin-bottom: 80px;
+        }
+
+        .how-it-works h2 {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 50px;
+            font-weight: 900;
+            color: white;
+        }
+
+        .flow-line {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 40px;
+            flex-wrap: wrap;
+            margin-top: 50px;
+        }
+
+        .flow-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            flex: 0 0 auto;
+            max-width: 250px;
+        }
+
+        .flow-icon {
+            font-size: 32px;
+            margin-bottom: 15px;
+            opacity: 0.9;
+        }
+
+        .flow-arrow {
+            font-size: 24px;
+            color: rgba(138, 43, 226, 0.6);
+            margin: 0 10px;
+        }
+
+        .flow-item h3 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .flow-item p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        /* Benefits Section */
+        .benefits {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            padding: 60px 30px;
+            border: 2px solid transparent;
+            border-radius: 16px;
+            position: relative;
+            margin-bottom: 80px;
+        }
+
+        .benefits::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 16px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
+        .benefits h2 {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 40px;
+            font-weight: 900;
+            color: white;
+        }
+
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .benefit-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 20px;
+        }
+
+        .benefit-icon {
+            font-size: 32px;
+            flex-shrink: 0;
+        }
+
+        .benefit-text h4 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .benefit-text p {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+        }
+
+        .cta-section {
+            text-align: center;
+            padding: 60px 0;
+            margin-bottom: 40px;
+        }
+
+        .cta-section h2 {
+            font-size: 42px;
+            margin-bottom: 20px;
+            font-weight: 900;
+            color: white;
+        }
+
+        .cta-section p {
+            font-size: 20px;
+            color: rgba(255, 255, 255, 0.95);
+            margin-bottom: 40px;
+            font-weight: 600;
+        }
+
+        .cta-button {
+            display: inline-block;
+            padding: 18px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 12px;
+            font-size: 18px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 30px rgba(102, 126, 234, 0.6);
+        }
+
+        .cta-buttons {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .cta-button.cta-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        .cta-button.cta-secondary:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        /* Scroll Animation */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-on-scroll {
+            opacity: 0;
+            transform: translateY(40px);
+            transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+            will-change: opacity, transform;
+        }
+
+        .animate-on-scroll.animated {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Moments Section */
+        .moments-section {
+            margin-bottom: 100px;
+        }
+
+        .moments-section h2 {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 20px;
+            font-weight: 900;
+            color: white;
+        }
+
+        .moments-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 40px;
+            margin-top: 50px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+        @media (max-width: 968px) {
+            .moments-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .moment-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            padding: 50px 40px;
+            border: 2px solid transparent;
+            border-radius: 16px;
+            position: relative;
+        }
+
+        .moment-card::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 16px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
+        .moment-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .moment-card h3 {
+            font-size: 24px;
+            margin-bottom: 12px;
+            color: white;
+            font-weight: 800;
+        }
+
+        .moment-prompt {
+            font-style: italic;
+            color: white;
+            font-size: 16px;
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .moment-description {
+            color: rgba(255, 255, 255, 0.8);
+            line-height: 1.6;
+            font-size: 15px;
+        }
+
+        /* Venue Control Section */
+        .venue-control-section {
+            margin-bottom: 100px;
+        }
+
+        .venue-control-section h2 {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 20px;
+            font-weight: 900;
+            color: white;
+        }
+
+        .control-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            margin-top: 50px;
+            align-items: start;
+        }
+
+        .control-text-stack {
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .control-text-item {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .control-text-item h4 {
+            font-size: 22px;
+            color: white;
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .control-text-item p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
+            line-height: 1.5;
+            margin: 0;
+        }
+
+        .control-mock-ui {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 16px;
+            padding: 40px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .mock-queue-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .mock-queue-item span {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 14px;
+        }
+
+        .mock-queue-item button {
+            background: rgba(138, 43, 226, 0.3);
+            border: 1px solid rgba(138, 43, 226, 0.5);
+            color: white;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            cursor: default;
+        }
+
+        @media (max-width: 968px) {
+            .control-split {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Keepsake Albums Section */
+        .keepsake-section {
+            margin-bottom: 100px;
+        }
+
+        .keepsake-section h2 {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 50px;
+            font-weight: 900;
+            color: white;
+        }
+
+        .keepsake-features {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 30px;
+            margin-top: 50px;
+        }
+
+        .keepsake-item {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            padding: 0;
+            border: 2px solid transparent;
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .keepsake-item:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        /* Night Album Card */
+        .artifact-album {
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .artifact-album-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+
+        .artifact-album-title {
+            font-size: 24px;
+            font-weight: 700;
+            color: white;
+            letter-spacing: -0.5px;
+        }
+
+        .artifact-album-date {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .artifact-album-cover {
+            font-size: 64px;
+            text-align: center;
+            padding: 24px 0;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            margin: 8px 0;
+        }
+
+        .artifact-album-tracks {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .artifact-track {
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 10px;
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .artifact-track:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateX(4px);
+        }
+
+        /* Notification Card */
+        .artifact-message {
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .artifact-message-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .artifact-message-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .artifact-message-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .artifact-message-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .artifact-message-time {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 500;
+        }
+
+        .artifact-message-content {
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .artifact-message-text {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.5;
+            font-weight: 500;
+        }
+
+        .artifact-message-link {
+            font-size: 14px;
+            color: rgba(138, 43, 226, 0.9);
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-block;
+            transition: all 0.2s ease;
+        }
+
+        .artifact-message-link:hover {
+            color: rgba(138, 43, 226, 1);
+            transform: translateX(4px);
+        }
+
+        /* Creation Summary Card */
+        .artifact-landing {
+            padding: 32px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        .artifact-landing-header {
+            margin-bottom: 8px;
+        }
+
+        .artifact-landing-title {
+            font-size: 22px;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 6px;
+            letter-spacing: -0.3px;
+        }
+
+        .artifact-landing-subtitle {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.6);
+            font-weight: 500;
+        }
+
+        .artifact-landing-content {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .artifact-landing-item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            transition: all 0.2s ease;
+        }
+
+        .artifact-landing-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateX(4px);
+        }
+
+        .artifact-landing-icon {
+            font-size: 20px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            flex-shrink: 0;
+        }
+
+        .artifact-landing-text {
+            font-size: 15px;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 500;
+            flex: 1;
+        }
+
+        /* Social Post Card */
+        .artifact-social {
+            padding: 28px;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
+        }
+
+        .artifact-social-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .artifact-social-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.4) 0%, rgba(118, 75, 162, 0.4) 100%);
+            flex-shrink: 0;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .artifact-social-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .artifact-social-name {
+            font-size: 16px;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 2px;
+        }
+
+        .artifact-social-handle {
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.5);
+            font-weight: 500;
+        }
+
+        .artifact-social-content {
+            padding-top: 12px;
+        }
+
+        .artifact-social-text {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            line-height: 1.6;
+            margin-bottom: 12px;
+            font-weight: 500;
+        }
+
+        .artifact-social-image {
+            font-size: 48px;
+            text-align: center;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            margin-top: 8px;
+        }
+
+        .artifact-social-actions {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            padding-top: 12px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .artifact-social-action {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .artifact-social-action:hover {
+            color: rgba(255, 255, 255, 0.9);
+            transform: translateY(-2px);
+        }
+
+        /* Revenue Section */
+        .revenue-section {
+            margin-bottom: 100px;
+        }
+
+        .revenue-section h2 {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 20px;
+            font-weight: 900;
+            color: white;
+        }
+
+        .revenue-row {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 60px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .revenue-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            text-align: center;
+        }
+
+        .revenue-item-icon {
+            font-size: 36px;
+        }
+
+        .revenue-item-text {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .revenue-subtext {
+            text-align: center;
+            margin-top: 30px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
+        }
+
+        .revenue-card::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 16px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
+        .revenue-icon {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        .revenue-card h3 {
+            font-size: 24px;
+            margin-bottom: 15px;
+            color: white;
+            font-weight: 800;
+        }
+
+        .revenue-card p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 16px;
+            line-height: 1.6;
+        }
+
+        /* Venue Types Section */
+        .venue-types-section {
+            margin-bottom: 100px;
+        }
+
+        .venue-types-section h2 {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 20px;
+            font-weight: 900;
+            color: white;
+        }
+
+        .venue-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+        }
+
+        .venue-tab {
+            padding: 12px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 2px solid transparent;
+            border-radius: 50px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .venue-tab:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .venue-tab.active {
+            background: rgba(138, 43, 226, 0.3);
+            border-color: rgba(138, 43, 226, 0.6);
+            color: white;
+        }
+
+        .venue-content {
+            margin-top: 40px;
+            text-align: center;
+            min-height: 200px;
+        }
+
+        .venue-content-item {
+            display: none;
+        }
+
+        .venue-content-item.active {
+            display: block;
+        }
+
+        .venue-content-item h3 {
+            font-size: 28px;
+            margin-bottom: 15px;
+            color: white;
+            font-weight: 800;
+        }
+
+        .venue-content-item p {
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            margin-bottom: 20px;
+            font-size: 18px;
+        }
+
+        .venue-content-item ul {
+            list-style: none;
+            padding: 0;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .venue-content-item ul li {
+            color: rgba(255, 255, 255, 0.8);
+            padding: 10px 0;
+            padding-left: 25px;
+            position: relative;
+            font-size: 16px;
+            line-height: 1.6;
+            text-align: left;
+        }
+
+        .venue-content-item ul li::before {
+            content: '•';
+            position: absolute;
+            left: 0;
+            color: rgba(138, 43, 226, 0.9);
+            font-weight: bold;
+            font-size: 20px;
+        }
+
+        /* Proof Section */
+        .proof-section {
+            margin-bottom: 100px;
+        }
+
+        .proof-section h2 {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 50px;
+            font-weight: 900;
+            color: white;
+        }
+
+        .testimonials-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .testimonial-card {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            position: relative;
+        }
+
+        .testimonial-text {
+            font-size: 22px;
+            line-height: 1.7;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 20px;
+            font-style: italic;
+        }
+
+        .testimonial-author {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 18px;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        /* Setup Section */
+        .setup-section {
+            margin-bottom: 100px;
+        }
+
+        .setup-section h2 {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 50px;
+            font-weight: 900;
+            color: white;
+        }
+
+        .setup-strip {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 40px;
+            margin-top: 40px;
+            flex-wrap: wrap;
+            padding: 30px 0;
+        }
+
+        .setup-strip-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .setup-strip-separator {
+            color: rgba(255, 255, 255, 0.3);
+            font-size: 20px;
+        }
+
+        .setup-item::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 16px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
+        .setup-icon {
+            font-size: 40px;
+            margin-bottom: 15px;
+        }
+
+        .setup-item h4 {
+            font-size: 20px;
+            margin-bottom: 10px;
+            color: white;
+            font-weight: 700;
+        }
+
+        .setup-item p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 15px;
+            line-height: 1.5;
+        }
+
+        /* FAQ Section */
+        .faq-section {
+            margin-bottom: 100px;
+            margin-top: 80px;
+            padding-top: 80px;
+            border-top: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .faq-section h2 {
+            text-align: center;
+            font-size: 42px;
+            margin-bottom: 50px;
+            font-weight: 900;
+            color: white;
+        }
+
+        .faq-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .faq-item {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            padding: 0;
+            border: 2px solid transparent;
+            border-radius: 16px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .faq-item::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 16px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
+        .faq-item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 25px;
+            cursor: pointer;
+        }
+
+        .faq-item h4 {
+            font-size: 20px;
+            margin: 0;
+            color: white;
+            font-weight: 700;
+            flex: 1;
+            text-align: left;
+        }
+
+        .faq-toggle {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.1);
+            border: none;
+            color: white;
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.3s;
+            flex-shrink: 0;
+            margin-left: 20px;
+        }
+
+        .faq-item.active .faq-toggle {
+            transform: rotate(180deg);
+        }
+
+        .faq-answer {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s ease-out;
+            padding: 0 25px;
+        }
+
+        .faq-item.active .faq-answer {
+            max-height: 500px;
+            padding: 0 25px 25px 25px;
+        }
+
+        .faq-item p {
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 15px;
+            line-height: 1.6;
+            margin: 0;
+        }
+
+        .footer {
+            text-align: center;
+            padding: 40px 0;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .navbar {
+                padding: 12px 20px;
+            }
+
+            .navbar-links {
+                gap: 16px;
+                font-size: 14px;
+            }
+
+            .navbar-cta {
+                padding: 8px 16px;
+                font-size: 14px;
+            }
+
+            .hero-headline {
+                font-size: 36px;
+            }
+
+            .hero-input-container {
+                flex-wrap: wrap;
+            }
+
+            .hero-input {
+                min-width: 250px;
+            }
+
+            .hero-action-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+            }
+
+            .steps {
+                grid-template-columns: 1fr;
+            }
+
+            .moments-grid,
+            .flow-line {
+                flex-direction: column;
+                gap: 30px;
+            }
+
+            .flow-arrow {
+                transform: rotate(90deg);
+            }
+
+            .control-split {
+                grid-template-columns: 1fr;
+            }
+
+            .keepsake-features {
+                grid-template-columns: 1fr;
+            }
+
+            .venue-tabs {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .venue-tab {
+                width: 100%;
+            }
+
+            .setup-strip {
+                flex-direction: column;
+                gap: 20px;
+            }
+
+            .setup-strip-separator {
+                display: none;
+            }
+
+            .revenue-row {
+                flex-direction: column;
+                gap: 30px;
+            }
+
+            .testimonials-grid,
+            .cta-buttons {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .cta-button {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Navbar -->
+        <nav class="navbar">
+            <img src="/img/logo.png" alt="whatsthat logo" class="navbar-logo">
+            <ul class="navbar-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <a href="/login" style="padding: 10px 24px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 15px; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.8)'">Login</a>
+                <a href="/signup" class="navbar-cta">Sign Up</a>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <div class="hero">
+            <h1 class="hero-headline">Turn Tables Into Entertainment Without Hiring A DJ</h1>
+            <p class="hero-subtitle">
+                Let customers create custom songs and karaoke covers instantly. Scan a QR code, make a request, and watch the magic happen.
+            </p>
+            
+            <div class="hero-input-container">
+                <div class="hero-input-wrapper">
+                    <div style="flex: 1; position: relative; min-width: 500px;">
+                        <input 
+                            type="text" 
+                            class="hero-input" 
+                            id="songPromptInput"
+                            style="width: 100%;"
+                        />
+                        <div class="hero-placeholder-overlay" id="placeholderOverlay">
+                            <div class="hero-placeholder-text">
+                                <span class="hero-placeholder-slide" id="placeholderSlide"></span>
+                                <span class="hero-placeholder-cursor" id="placeholderCursor"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="hero-right-controls">
+                    <button class="hero-submit-btn" onclick="generateSong()" id="generateBtn" title="Create">
+                        <span>→</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="hero-action-buttons">
+                <button class="hero-action-btn create-song" onclick="generateSong()">
+                    <span class="icon">🎵</span>
+                    <span>Create song</span>
+                </button>
+                <button class="hero-action-btn create-sound" onclick="generateSound()">
+                    <span class="icon">🎤</span>
+                    <span>Karaoke</span>
+                </button>
+                <button class="hero-action-btn speak-text" onclick="speakText()">
+                    <span class="icon">🎵</span>
+                    <span>Cover song</span>
+                </button>
+                <button class="hero-action-btn change-file" onclick="changeFile()">
+                    <span class="icon">✨</span>
+                    <span>Night Album</span>
+                </button>
+                <button class="hero-action-btn random" onclick="randomPrompt()">
+                    <span class="icon">🎲</span>
+                    <span>Hype Mode</span>
+                </button>
+            </div>
+            
+            <div id="songStatusContainer" style="max-width: 800px; margin: 30px auto 0; display: none;">
+                <div id="songStatus" class="frosted-glass" style="padding: 20px; border-radius: 16px; text-align: center;">
+                    <div id="songStatusText" style="font-weight: 700; font-size: 18px; margin-bottom: 15px;"></div>
+                    <div id="songAudioPlayer" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Background Wrapper -->
+        <div class="content-background-wrapper">
+            <img src="/img/background.gif" alt="Background animation">
+        </div>
+
+        <!-- How It Works -->
+        <div class="how-it-works animate-on-scroll">
+            <h2>How It Works</h2>
+            <div class="flow-line">
+                <div class="flow-item">
+                    <div class="flow-icon">📱</div>
+                    <h3>QR on Table</h3>
+                    <p>Each table gets a unique QR code</p>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-item">
+                    <div class="flow-icon">✍️</div>
+                    <h3>Guest Makes Song</h3>
+                    <p>Customers scan and type their request</p>
+                </div>
+                <div class="flow-arrow">→</div>
+                <div class="flow-item">
+                    <div class="flow-icon">🎵</div>
+                    <h3>Song Plays in Queue</h3>
+                    <p>Automatically joins and plays in order</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Moments Section -->
+        <div class="moments-section animate-on-scroll" id="features">
+            <h2>Real Moments, Real Songs</h2>
+            <p style="text-align: center; color: rgba(255, 255, 255, 0.7); margin-bottom: 40px; font-size: 18px;">
+                See what actually happens in venues. These are real prompts from real tables.
+            </p>
+            <div class="moments-grid">
+                <div class="moment-card">
+                    <div class="moment-icon">🎂</div>
+                    <h3>Birthday Table Anthem</h3>
+                    <p class="moment-prompt">"Make a fun pop song for Sarah turning 29..."</p>
+                    <p class="moment-description">Celebrate special occasions with personalized anthems.</p>
+                </div>
+                <div class="moment-card">
+                    <div class="moment-icon">🎉</div>
+                    <h3>Bachelor Party Roast</h3>
+                    <p class="moment-prompt">Clean version toggle enabled</p>
+                    <p class="moment-description">Keep the fun going while maintaining venue standards.</p>
+                </div>
+                <div class="moment-card">
+                    <div class="moment-icon">🏆</div>
+                    <h3>Team Win Song</h3>
+                    <p class="moment-prompt">Sports bar victory anthems</p>
+                    <p class="moment-description">Capture the energy of game day with instant victory songs.</p>
+                </div>
+            </div>
+            <p style="text-align: center; color: rgba(255, 255, 255, 0.6); margin-top: 40px; font-size: 18px; font-style: italic;">
+                And dozens more moments every night.
+            </p>
+        </div>
+
+        <!-- Venue Control Section -->
+        <div class="venue-control-section">
+            <h2>You Control the Room</h2>
+            <p style="text-align: center; color: rgba(255, 255, 255, 0.7); margin-bottom: 50px; font-size: 18px;">
+                Full control over what plays, when it plays, and how it plays.
+            </p>
+            <div class="control-split">
+                <div class="control-text-stack">
+                    <div class="control-text-item">
+                        <h4>Shared Venue Queue</h4>
+                        <p>No chaos. One organized queue that staff can see and manage.</p>
+                    </div>
+                    <div class="control-text-item">
+                        <h4>Staff Approval</h4>
+                        <p>Approve, skip, or reorder songs before they play.</p>
+                    </div>
+                    <div class="control-text-item">
+                        <h4>Clean Mode</h4>
+                        <p>Automatic content filtering with custom banned word lists.</p>
+                    </div>
+                    <div class="control-text-item">
+                        <h4>Rate Limits</h4>
+                        <p>Control how many songs each table can request per hour.</p>
+                    </div>
+                    <div class="control-text-item">
+                        <h4>Genre Presets</h4>
+                        <p>Set themes: "Country Night", "EDM Late", "Chill Brunch"</p>
+                    </div>
+                </div>
+                <div class="control-mock-ui">
+                    <h4 style="color: white; font-size: 18px; margin-bottom: 10px;">Queue Management</h4>
+                    <div class="mock-queue-item">
+                        <span>🎂 Birthday Song - Table 5</span>
+                        <button>Approve</button>
+                    </div>
+                    <div class="mock-queue-item">
+                        <span>🎉 Party Anthem - Table 12</span>
+                        <button>Approve</button>
+                    </div>
+                    <div class="mock-queue-item">
+                        <span>🏆 Victory Song - Table 8</span>
+                        <button>Approve</button>
+                    </div>
+                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                        <p style="color: rgba(255, 255, 255, 0.6); font-size: 13px; margin: 0;">Clean Mode: ON | Rate Limit: 2/hour</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Keepsake Albums Section -->
+        <div class="keepsake-section">
+            <h2>Turn a Night Out into a Memory People Share</h2>
+            <div class="keepsake-features">
+                <div class="keepsake-item artifact-album">
+                    <div class="artifact-album-header">
+                        <div class="artifact-album-title">Night Album</div>
+                        <div class="artifact-album-date">Dec 19, 2025</div>
+                    </div>
+                    <div class="artifact-album-cover">🎵</div>
+                    <div class="artifact-album-tracks">
+                        <div class="artifact-track">🎂 Birthday Anthem - Table 5</div>
+                        <div class="artifact-track">🎉 Party Song - Table 12</div>
+                    </div>
+                </div>
+                <div class="keepsake-item artifact-message">
+                    <div class="artifact-message-header">
+                        <div class="artifact-message-avatar">📱</div>
+                        <div class="artifact-message-info">
+                            <div class="artifact-message-name"></div>
+                            <div class="artifact-message-time">Just now</div>
+                        </div>
+                    </div>
+                    <div class="artifact-message-content">
+                        <div class="artifact-message-text">Your Night Album is ready! All your songs from tonight are saved and ready to share.</div>
+                    </div>
+                </div>
+                <div class="keepsake-item artifact-landing">
+                    <div class="artifact-landing-header">
+                        <div class="artifact-landing-title">Made at The Bar</div>
+                        <div class="artifact-landing-subtitle">Your custom songs from tonight</div>
+                    </div>
+                    <div class="artifact-landing-content">
+                        <div class="artifact-landing-item">
+                            <div class="artifact-landing-icon">🎵</div>
+                            <div class="artifact-landing-text">3 songs created</div>
+                        </div>
+                        <div class="artifact-landing-item">
+                            <div class="artifact-landing-icon">📸</div>
+                            <div class="artifact-landing-text">2 photos added</div>
+                        </div>
+                        <div class="artifact-landing-item">
+                            <div class="artifact-landing-icon">📱</div>
+                            <div class="artifact-landing-text">Share your album</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="keepsake-item artifact-social">
+                    <div class="artifact-social-header">
+                        <div class="artifact-social-avatar"></div>
+                        <div class="artifact-social-info">
+                            <div class="artifact-social-name">Sarah M.</div>
+                            <div class="artifact-social-handle">@sarah_m</div>
+                        </div>
+                    </div>
+                    <div class="artifact-social-content">
+                        <div class="artifact-social-text">Just made our own song at The Bar! 🎵</div>
+                        <div class="artifact-social-image">🎂</div>
+                    </div>
+                    <div class="artifact-social-actions">
+                        <span class="artifact-social-action">❤️ 24</span>
+                        <span class="artifact-social-action">💬 5</span>
+                        <span class="artifact-social-action">📤 Share</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Promotions & Revenue Section -->
+        <div class="revenue-section">
+            <h2>Make It Pay for Itself</h2>
+            <div class="revenue-row">
+                <div class="revenue-item">
+                    <div class="revenue-item-icon">🎫</div>
+                    <div class="revenue-item-text">Free Song w/ Purchase</div>
+                </div>
+                <div class="revenue-item">
+                    <div class="revenue-item-icon">⚡</div>
+                    <div class="revenue-item-text">Boost the Queue</div>
+                </div>
+                <div class="revenue-item">
+                    <div class="revenue-item-icon">🎤</div>
+                    <div class="revenue-item-text">Event Packages</div>
+                </div>
+            </div>
+            <p class="revenue-subtext">
+                You set pricing, limits, and promo rules.
+            </p>
+        </div>
+
+        <!-- Where It Fits Section -->
+        <div class="venue-types-section">
+            <h2>Where It Fits</h2>
+            <p style="text-align: center; color: rgba(255, 255, 255, 0.7); margin-bottom: 50px; font-size: 18px;">
+                Find your venue type and see how it works for you.
+            </p>
+            <div class="venue-tabs">
+                <button class="venue-tab active" onclick="showVenueType('bars')">Bars & Lounges</button>
+                <button class="venue-tab" onclick="showVenueType('restaurants')">Restaurants</button>
+                <button class="venue-tab" onclick="showVenueType('sports')">Sports Bars</button>
+                <button class="venue-tab" onclick="showVenueType('events')">Events</button>
+            </div>
+            <div class="venue-content">
+                <div class="venue-content-item active" id="bars">
+                    <h3>Bars & Lounges</h3>
+                    <p><strong>Weekends, birthday groups</strong></p>
+                    <ul>
+                        <li>Birthday anthems that get tables singing</li>
+                        <li>Group celebration songs</li>
+                        <li>Late-night party vibes</li>
+                    </ul>
+                </div>
+                <div class="venue-content-item" id="restaurants">
+                    <h3>Restaurants</h3>
+                    <p><strong>Table engagement + keepsakes</strong></p>
+                    <ul>
+                        <li>Anniversary songs for couples</li>
+                        <li>Family celebration moments</li>
+                        <li>Take-home Night Albums</li>
+                    </ul>
+                </div>
+                <div class="venue-content-item" id="sports">
+                    <h3>Sports Bars</h3>
+                    <p><strong>Team anthems + hype</strong></p>
+                    <ul>
+                        <li>Victory songs after big games</li>
+                        <li>Team celebration anthems</li>
+                        <li>Game day energy boosters</li>
+                    </ul>
+                </div>
+                <div class="venue-content-item" id="events">
+                    <h3>Events / Private Rooms</h3>
+                    <p><strong>Albums + karaoke</strong></p>
+                    <ul>
+                        <li>Private event packages</li>
+                        <li>Karaoke night experiences</li>
+                        <li>Custom event albums</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Proof Section -->
+        <div class="proof-section">
+            <h2>What People Are Saying</h2>
+            <div class="testimonials-grid">
+                <div class="testimonial-card">
+                    <p class="testimonial-text">"We made a song about our friend's divorce and it was hilarious. The whole bar was laughing."</p>
+                    <p class="testimonial-author">— Bar Guest</p>
+                </div>
+                <div class="testimonial-card">
+                    <p class="testimonial-text">"We played our anniversary song on the ride home. It's now our song forever."</p>
+                    <p class="testimonial-author">— Restaurant Customer</p>
+                </div>
+                <div class="testimonial-card">
+                    <p class="testimonial-text">"Our regulars love having their own theme songs. It's become a Friday night tradition."</p>
+                    <p class="testimonial-author">— Bar Owner</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Setup & Support Section -->
+        <div class="setup-section">
+            <h2>Live in a Day. No Hardware.</h2>
+            <div class="setup-strip">
+                <div class="setup-strip-item">📱 QR Codes Provided</div>
+                <div class="setup-strip-separator">·</div>
+                <div class="setup-strip-item">🔊 Works with Existing Setup</div>
+                <div class="setup-strip-separator">·</div>
+                <div class="setup-strip-item">⏱️ 10-Minute Training</div>
+                <div class="setup-strip-separator">·</div>
+                <div class="setup-strip-item">📞 Dedicated Support</div>
+            </div>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="faq-section">
+            <h2>Frequently Asked Questions</h2>
+            <div class="faq-grid">
+                <div class="faq-item">
+                    <div class="faq-item-header" onclick="toggleFaq(this)">
+                        <h4>Can guests make offensive songs?</h4>
+                        <button class="faq-toggle">▼</button>
+                    </div>
+                    <div class="faq-answer">
+                        <p>No. Clean mode filters content automatically, and you can add custom banned words. Staff can also approve songs before they play.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-item-header" onclick="toggleFaq(this)">
+                        <h4>Do we have to play everything?</h4>
+                        <button class="faq-toggle">▼</button>
+                    </div>
+                    <div class="faq-answer">
+                        <p>No. Staff can approve, skip, or reorder songs in the queue before they play.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-item-header" onclick="toggleFaq(this)">
+                        <h4>How fast does it generate on a busy night?</h4>
+                        <button class="faq-toggle">▼</button>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Songs typically generate in 2-3 minutes. The queue system handles multiple requests smoothly.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-item-header" onclick="toggleFaq(this)">
+                        <h4>Can we limit genres/volume/length?</h4>
+                        <button class="faq-toggle">▼</button>
+                    </div>
+                    <div class="faq-answer">
+                        <p>Yes. Set genre presets, volume limits, and maximum song length in your venue settings.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-item-header" onclick="toggleFaq(this)">
+                        <h4>What if Wi-Fi is bad?</h4>
+                        <button class="faq-toggle">▼</button>
+                    </div>
+                    <div class="faq-answer">
+                        <p>The system works with minimal bandwidth. Songs are generated server-side and streamed efficiently.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-item-header" onclick="toggleFaq(this)">
+                        <h4>Do guests need an app?</h4>
+                        <button class="faq-toggle">▼</button>
+                    </div>
+                    <div class="faq-answer">
+                        <p>No. Guests just scan the QR code and use their browser. No app download required.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <div class="faq-item-header" onclick="toggleFaq(this)">
+                        <h4>Who owns the songs?</h4>
+                        <button class="faq-toggle">▼</button>
+                    </div>
+                    <div class="faq-answer">
+                        <p>You and your guests own the songs. You can reuse content for marketing with proper attribution.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Final CTA Section -->
+        <div class="cta-section">
+            <h2>Want to See It in Your Venue?</h2>
+            <a href="/signup" class="cta-button">Get a QR Kit</a>
+            <p style="margin-top: 20px; color: rgba(255, 255, 255, 0.7); font-size: 14px;">
+                Enter your venue name and email → We'll send printable QR codes + mock menus + demo link
+            </p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <p>&copy; 2025 whatsthat. All rights reserved.</p>
+        </div>
+    </div>
+
+    <script>
+        async function generateSong() {
+            const prompt = document.getElementById('songPromptInput').value.trim();
+            if (!prompt) {
+                alert('Please enter a song prompt');
+                return;
+            }
+
+            const generateBtn = document.getElementById('generateBtn');
+            const statusContainer = document.getElementById('songStatusContainer');
+            const statusText = document.getElementById('songStatusText');
+            const audioPlayer = document.getElementById('songAudioPlayer');
+
+            // Disable button and show loading
+            generateBtn.disabled = true;
+            generateBtn.innerHTML = '<span>⏳</span>';
+            statusContainer.style.display = 'block';
+            statusText.textContent = '⏳ Generating your song... This may take a minute.';
+            audioPlayer.style.display = 'none';
+            audioPlayer.innerHTML = '';
+
+            try {
+                const response = await fetch('/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: prompt })
+                });
+
+                const data = await response.json();
+
+                if (data.success && data.music_generation) {
+                    const musicGen = data.music_generation;
+                    
+                    if (musicGen.status === 'success' && data.audio_file) {
+                        showAudioPlayer(data.audio_file);
+                    } else if (musicGen.status === 'processing' && musicGen.task_id) {
+                        pollMusicStatus(musicGen.task_id);
+                    } else if (musicGen.status === 'error') {
+                        showError(musicGen.error || musicGen.message || 'Failed to generate song');
+                    }
+                } else {
+                    showError(data.error || 'Failed to generate song');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showError('Error: ' + error.message);
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.innerHTML = '<span>→</span>';
+            }
+        }
+
+        async function pollMusicStatus(taskId) {
+            const maxAttempts = 120;
+            const pollInterval = 5000;
+            let attempts = 0;
+            const statusText = document.getElementById('songStatusText');
+
+            const poll = async () => {
+                if (attempts >= maxAttempts) {
+                    statusText.textContent = '⏱️ Song generation is taking longer than expected. Please try again.';
+                    return;
+                }
+
+                attempts++;
+                statusText.textContent = `⏳ Generating your song... (checking ${attempts}/${maxAttempts})`;
+
+                try {
+                    const response = await fetch(`/status/${taskId}`);
+                    const data = await response.json();
+
+                    if (data.status === 'success' && data.audio_file) {
+                        showAudioPlayer(data.audio_file);
+                    } else if (data.status === 'error') {
+                        showError(data.error || data.message || 'Music generation failed');
+                    } else {
+                        setTimeout(poll, pollInterval);
+                    }
+                } catch (error) {
+                    console.error('Error polling status:', error);
+                    setTimeout(poll, pollInterval);
+                }
+            };
+
+            poll();
+        }
+
+        function showAudioPlayer(filename) {
+            const statusText = document.getElementById('songStatusText');
+            const audioPlayer = document.getElementById('songAudioPlayer');
+            
+            statusText.textContent = '✅ Your song is ready!';
+            audioPlayer.style.display = 'block';
+            
+            const audioType = filename.endsWith('.wav') ? 'audio/wav' : 'audio/mpeg';
+            audioPlayer.innerHTML = `
+                <audio controls autoplay style="width: 100%; margin-top: 15px;">
+                    <source src="/audio/${escapeHtml(filename)}" type="${audioType}">
+                    Your browser does not support the audio element.
+                </audio>
+            `;
+
+            // Try to autoplay
+            const audio = audioPlayer.querySelector('audio');
+            if (audio) {
+                const playPromise = audio.play();
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.log('Autoplay blocked:', error);
+                        const playBtn = document.createElement('button');
+                        playBtn.textContent = '▶️ Play Song';
+                        playBtn.className = 'hero-action-btn';
+                        playBtn.style.cssText = 'margin-top: 15px; padding: 12px 24px;';
+                        playBtn.onclick = () => {
+                            audio.play();
+                            playBtn.remove();
+                        };
+                        audioPlayer.appendChild(playBtn);
+                    });
+                }
+            }
+        }
+
+        function showError(message) {
+            const statusText = document.getElementById('songStatusText');
+            statusText.textContent = `❌ ${message}`;
+            statusText.style.color = '#ff6b6b';
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Enter key in input triggers song generation
+        document.getElementById('songPromptInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateSong();
+            }
+        });
+
+        // Rotating placeholder suggestions
+        const placeholderSuggestions = [
+            "A birthday song for my friend",
+            "A song about celebrating with friends",
+            "A karaoke song about having fun tonight",
+            "A song for our anniversary dinner",
+            "A song about good food and good times",
+            "A song to celebrate tonight",
+            "A song about making memories together",
+            "A fun song for the group",
+            "A song about enjoying the moment",
+            "A celebration song for the table",
+            "A song about friends and laughter",
+            "A party song for tonight",
+            "A song to make this night special"
+        ];
+
+        let currentPlaceholderIndex = 0;
+        const placeholderOverlay = document.getElementById('placeholderOverlay');
+        const placeholderSlide = document.getElementById('placeholderSlide');
+        const placeholderCursor = document.getElementById('placeholderCursor');
+        let isTyping = false;
+        let currentText = '';
+
+        async function typePlaceholder(text, speed = 50) {
+            if (!placeholderSlide) return;
+            
+            isTyping = true;
+            currentText = '';
+            placeholderSlide.textContent = '';
+            
+            // Type out the text character by character
+            for (let i = 0; i < text.length; i++) {
+                const input = document.getElementById('songPromptInput');
+                if (document.activeElement === input || input.value.trim() !== '') {
+                    isTyping = false;
+                    return;
+                }
+                
+                currentText += text[i];
+                placeholderSlide.textContent = currentText;
+                await new Promise(resolve => setTimeout(resolve, speed));
+            }
+            
+            // Wait before erasing
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            
+            // Erase the text character by character
+            for (let i = currentText.length; i >= 0; i--) {
+                const input = document.getElementById('songPromptInput');
+                if (document.activeElement === input || input.value.trim() !== '') {
+                    isTyping = false;
+                    return;
+                }
+                
+                currentText = currentText.slice(0, i);
+                placeholderSlide.textContent = currentText;
+                await new Promise(resolve => setTimeout(resolve, speed / 2));
+            }
+            
+            isTyping = false;
+        }
+
+        async function rotatePlaceholder() {
+            if (!placeholderOverlay || !placeholderSlide || isTyping) return;
+            
+            // Check if input has focus or value
+            const input = document.getElementById('songPromptInput');
+            if (document.activeElement === input || input.value.trim() !== '') {
+                return; // Don't rotate if user is typing
+            }
+
+            // Get next suggestion
+            currentPlaceholderIndex = (currentPlaceholderIndex + 1) % placeholderSuggestions.length;
+            const nextText = placeholderSuggestions[currentPlaceholderIndex];
+
+            // Type out the new suggestion
+            await typePlaceholder(nextText, 50);
+        }
+
+        // Start the typewriter effect
+        async function startPlaceholderAnimation() {
+            // Start with first suggestion
+            await typePlaceholder(placeholderSuggestions[0], 50);
+            
+            // Then rotate through the rest
+            while (true) {
+                const input = document.getElementById('songPromptInput');
+                if (document.activeElement === input || input.value.trim() !== '') {
+                    await new Promise(resolve => setTimeout(resolve, 1000));
+                    continue;
+                }
+                
+                await rotatePlaceholder();
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+        }
+
+        // Start the animation
+        startPlaceholderAnimation();
+
+        // Hide placeholder when user focuses input
+        document.getElementById('songPromptInput').addEventListener('focus', function() {
+            placeholderOverlay.style.opacity = '0';
+        });
+
+        // Show placeholder when user blurs input (if empty)
+        document.getElementById('songPromptInput').addEventListener('blur', function() {
+            if (this.value.trim() === '') {
+                placeholderOverlay.style.opacity = '1';
+            }
+        });
+
+        // Hide placeholder when user types
+        document.getElementById('songPromptInput').addEventListener('input', function() {
+            if (this.value.trim() !== '') {
+                placeholderOverlay.style.opacity = '0';
+                this.style.color = 'white';
+            } else {
+                placeholderOverlay.style.opacity = '1';
+            }
+        });
+
+        function generateSound() {
+            document.getElementById('songPromptInput').value = 'A karaoke song about having fun tonight';
+            generateSong();
+        }
+
+        function speakText() {
+            document.getElementById('songPromptInput').value = 'A cover song for the group';
+            generateSong();
+        }
+
+        function changeFile() {
+            alert('File upload feature coming soon!');
+        }
+
+        function randomPrompt() {
+            const randomIndex = Math.floor(Math.random() * placeholderSuggestions.length);
+            document.getElementById('songPromptInput').value = placeholderSuggestions[randomIndex];
+            placeholderOverlay.style.opacity = '0';
+        }
+
+        // FAQ Toggle Function
+        function toggleFaq(header) {
+            const faqItem = header.closest('.faq-item');
+            const isActive = faqItem.classList.contains('active');
+            
+            // Close all FAQ items
+            document.querySelectorAll('.faq-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Open clicked item if it wasn't active
+            if (!isActive) {
+                faqItem.classList.add('active');
+            }
+        }
+
+        // Scroll Animation Observer
+        function initScrollAnimations() {
+            const observerOptions = {
+                threshold: 0.15,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('animated');
+                        // Stop observing once animated
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, observerOptions);
+
+            // Observe all sections with animate-on-scroll class
+            document.querySelectorAll('.animate-on-scroll').forEach(section => {
+                // Check if already in viewport on load
+                const rect = section.getBoundingClientRect();
+                const isVisible = rect.top < window.innerHeight && rect.bottom > 0;
+                
+                if (isVisible && rect.top < window.innerHeight * 0.8) {
+                    // Already visible, animate immediately
+                    setTimeout(() => {
+                        section.classList.add('animated');
+                    }, 100);
+                } else {
+                    // Not visible yet, observe for scroll
+                    observer.observe(section);
+                }
+            });
+        }
+
+        // Initialize on page load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initScrollAnimations);
+        } else {
+            initScrollAnimations();
+        }
+
+        // Venue Type Tabs
+        function showVenueType(type) {
+            // Remove active class from all tabs
+            document.querySelectorAll('.venue-tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all content items
+            document.querySelectorAll('.venue-content-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+            
+            // Show corresponding content
+            document.getElementById(type).classList.add('active');
+        }
+    </script>
+</body>
+</html>
+
+
+
+
+
+

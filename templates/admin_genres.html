@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Genre Control - whatsthat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1A1C1E;
+            min-height: 100vh;
+            color: white;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Content Background GIF */
+        .content-background-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -2;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .content-background-wrapper img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.3;
+            animation: slowGif 3s ease-in-out infinite;
+        }
+
+        @keyframes slowGif {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.02);
+            }
+        }
+
+        /* Shimmer/Sweep Effect */
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(26, 28, 30, 0.95);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            padding: 16px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .navbar-logo {
+            height: 70px;
+            width: auto;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .navbar-links a:hover {
+            color: white;
+        }
+
+        .navbar-cta {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .navbar-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .main-layout {
+            display: flex;
+            gap: 24px;
+            margin-top: 100px;
+            min-height: calc(100vh - 100px);
+            padding: 40px;
+        }
+
+        .sidebar {
+            width: 300px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 100px;
+            height: calc(100vh - 100px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-menu {
+            background: rgba(26, 28, 30, 0.95);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 0;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-section {
+            padding: 20px;
+        }
+
+        .sidebar-section-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 16px;
+            padding: 0 4px;
+        }
+
+        .sidebar-button {
+            width: 100%;
+            padding: 16px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 10px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+        }
+
+        .sidebar-button:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateX(6px);
+            color: white;
+        }
+
+        .sidebar-button.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+
+        .sidebar-button-icon {
+            font-size: 22px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            flex-shrink: 0;
+        }
+
+        .main-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            padding-bottom: 40px;
+        }
+
+        .frosted-glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 2px solid transparent;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+            border-radius: 16px;
+        }
+
+        .frosted-glass::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 16px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
+        h1 {
+            font-size: 42px;
+            font-weight: 900;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .venue-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 2px solid transparent;
+            border-radius: 16px;
+            padding: 32px;
+            position: relative;
+            margin-bottom: 30px;
+        }
+
+        .venue-card::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 16px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
+        .venue-card h3 {
+            color: white;
+            margin-bottom: 20px;
+            font-weight: 800;
+            font-size: 28px;
+        }
+
+        .genre-status {
+            margin-bottom: 20px;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+        }
+
+        button {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        /* Genre Modal Styles */
+        .genre-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .genre-modal-overlay.active {
+            display: flex;
+        }
+
+        .genre-modal {
+            background: rgba(26, 28, 30, 0.98);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 2px solid transparent;
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .genre-modal::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 20px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
+        .genre-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .genre-modal-header h2 {
+            font-size: 24px;
+            font-weight: 800;
+            color: white;
+            margin: 0;
+        }
+
+        .genre-modal-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            font-size: 20px;
+            transition: all 0.2s;
+        }
+
+        .genre-modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+
+        .genre-checkboxes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .genre-checkbox-item {
+            display: flex;
+            align-items: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .genre-checkbox-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .genre-checkbox-item input[type="checkbox"] {
+            width: 20px;
+            height: 20px;
+            margin-right: 12px;
+            cursor: pointer;
+        }
+
+        .genre-checkbox-item label {
+            cursor: pointer;
+            color: white;
+            font-weight: 500;
+            flex: 1;
+            margin: 0;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 40px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 18px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Content Background Wrapper -->
+    <div class="content-background-wrapper">
+        <img src="/img/background.gif" alt="Background animation">
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <img src="/img/logo.png" alt="whatsthat logo" class="navbar-logo">
+        <ul class="navbar-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/admin/venues">Venues</a></li>
+            {% if user_name %}
+            <li><a href="#" style="color: rgba(255,255,255,0.6);">Welcome, {{ user_name }}</a></li>
+            {% endif %}
+        </ul>
+        {% if user_name %}
+        <a href="/logout" class="navbar-cta">Logout</a>
+        {% else %}
+        <a href="/login" class="navbar-cta">Login</a>
+        {% endif %}
+    </nav>
+
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-menu">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Navigation</div>
+                    <a href="/venues" class="sidebar-button">
+                        <span class="sidebar-button-icon"><img src="/img/venues.png" alt="Venues" style="width: 40px; height: 40px; object-fit: contain;"></span>
+                        <span class="sidebar-button-text">Venues</span>
+                    </a>
+                    <a href="/admin/genres" class="sidebar-button active">
+                        <span class="sidebar-button-icon">🎵</span>
+                        <span class="sidebar-button-text">Genre Control</span>
+                    </a>
+                    <a href="/" class="sidebar-button">
+                        <span class="sidebar-button-icon"><img src="/img/home.png" alt="Home" style="width: 40px; height: 40px; object-fit: contain;"></span>
+                        <span class="sidebar-button-text">Home</span>
+                    </a>
+                    <a href="/songs" class="sidebar-button">
+                        <span class="sidebar-button-icon"><img src="/img/songs.png" alt="Songs" style="width: 40px; height: 40px; object-fit: contain;"></span>
+                        <span class="sidebar-button-text">Songs</span>
+                    </a>
+                </div>
+                <div class="sidebar-section">
+                    <a href="/logout" class="sidebar-button">
+                        <span class="sidebar-button-icon">🚪</span>
+                        <span class="sidebar-button-text">Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="container">
+                <h1>🎵 Genre Control</h1>
+                <p style="color: rgba(255,255,255,0.7); margin-bottom: 40px; font-size: 16px;">Select which genres users can choose from when requesting songs for each venue.</p>
+
+                <div id="venuesList">
+                    {% if venues %}
+                        {% for venue in venues %}
+                        <div class="venue-card frosted-glass">
+                            <h3>{{ venue.name }}</h3>
+                            <div class="genre-status" id="genre-status-{{ venue.venue_id }}">
+                                <strong>Enabled genres:</strong> {{ venue.allowed_genres|length }} genre(s)
+                                {% if venue.allowed_genres %}
+                                <div style="margin-top: 8px; font-size: 13px;">
+                                    {{ venue.allowed_genres|join(', ') }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            <button onclick="openGenreControl('{{ venue.venue_id }}', '{{ venue.name }}')">
+                                🎵 Manage Genres
+                            </button>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="empty-state">
+                            <p>No venues found. <a href="/admin/venues" style="color: rgba(102, 126, 234, 0.9); text-decoration: underline;">Create a venue</a> first.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Genre Control Modal -->
+    <div class="genre-modal-overlay" id="genreModalOverlay" onclick="closeGenreControl(event)">
+        <div class="genre-modal" onclick="event.stopPropagation()">
+            <div class="genre-modal-header">
+                <h2 id="modalVenueName">🎵 Genre Control</h2>
+                <button class="genre-modal-close" onclick="closeGenreControl()">✕</button>
+            </div>
+            <div style="margin-bottom: 16px;">
+                <p style="color: rgba(255,255,255,0.7); font-size: 14px; margin-bottom: 20px;">Select which genres users can choose from when requesting songs for this venue:</p>
+                <div class="genre-checkboxes" id="genreCheckboxes">
+                    <!-- Checkboxes will be populated by JavaScript -->
+                </div>
+                <div style="display: flex; gap: 12px; margin-top: 24px;">
+                    <button onclick="selectAllGenres()" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+                        Select All
+                    </button>
+                    <button onclick="deselectAllGenres()" style="flex: 1; padding: 12px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; font-weight: 600; cursor: pointer;">
+                        Deselect All
+                    </button>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px; margin-top: 24px;">
+                <button onclick="saveGenreSettings()" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 10px; color: white; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
+                    Save Settings
+                </button>
+                <button onclick="closeGenreControl()" style="flex: 1; padding: 14px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 10px; color: white; font-weight: 600; cursor: pointer;">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentGenreVenueId = null;
+        const allGenres = ['country', 'rap', 'rock', 'pop', 'jazz', 'lofi', 'electronic', 'r&b', 'metal', 'classical'];
+        const genreDisplayNames = {
+            'country': 'Country',
+            'rap': 'Rap/Hip-Hop',
+            'rock': 'Rock',
+            'pop': 'Pop',
+            'jazz': 'Jazz',
+            'lofi': 'Lo-Fi',
+            'electronic': 'Electronic/EDM',
+            'r&b': 'R&B',
+            'metal': 'Metal',
+            'classical': 'Classical'
+        };
+
+        async function openGenreControl(venueId, venueName) {
+            currentGenreVenueId = venueId;
+            document.getElementById('modalVenueName').textContent = `🎵 Genre Control - ${venueName}`;
+            
+            try {
+                const response = await fetch(`/venue/${venueId}/genres`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const checkboxesContainer = document.getElementById('genreCheckboxes');
+                    checkboxesContainer.innerHTML = '';
+                    
+                    const allowedGenres = data.allowed_genres || [];
+                    
+                    allGenres.forEach(genre => {
+                        const checkboxItem = document.createElement('div');
+                        checkboxItem.className = 'genre-checkbox-item';
+                        
+                        const checkbox = document.createElement('input');
+                        checkbox.type = 'checkbox';
+                        checkbox.id = `genre-${genre}`;
+                        checkbox.value = genre;
+                        checkbox.checked = allowedGenres.includes(genre);
+                        
+                        const label = document.createElement('label');
+                        label.htmlFor = `genre-${genre}`;
+                        label.textContent = genreDisplayNames[genre] || genre;
+                        
+                        checkboxItem.appendChild(checkbox);
+                        checkboxItem.appendChild(label);
+                        checkboxesContainer.appendChild(checkboxItem);
+                    });
+                    
+                    document.getElementById('genreModalOverlay').classList.add('active');
+                } else {
+                    alert('Error loading genres: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function closeGenreControl(event) {
+            if (!event || event.target.classList.contains('genre-modal-overlay') || event.target.classList.contains('genre-modal-close')) {
+                document.getElementById('genreModalOverlay').classList.remove('active');
+                currentGenreVenueId = null;
+            }
+        }
+
+        function selectAllGenres() {
+            allGenres.forEach(genre => {
+                const checkbox = document.getElementById(`genre-${genre}`);
+                if (checkbox) checkbox.checked = true;
+            });
+        }
+
+        function deselectAllGenres() {
+            allGenres.forEach(genre => {
+                const checkbox = document.getElementById(`genre-${genre}`);
+                if (checkbox) checkbox.checked = false;
+            });
+        }
+
+        async function saveGenreSettings() {
+            if (!currentGenreVenueId) return;
+            
+            const selectedGenres = [];
+            allGenres.forEach(genre => {
+                const checkbox = document.getElementById(`genre-${genre}`);
+                if (checkbox && checkbox.checked) {
+                    selectedGenres.push(genre);
+                }
+            });
+            
+            if (selectedGenres.length === 0) {
+                if (!confirm('No genres selected. Users won\'t be able to select any genres. Continue?')) {
+                    return;
+                }
+            }
+            
+            try {
+                const response = await fetch(`/venue/${currentGenreVenueId}/genres`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ allowed_genres: selectedGenres })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Reload page to show updated status
+                    location.reload();
+                } else {
+                    alert('Error saving genres: ' + (data.error || 'Unknown error'));
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Close genre modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeGenreControl();
+            }
+        });
+    </script>
+</body>
+</html>
+

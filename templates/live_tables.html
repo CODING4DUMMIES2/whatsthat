@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Tables - whatsthat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1A1C1E;
+            min-height: 100vh;
+            color: white;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Content Background GIF */
+        .content-background-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -2;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .content-background-wrapper img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.3;
+            animation: slowGif 3s ease-in-out infinite;
+        }
+
+        @keyframes slowGif {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.02);
+            }
+        }
+
+        /* Shimmer Effect */
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(26, 28, 30, 0.95);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            padding: 16px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .navbar-logo {
+            height: 70px;
+            width: auto;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .navbar-links a:hover {
+            color: white;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 100px 20px 40px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .page-header h1 {
+            font-size: 42px;
+            font-weight: 900;
+            color: white;
+            margin: 0;
+        }
+
+        .back-link {
+            padding: 10px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .back-link::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 8px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 24px;
+        }
+
+        .table-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 2px solid transparent;
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .table-card::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 16px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
+        .table-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .table-card.has-request {
+            border-color: rgba(138, 43, 226, 0.6);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .table-name {
+            font-size: 20px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .music-indicator {
+            font-size: 32px;
+            animation: pulse 2s ease-in-out infinite;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .music-indicator.active {
+            opacity: 1;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.2);
+            }
+        }
+
+        .table-status {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-top: 8px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 60px 20px;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 18px;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding-top: 90px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 20px;
+                align-items: stretch;
+            }
+
+            .page-header h1 {
+                text-align: center;
+            }
+
+            .tables-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <img src="/img/logo.png" alt="whatsthat logo" class="navbar-logo">
+        <ul class="navbar-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/venues">Venues</a></li>
+            {% if user_name %}
+            <li><a href="#" style="color: rgba(255,255,255,0.6);">Welcome, {{ user_name }}</a></li>
+            {% endif %}
+        </ul>
+        <a href="/venues" class="navbar-cta" style="padding: 10px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 8px; color: white; font-size: 15px; font-weight: 600; cursor: pointer; text-decoration: none; transition: all 0.2s;">Dashboard</a>
+    </nav>
+
+    <!-- Content Background Wrapper -->
+    <div class="content-background-wrapper">
+        <img src="/img/background.gif" alt="Background animation">
+    </div>
+
+    <div class="container">
+        <div class="page-header">
+            <h1 id="venueName">Live Tables</h1>
+            <a href="/venues" class="back-link">← Back to Dashboard</a>
+        </div>
+
+        <div id="tablesContainer" class="loading">
+            Loading tables...
+        </div>
+    </div>
+
+    <script>
+        const venueId = '{{ venue_id }}';
+        let refreshInterval;
+
+        async function loadTables() {
+            try {
+                const response = await fetch(`/venue/${venueId}/live-tables/status`);
+                const data = await response.json();
+
+                if (data.success) {
+                    document.getElementById('venueName').textContent = `Live Tables - ${data.venue_name}`;
+                    displayTables(data.tables);
+                } else {
+                    document.getElementById('tablesContainer').innerHTML = 
+                        '<div class="loading">Error loading tables: ' + (data.error || 'Unknown error') + '</div>';
+                }
+            } catch (error) {
+                document.getElementById('tablesContainer').innerHTML = 
+                    '<div class="loading">Error: ' + error.message + '</div>';
+            }
+        }
+
+        function displayTables(tables) {
+            const container = document.getElementById('tablesContainer');
+            
+            if (tables.length === 0) {
+                container.innerHTML = '<div class="loading">No tables created yet. Go to the dashboard to add tables.</div>';
+                return;
+            }
+
+            container.className = 'tables-grid';
+            container.innerHTML = tables.map(table => `
+                <div class="table-card ${table.has_active_request ? 'has-request' : ''}">
+                    <div class="table-header">
+                        <div class="table-name">${table.name}</div>
+                        <div class="music-indicator ${table.has_active_request ? 'active' : ''}">🎵</div>
+                    </div>
+                    <div class="table-status">
+                        ${table.has_active_request 
+                            ? '🎵 Song request in progress...' 
+                            : table.recent_request_count > 0 
+                                ? `Last request: ${new Date(table.last_request_time).toLocaleTimeString()}`
+                                : 'No active requests'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Load tables immediately
+        loadTables();
+
+        // Refresh every 3 seconds
+        refreshInterval = setInterval(loadTables, 3000);
+
+        // Clean up on page unload
+        window.addEventListener('beforeunload', () => {
+            if (refreshInterval) {
+                clearInterval(refreshInterval);
+            }
+        });
+    </script>
+</body>
+</html>
+

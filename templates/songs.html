@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Songs Generated - whatsthat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1A1C1E;
+            min-height: 100vh;
+            color: white;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Content Background GIF */
+        .content-background-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -2;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .content-background-wrapper img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.3;
+            animation: slowGif 3s ease-in-out infinite;
+        }
+
+        @keyframes slowGif {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.02);
+            }
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(26, 28, 30, 0.95);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            padding: 16px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .navbar-logo {
+            height: 70px;
+            width: auto;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .navbar-links a:hover {
+            color: white;
+        }
+
+        .navbar-cta {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .navbar-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .main-content {
+            margin-top: 100px;
+            padding: 40px;
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .page-header {
+            margin-bottom: 40px;
+        }
+
+        .page-header h1 {
+            font-size: 48px;
+            font-weight: 700;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+
+        .page-header h1 img {
+            width: 56px;
+            height: 56px;
+            object-fit: contain;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.05);
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .content {
+            background: rgba(26, 28, 30, 0.95);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .stats {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            text-align: center;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 16px;
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .stats strong {
+            color: white;
+            font-size: 20px;
+        }
+
+        .songs-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .song-item {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .song-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .song-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .song-filename {
+            font-weight: 600;
+            color: white;
+            word-break: break-all;
+            flex: 1;
+            min-width: 200px;
+            font-size: 18px;
+        }
+
+        .song-meta {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            flex-wrap: wrap;
+        }
+
+        .song-meta-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .audio-player {
+            width: 100%;
+            margin-top: 16px;
+        }
+
+        .audio-player audio {
+            width: 100%;
+            outline: none;
+            border-radius: 8px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 80px 40px;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .empty-state-icon {
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: center;
+        }
+
+        .empty-state-icon img {
+            width: 80px;
+            height: 80px;
+            object-fit: contain;
+            opacity: 0.6;
+        }
+
+        .empty-state h2 {
+            font-size: 28px;
+            color: white;
+            margin-bottom: 12px;
+        }
+
+        .empty-state p {
+            font-size: 16px;
+            color: rgba(255, 255, 255, 0.6);
+            margin-bottom: 30px;
+        }
+
+        .error-message {
+            background: rgba(220, 53, 69, 0.15);
+            color: rgba(255, 255, 255, 0.9);
+            padding: 16px 20px;
+            border-radius: 12px;
+            margin-bottom: 24px;
+            border: 1px solid rgba(220, 53, 69, 0.3);
+        }
+
+        .error-message strong {
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Background GIF -->
+    <div class="content-background-wrapper">
+        <img src="/img/background.gif" alt="Background">
+    </div>
+
+    <!-- Navbar -->
+    <nav class="navbar">
+        <a href="/">
+            <img src="/img/logo.png" alt="whatsthat" class="navbar-logo">
+        </a>
+        <ul class="navbar-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/venues">Venues</a></li>
+        </ul>
+        <a href="/" class="navbar-cta">Back to Chat</a>
+    </nav>
+
+    <div class="main-content">
+        <div class="page-header">
+            <h1><img src="/img/songs.png" alt="Songs"> Songs Generated</h1>
+            <div class="header-actions">
+                <a href="/" class="btn btn-primary">← Back to Chat</a>
+                <button onclick="location.reload()" class="btn btn-secondary">🔄 Refresh</button>
+            </div>
+        </div>
+
+        <div class="content">
+            {% if error %}
+            <div class="error-message">
+                <strong>Error:</strong> {{ error }}
+            </div>
+            {% endif %}
+
+            {% if songs %}
+            <div class="stats">
+                <strong>{{ songs|length }}</strong> song{{ 's' if songs|length != 1 else '' }} generated
+            </div>
+
+            <div class="songs-list">
+                {% for song in songs %}
+                <div class="song-item">
+                    <div class="song-header">
+                        <div class="song-filename">{{ song.title }}</div>
+                        <div class="song-meta">
+                            <div class="song-meta-item">
+                                <span>📅</span>
+                                <span>{{ song.modified }}</span>
+                            </div>
+                            <div class="song-meta-item">
+                                <span>💾</span>
+                                <span>{{ song.size_mb }} MB</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="audio-player">
+                        <audio controls {% if loop.first %}id="first-audio"{% endif %}>
+                            <source src="/audio/{{ song.filename }}" type="{{ 'audio/wav' if song.filename.endswith('.wav') else 'audio/mpeg' }}">
+                            Your browser does not support the audio element.
+                        </audio>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <img src="/img/songs.png" alt="Songs">
+                </div>
+                <h2>No songs yet</h2>
+                <p>Start generating music by sending a message in the chat!</p>
+                <a href="/" class="btn btn-primary">Go to Chat</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        // Try to autoplay the first (most recent) song
+        document.addEventListener('DOMContentLoaded', function() {
+            const firstAudio = document.getElementById('first-audio');
+            if (firstAudio) {
+                // Try to play immediately
+                const playPromise = firstAudio.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.then(() => {
+                        console.log('Autoplay started successfully');
+                    }).catch(error => {
+                        console.log('Autoplay blocked by browser:', error);
+                        // If autoplay is blocked, show a play button
+                        const playButton = document.createElement('button');
+                        playButton.textContent = '▶️ Play Most Recent Song';
+                        playButton.className = 'btn btn-primary';
+                        playButton.style.cssText = 'margin: 10px auto; display: block;';
+                        playButton.onclick = function() {
+                            firstAudio.play();
+                            playButton.remove();
+                        };
+                        firstAudio.parentNode.insertBefore(playButton, firstAudio);
+                    });
+                }
+            }
+        });
+    </script>
+</body>
+</html>
+
+

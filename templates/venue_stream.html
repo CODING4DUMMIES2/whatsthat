@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Stream - whatsthat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2d1b4e 0%, #1a0d2e 50%, #0d0518 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px 20px;
+            background: rgba(45, 27, 78, 0.4);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: white;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        .now-playing {
+            background: rgba(45, 27, 78, 0.4);
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .now-playing h2 {
+            font-size: 14px;
+            color: rgba(255, 255, 255, 0.7);
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .now-playing .song-title {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 15px;
+        }
+
+        .now-playing .audio-player {
+            width: 100%;
+        }
+
+        .now-playing .audio-player audio {
+            width: 100%;
+            outline: none;
+        }
+
+        .queue-section {
+            background: rgba(45, 27, 78, 0.4);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .queue-section h2 {
+            font-size: 18px;
+            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .queue-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .queue-item {
+            background: rgba(45, 27, 78, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .queue-item:hover {
+            background: rgba(45, 27, 78, 0.5);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .queue-item.playing {
+            background: rgba(102, 126, 234, 0.4);
+            border: 1px solid rgba(102, 126, 234, 0.6);
+            box-shadow: 0 0 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .queue-item.played {
+            opacity: 0.4;
+            background: rgba(45, 27, 78, 0.2);
+        }
+
+        .queue-item.played .queue-item-title {
+            text-decoration: line-through;
+        }
+
+        .queue-item-info {
+            flex: 1;
+        }
+
+        .queue-item-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .queue-item-time {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .queue-item-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.5);
+            margin-right: 15px;
+            min-width: 30px;
+        }
+
+        .empty-queue {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        .status-indicator.playing {
+            background: #667eea;
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.6);
+        }
+
+        .status-indicator.waiting {
+            background: #ffa500;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .queue-count {
+            background: rgba(102, 126, 234, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+            display: inline-block;
+            margin-left: 10px;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+        }
+
+        #startQueueBtn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        #startQueueBtn:active {
+            transform: translateY(0);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 Live Music Stream</h1>
+            <p>Venue Queue - Songs will play automatically as they're generated</p>
+        </div>
+
+        <div class="now-playing" id="nowPlaying">
+            <h2>
+                <span class="status-indicator waiting" id="statusIndicator"></span>
+                <span id="statusText">Waiting for songs...</span>
+            </h2>
+            <div class="song-title" id="currentSongTitle">No song playing</div>
+            <div id="startButtonContainer" style="text-align: center; margin-top: 20px;">
+                <button id="startQueueBtn" style="padding: 15px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: all 0.2s;">
+                    ▶️ Start Queue
+                </button>
+            </div>
+            <div class="audio-player" id="audioPlayerContainer" style="display: none;">
+                <audio id="currentAudio" controls autoplay></audio>
+            </div>
+        </div>
+
+        <div class="queue-section">
+            <h2>
+                Queue
+                <span class="queue-count" id="queueCount">0 songs</span>
+            </h2>
+            <div class="queue-list" id="queueList">
+                <div class="empty-queue">No songs in queue</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const venueId = '{{ venue_id }}';
+        let currentSong = null;
+        let isPlaying = false;
+        let queueCheckInterval = null;
+        let audioElement = null;
+        let autoplayEnabled = false;
+
+        // Start button click handler
+        document.getElementById('startQueueBtn').addEventListener('click', function() {
+            autoplayEnabled = true;
+            this.style.display = 'none';
+            document.getElementById('statusText').textContent = 'Queue Active - Waiting for songs...';
+            startQueuePolling();
+        });
+
+        // Check for new songs every 3 seconds
+        function startQueuePolling() {
+            if (queueCheckInterval) return; // Already started
+            queueCheckInterval = setInterval(checkQueue, 3000);
+            checkQueue(); // Check immediately
+        }
+
+        async function checkQueue() {
+            try {
+                const response = await fetch(`/venue/${venueId}/queue`);
+                const data = await response.json();
+                
+                updateQueueDisplay(data.queue);
+                
+                // If not playing and queue has songs and autoplay is enabled, find next unplayed song
+                if (!isPlaying && data.queue.length > 0 && autoplayEnabled) {
+                    // Find first unplayed song
+                    const nextSong = data.queue.find(song => !playedSongs.has(song.task_id));
+                    if (nextSong) {
+                        playNextSong(nextSong);
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking queue:', error);
+            }
+        }
+
+        // Track which songs have been played
+        const playedSongs = new Set();
+
+        function updateQueueDisplay(queue) {
+            const queueList = document.getElementById('queueList');
+            const queueCount = document.getElementById('queueCount');
+            
+            queueCount.textContent = `${queue.length} song${queue.length !== 1 ? 's' : ''}`;
+            
+            if (queue.length === 0) {
+                queueList.innerHTML = '<div class="empty-queue">No songs in queue</div>';
+                return;
+            }
+
+            // Find the first unplayed song index
+            let nextUnplayedIndex = 0;
+            for (let i = 0; i < queue.length; i++) {
+                if (!playedSongs.has(queue[i].task_id)) {
+                    nextUnplayedIndex = i;
+                    break;
+                }
+            }
+
+            queueList.innerHTML = queue.map((song, index) => {
+                const isPlayed = playedSongs.has(song.task_id);
+                const isCurrent = index === nextUnplayedIndex && isPlaying && !isPlayed;
+                const isNext = index === nextUnplayedIndex && !isPlaying && !isPlayed;
+                
+                return `
+                    <div class="queue-item ${isCurrent ? 'playing' : ''} ${isPlayed ? 'played' : ''}">
+                        <div class="queue-item-number">${isPlayed ? '✓' : index + 1}</div>
+                        <div class="queue-item-info">
+                            <div class="queue-item-title">${escapeHtml(song.title)}</div>
+                            <div class="queue-item-time">Added at ${song.added_at}${isPlayed ? ' • Played' : ''}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function playNextSong(song) {
+            if (isPlaying) return;
+            
+            isPlaying = true;
+            currentSong = song;
+            
+            // Update UI
+            document.getElementById('statusText').textContent = 'Now Playing';
+            document.getElementById('statusIndicator').className = 'status-indicator playing';
+            document.getElementById('currentSongTitle').textContent = song.title;
+            document.getElementById('startButtonContainer').style.display = 'none';
+            
+            // Create audio element
+            const audioContainer = document.getElementById('audioPlayerContainer');
+            audioContainer.style.display = 'block';
+            
+            if (audioElement) {
+                audioElement.pause();
+                audioElement.remove();
+            }
+            
+            audioElement = document.createElement('audio');
+            audioElement.id = 'currentAudio';
+            audioElement.controls = true;
+            audioElement.autoplay = true;
+            audioElement.preload = 'auto';
+            audioElement.src = `/audio/${song.filename}`;
+            
+            // Clear container and add new audio
+            audioContainer.innerHTML = '';
+            audioContainer.appendChild(audioElement);
+            
+            // Wait for audio to be ready, then play
+            audioElement.addEventListener('loadeddata', async () => {
+                try {
+                    await audioElement.play();
+                    console.log('✅ Started playing:', song.title);
+                } catch (error) {
+                    console.log('⚠️ Autoplay blocked:', error);
+                    // If blocked, show play button
+                    const playBtn = document.createElement('button');
+                    playBtn.textContent = '▶️ Click to Play';
+                    playBtn.style.cssText = 'margin: 10px auto; display: block; padding: 10px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);';
+                    playBtn.onclick = async () => {
+                        await audioElement.play();
+                        playBtn.remove();
+                    };
+                    audioContainer.insertBefore(playBtn, audioElement);
+                }
+            });
+            
+            // Load the audio
+            audioElement.load();
+            
+            // When song ends, mark as played and play next
+            audioElement.addEventListener('ended', async () => {
+                console.log('Song ended, marking as played and playing next');
+                
+                // Mark song as played (but keep it in queue)
+                if (currentSong && currentSong.task_id) {
+                    playedSongs.add(currentSong.task_id);
+                }
+                
+                isPlaying = false;
+                currentSong = null;
+                
+                // Check for next song immediately
+                setTimeout(() => {
+                    checkQueue();
+                }, 500);
+            });
+            
+            // Also handle errors
+            audioElement.addEventListener('error', (e) => {
+                console.error('Audio error:', e);
+                isPlaying = false;
+                setTimeout(() => checkQueue(), 2000);
+            });
+            
+            // Update queue display
+            checkQueue();
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Don't start polling until user clicks "Start Queue" button
+        // This ensures autoplay works after user interaction
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

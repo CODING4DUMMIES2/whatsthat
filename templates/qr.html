@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code - whatsthat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            padding: 40px;
+            text-align: center;
+            max-width: 500px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+
+        .subtitle {
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 14px;
+        }
+
+        .qr-container {
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            border: 2px solid #e0e0e0;
+            margin: 20px 0;
+            display: inline-block;
+        }
+
+        .qr-container img {
+            display: block;
+            max-width: 100%;
+            height: auto;
+        }
+
+        .url-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            word-break: break-all;
+        }
+
+        .url-info strong {
+            color: #667eea;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .url-info code {
+            color: #333;
+            font-size: 16px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .instructions {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+            text-align: left;
+        }
+
+        .instructions h3 {
+            color: #1976d2;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+
+        .instructions ol {
+            margin-left: 20px;
+            color: #555;
+            line-height: 1.8;
+        }
+
+        .instructions li {
+            margin-bottom: 5px;
+        }
+
+        .back-link {
+            display: inline-block;
+            margin-top: 20px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+            padding: 10px 20px;
+            border: 2px solid #667eea;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .back-link:hover {
+            background: #667eea;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📱 Scan to Open</h1>
+        <p class="subtitle">Scan this QR code with your phone to access whatsthat</p>
+        
+        <div class="qr-container">
+            <img src="https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={{ url }}" alt="QR Code">
+        </div>
+
+        <div class="url-info">
+            <strong>Server URL:</strong>
+            <code>{{ url }}</code>
+        </div>
+
+        <div class="instructions">
+            <h3>📋 Instructions:</h3>
+            <ol>
+                <li>Open your phone's camera or QR code scanner app</li>
+                <li>Point it at the QR code above</li>
+                <li>Tap the notification to open the app in your browser</li>
+                <li>The app will work from anywhere with internet connection</li>
+            </ol>
+        </div>
+
+        <a href="/" class="back-link">← Back to App</a>
+    </div>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+

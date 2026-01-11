@@ -1,0 +1,671 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>whatsthat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2d1b4e 0%, #1a0d2e 50%, #0d0518 100%);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: white;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            background: rgba(45, 27, 78, 0.4);
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            width: 100%;
+            max-width: 500px;
+            height: 600px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            background: rgba(102, 126, 234, 0.3);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            font-size: 24px;
+            font-weight: bold;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chat-display {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background: rgba(45, 27, 78, 0.2);
+        }
+
+        .message {
+            background: rgba(45, 27, 78, 0.4);
+            padding: 12px 16px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .message-timestamp {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 11px;
+            margin-bottom: 4px;
+        }
+
+        .message-text {
+            color: rgba(255, 255, 255, 0.9);
+            word-wrap: break-word;
+            white-space: pre-wrap;
+        }
+
+        .input-area {
+            padding: 15px;
+            background: rgba(45, 27, 78, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            align-items: flex-end;
+        }
+
+        #messageInput {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            font-size: 14px;
+            resize: none;
+            font-family: inherit;
+            min-height: 44px;
+            max-height: 120px;
+            background: rgba(45, 27, 78, 0.5);
+            color: white;
+        }
+
+        #messageInput::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        #messageInput:focus {
+            outline: none;
+            border-color: rgba(102, 126, 234, 0.6);
+            background: rgba(45, 27, 78, 0.6);
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+        }
+
+        #sendButton {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #sendButton:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        #sendButton:active {
+            transform: scale(0.98);
+        }
+
+        .empty-state {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.6);
+            padding: 40px 20px;
+        }
+
+        .audio-player {
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(45, 27, 78, 0.4);
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .audio-player audio {
+            width: 100%;
+            outline: none;
+        }
+
+        .music-status {
+            margin-top: 8px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+        }
+
+        .music-status.success {
+            background: rgba(102, 126, 234, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+        }
+
+        .music-status.error {
+            background: rgba(220, 53, 69, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(220, 53, 69, 0.4);
+        }
+
+        .music-status.processing {
+            background: rgba(255, 165, 0, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(255, 165, 0, 0.4);
+        }
+
+        .api-key-section {
+            padding: 15px;
+            background: rgba(45, 27, 78, 0.3);
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            border-bottom-left-radius: 15px;
+            border-bottom-right-radius: 15px;
+        }
+
+        .api-key-container {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .api-key-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.9);
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+
+        #apiKeyInput {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            background: rgba(45, 27, 78, 0.5);
+            color: white;
+        }
+
+        #apiKeyInput::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        #apiKeyInput:focus {
+            outline: none;
+            border-color: rgba(102, 126, 234, 0.6);
+            background: rgba(45, 27, 78, 0.6);
+            box-shadow: 0 0 10px rgba(102, 126, 234, 0.3);
+        }
+
+        #saveApiKeyButton {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+            box-shadow: 0 2px 10px rgba(102, 126, 234, 0.3);
+        }
+
+        #saveApiKeyButton:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        #saveApiKeyButton:active {
+            transform: scale(0.98);
+        }
+
+        .api-key-status {
+            margin-top: 8px;
+            font-size: 11px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .api-key-status.success {
+            background: rgba(102, 126, 234, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(102, 126, 234, 0.4);
+            display: block;
+        }
+
+        .api-key-status.error {
+            background: rgba(220, 53, 69, 0.2);
+            color: rgba(255, 255, 255, 0.9);
+            border: 1px solid rgba(220, 53, 69, 0.4);
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span>whatsthat</span>
+                <div style="display: flex; gap: 10px;">
+                    <a href="/" style="color: white; text-decoration: none; font-size: 14px; padding: 6px 12px; background: rgba(255,255,255,0.15); border-radius: 8px; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.2);" onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(0)'">🏠 Home</a>
+                    <a href="/songs" style="color: white; text-decoration: none; font-size: 14px; padding: 6px 12px; background: rgba(255,255,255,0.15); border-radius: 8px; transition: all 0.2s; border: 1px solid rgba(255,255,255,0.2);" onmouseover="this.style.background='rgba(255,255,255,0.25)'; this.style.transform='translateY(-1px)'" onmouseout="this.style.background='rgba(255,255,255,0.15)'; this.style.transform='translateY(0)'">🎵 Songs Generated</a>
+                </div>
+            </div>
+        </div>
+        <div class="chat-display" id="chatDisplay">
+            <div class="empty-state">Start chatting! Type a message below.</div>
+        </div>
+        <div class="input-area">
+            <div class="input-container">
+                <textarea 
+                    id="messageInput" 
+                    placeholder="Type your message..."
+                    rows="1"
+                ></textarea>
+                <button id="sendButton">Send</button>
+            </div>
+        </div>
+        <div class="api-key-section">
+            <div class="api-key-label">API Key</div>
+            <div class="api-key-container">
+                <input 
+                    type="password" 
+                    id="apiKeyInput" 
+                    placeholder="Enter your Suno API key..."
+                />
+                <button id="saveApiKeyButton">Save</button>
+            </div>
+            <div id="apiKeyStatus" class="api-key-status"></div>
+        </div>
+    </div>
+
+    <script>
+        const messageInput = document.getElementById('messageInput');
+        const sendButton = document.getElementById('sendButton');
+        const chatDisplay = document.getElementById('chatDisplay');
+
+        // Auto-resize textarea
+        messageInput.addEventListener('input', function() {
+            this.style.height = 'auto';
+            this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+        });
+
+        // Send message function
+        async function sendMessage() {
+            const message = messageInput.value.trim();
+            if (!message) return;
+
+            // Clear input
+            messageInput.value = '';
+            messageInput.style.height = 'auto';
+
+            // Remove empty state if exists
+            const emptyState = chatDisplay.querySelector('.empty-state');
+            if (emptyState) {
+                emptyState.remove();
+            }
+
+            try {
+                const response = await fetch('/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message: message })
+                });
+
+                const data = await response.json();
+
+                if (data.success) {
+                    // Display message in chat
+                    const messageDiv = document.createElement('div');
+                    messageDiv.className = 'message';
+                    messageDiv.setAttribute('data-message-id', Date.now());
+                    
+                    let messageContent = `
+                        <div class="message-timestamp">[${data.timestamp}]</div>
+                        <div class="message-text">${escapeHtml(data.message)}</div>
+                    `;
+                    
+                    // Add music generation status and audio player if available
+                    if (data.music_generation) {
+                        const musicGen = data.music_generation;
+                        let musicHtml = '';
+                        
+                        if (musicGen.status === 'success' && data.audio_file) {
+                            // Show success message and audio player from server
+                            const audioType = data.audio_file.endsWith('.wav') ? 'audio/wav' : 'audio/mpeg';
+                            musicHtml += `
+                                <div class="music-status success">🎵 ${escapeHtml(musicGen.message || 'Music generated successfully!')}</div>
+                                <div class="audio-player">
+                                    <audio controls id="immediate-song-audio">
+                                        <source src="/audio/${escapeHtml(data.audio_file)}" type="${audioType}">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                </div>
+                            `;
+                        } else if (musicGen.status === 'processing' && musicGen.task_id) {
+                            // Show processing message and start polling
+                            const taskId = musicGen.task_id;
+                            console.log(`🚀 Starting music generation polling for task: ${taskId}`);
+                            musicHtml += `
+                                <div class="music-status processing" id="music-status-${taskId}">⏳ ${escapeHtml(musicGen.message || 'Music is being generated...')} (checking 0/120)</div>
+                            `;
+                            
+                            // Start polling for status
+                            pollMusicStatus(taskId, messageDiv);
+                        } else if (musicGen.status === 'error') {
+                            // Show error message
+                            musicHtml += `
+                                <div class="music-status error">❌ Music generation failed: ${escapeHtml(musicGen.error || musicGen.message || 'Unknown error')}</div>
+                            `;
+                        }
+                        
+                        messageContent += musicHtml;
+                    }
+                    
+                    messageDiv.innerHTML = messageContent;
+                    chatDisplay.appendChild(messageDiv);
+                    chatDisplay.scrollTop = chatDisplay.scrollHeight;
+                    
+                    // Try to autoplay if audio was included immediately
+                    const immediateAudio = messageDiv.querySelector('#immediate-song-audio');
+                    if (immediateAudio) {
+                        setTimeout(() => {
+                            const playPromise = immediateAudio.play();
+                            if (playPromise !== undefined) {
+                                playPromise.then(() => {
+                                    console.log('✅ Immediate autoplay started');
+                                }).catch(error => {
+                                    console.log('⚠️ Immediate autoplay blocked');
+                                    const playButton = document.createElement('button');
+                                    playButton.textContent = '▶️ Play Song';
+                                    playButton.style.cssText = 'margin: 8px 0; padding: 8px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: block; box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);';
+                                    playButton.onclick = function() {
+                                        immediateAudio.play();
+                                        playButton.remove();
+                                    };
+                                    immediateAudio.parentNode.insertBefore(playButton, immediateAudio);
+                                });
+                            }
+                        }, 100);
+                    }
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to send message'));
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Send button click
+        sendButton.addEventListener('click', sendMessage);
+
+        // Enter key to send (Shift+Enter for new line)
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+            }
+        });
+
+        // Poll for music generation status - every 5 seconds
+        async function pollMusicStatus(taskId, messageDiv) {
+            const maxAttempts = 120; // Poll for up to 10 minutes (120 * 5 seconds)
+            const pollInterval = 5000; // 5 seconds
+            let attempts = 0;
+            
+            const statusElement = document.getElementById(`music-status-${taskId}`);
+            if (!statusElement) return;
+            
+            const poll = async () => {
+                if (attempts >= maxAttempts) {
+                    statusElement.className = 'music-status error';
+                    statusElement.textContent = '⏱️ Music generation is taking longer than expected. Please refresh the page.';
+                    return;
+                }
+                
+                attempts++;
+                
+                try {
+                    const response = await fetch(`/status/${taskId}`);
+                    const data = await response.json();
+                    
+                    console.log(`Poll ${attempts}/${maxAttempts} for task ${taskId}:`, data);
+                    
+                    if (data.status === 'success' && data.audio_file) {
+                        // Music is ready! Show audio player from server
+                        console.log(`✅ SUCCESS! Audio file found: ${data.audio_file}`);
+                        statusElement.className = 'music-status success';
+                        statusElement.textContent = `🎵 ${data.message || 'Music generated successfully!'}`;
+                        
+                        // Check if audio player already exists to avoid duplicates
+                        const existingPlayer = statusElement.parentNode.querySelector('.audio-player');
+                        if (existingPlayer) {
+                            console.log('⚠️ Audio player already exists, skipping creation');
+                        } else {
+                            // Add audio player
+                            const audioPlayer = document.createElement('div');
+                            audioPlayer.className = 'audio-player';
+                            const audioType = data.audio_file.endsWith('.wav') ? 'audio/wav' : 'audio/mpeg';
+                            const audioUrl = `/audio/${escapeHtml(data.audio_file)}`;
+                            console.log(`🎵 Creating audio player with URL: ${audioUrl}`);
+                            audioPlayer.innerHTML = `
+                                <audio controls id="new-song-audio">
+                                    <source src="${audioUrl}" type="${audioType}">
+                                    Your browser does not support the audio element.
+                                </audio>
+                            `;
+                            statusElement.parentNode.insertBefore(audioPlayer, statusElement.nextSibling);
+                            console.log('✅ Audio player inserted into DOM');
+                            
+                            // Try to autoplay the new song
+                            const newAudio = document.getElementById('new-song-audio');
+                            if (newAudio) {
+                                // Wait a tiny bit for the audio element to be ready
+                                setTimeout(() => {
+                                    const playPromise = newAudio.play();
+                                    if (playPromise !== undefined) {
+                                        playPromise.then(() => {
+                                            console.log('✅ Autoplay started successfully');
+                                        }).catch(error => {
+                                            console.log('⚠️ Autoplay blocked by browser:', error);
+                                            // If autoplay is blocked, show a play button
+                                            const playButton = document.createElement('button');
+                                            playButton.textContent = '▶️ Play Song';
+                                            playButton.style.cssText = 'margin: 8px 0; padding: 8px 16px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 12px; font-weight: bold; cursor: pointer; display: block; box-shadow: 0 2px 10px rgba(102, 126, 234, 0.4);';
+                                            playButton.onclick = function() {
+                                                newAudio.play();
+                                                playButton.remove();
+                                            };
+                                            audioPlayer.insertBefore(playButton, newAudio);
+                                        });
+                                    }
+                                }, 100);
+                            }
+                        }
+                        
+                        messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    } else if (data.status === 'error') {
+                        console.log(`❌ Error status received:`, data.error || data.message);
+                        statusElement.className = 'music-status error';
+                        statusElement.textContent = `❌ ${data.error || data.message || 'Music generation failed'}`;
+                    } else {
+                        // Still processing or unknown status - keep polling
+                        console.log(`⏳ Status: ${data.status || 'unknown'}, message: ${data.message || 'N/A'}`);
+                        statusElement.textContent = `⏳ ${data.message || 'Music is being generated...'} (checking ${attempts}/${maxAttempts})`;
+                        setTimeout(poll, pollInterval);
+                    }
+                } catch (error) {
+                    console.error('Error polling status:', error);
+                    // Even on error, show the attempt count
+                    statusElement.textContent = `⏳ Music is being generated... (checking ${attempts}/${maxAttempts})`;
+                    setTimeout(poll, pollInterval);
+                }
+            };
+            
+            // Start polling immediately, then every 5 seconds
+            poll();
+        }
+
+        // Focus input on load
+        messageInput.focus();
+
+        // API Key Management
+        const apiKeyInput = document.getElementById('apiKeyInput');
+        const saveApiKeyButton = document.getElementById('saveApiKeyButton');
+        const apiKeyStatus = document.getElementById('apiKeyStatus');
+        const API_KEY_STORAGE = 'suno_api_key';
+
+        // Load saved API key on page load
+        function loadApiKey() {
+            const savedKey = localStorage.getItem(API_KEY_STORAGE);
+            if (savedKey) {
+                apiKeyInput.value = savedKey;
+                showApiKeyStatus('API key loaded', 'success');
+            }
+        }
+
+        // Save API key
+        function saveApiKey() {
+            const apiKey = apiKeyInput.value.trim();
+            
+            if (!apiKey) {
+                showApiKeyStatus('Please enter an API key', 'error');
+                return;
+            }
+
+            // Validate API key format (basic check - should start with Bearer or be a token)
+            if (apiKey.length < 10) {
+                showApiKeyStatus('API key seems too short', 'error');
+                return;
+            }
+
+            // Store API key
+            localStorage.setItem(API_KEY_STORAGE, apiKey);
+            showApiKeyStatus('API key saved successfully!', 'success');
+            
+            // Clear status after 3 seconds
+            setTimeout(() => {
+                apiKeyStatus.className = 'api-key-status';
+                apiKeyStatus.textContent = '';
+            }, 3000);
+        }
+
+        // Show API key status message
+        function showApiKeyStatus(message, type) {
+            apiKeyStatus.textContent = message;
+            apiKeyStatus.className = `api-key-status ${type}`;
+        }
+
+        // Get current API key
+        function getApiKey() {
+            return localStorage.getItem(API_KEY_STORAGE) || '';
+        }
+
+        // Make API call with stored API key
+        async function makeApiCall(url, method = 'GET', body = null) {
+            const apiKey = getApiKey();
+            if (!apiKey) {
+                throw new Error('API key not set. Please enter and save your API key.');
+            }
+
+            const headers = {
+                'Authorization': `Bearer ${apiKey}`,
+                'Content-Type': 'application/json'
+            };
+
+            const options = {
+                method: method,
+                headers: headers
+            };
+
+            if (body) {
+                options.body = JSON.stringify(body);
+            }
+
+            const response = await fetch(url, options);
+            return response.json();
+        }
+
+        // Expose getApiKey globally for use in other scripts
+        window.getApiKey = getApiKey;
+        window.makeApiCall = makeApiCall;
+
+        // Save button click handler
+        saveApiKeyButton.addEventListener('click', saveApiKey);
+
+        // Allow Enter key to save API key
+        apiKeyInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveApiKey();
+            }
+        });
+
+        // Load API key on page load
+        loadApiKey();
+    </script>
+</body>
+</html>

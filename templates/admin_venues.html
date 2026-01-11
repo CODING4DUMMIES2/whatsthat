@@ -1,0 +1,1706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Venue Management - whatsthat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1A1C1E;
+            min-height: 100vh;
+            color: white;
+            position: relative;
+            overflow-x: hidden;
+        }
+
+        /* Content Background GIF */
+        .content-background-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: -2;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .content-background-wrapper img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.3;
+            animation: slowGif 3s ease-in-out infinite;
+        }
+
+        @keyframes slowGif {
+            0%, 100% {
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% {
+                transform: translate(-50%, -50%) scale(1.02);
+            }
+        }
+
+        /* Shimmer/Sweep Effect - Light traveling around border */
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+
+        /* Navbar */
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(26, 28, 30, 0.95);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            padding: 16px 40px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            z-index: 1000;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .navbar-logo {
+            height: 70px;
+            width: auto;
+            max-height: 100%;
+            object-fit: contain;
+        }
+
+        .navbar-links {
+            display: flex;
+            align-items: center;
+            gap: 32px;
+            list-style: none;
+            margin: 0;
+            padding: 0;
+        }
+
+        .navbar-links a {
+            color: rgba(255, 255, 255, 0.8);
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 500;
+            transition: color 0.2s;
+        }
+
+        .navbar-links a:hover {
+            color: white;
+        }
+
+        .navbar-cta {
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+
+        .navbar-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .main-layout {
+            display: flex;
+            gap: 24px;
+            margin-top: 100px;
+            min-height: calc(100vh - 100px);
+        }
+
+        .sidebar {
+            width: 300px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 100px;
+            height: calc(100vh - 100px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-menu {
+            background: rgba(26, 28, 30, 0.95);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 0;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-header {
+            padding: 24px 20px;
+            background: rgba(26, 28, 30, 0.5);
+            border-radius: 20px 20px 0 0;
+        }
+
+        .sidebar-header h3 {
+            font-size: 18px;
+            font-weight: 800;
+            color: white;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .sidebar-section {
+            padding: 20px;
+        }
+
+        .sidebar-section:last-child {
+            border-radius: 0 0 20px 20px;
+            margin-top: auto;
+        }
+
+        .sidebar-section-title {
+            font-size: 11px;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 16px;
+            padding: 0 4px;
+        }
+
+        .sidebar-button {
+            width: 100%;
+            padding: 16px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 10px;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            text-decoration: none;
+            position: relative;
+            box-shadow: none;
+            outline: none;
+            filter: none;
+        }
+
+        .sidebar-button:last-child {
+            margin-bottom: 0;
+        }
+
+        .sidebar-button:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateX(6px);
+            color: white;
+            box-shadow: none;
+            filter: none;
+        }
+
+        .sidebar-button.active {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: white;
+            box-shadow: none;
+            filter: none;
+        }
+
+        .sidebar-button-icon {
+            font-size: 22px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            flex-shrink: 0;
+            transition: all 0.3s;
+            box-shadow: none;
+            filter: none;
+        }
+
+        .sidebar-button-icon img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .sidebar-button:hover .sidebar-button-icon,
+        .sidebar-button.active .sidebar-button-icon {
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: none;
+            filter: none;
+        }
+
+        .sidebar-button-text {
+            flex: 1;
+            font-weight: 600;
+        }
+
+        .sidebar-button-badge {
+            font-size: 11px;
+            padding: 4px 8px;
+            background: rgba(138, 43, 226, 0.3);
+            border-radius: 12px;
+            color: white;
+            font-weight: 700;
+            min-width: 24px;
+            text-align: center;
+        }
+
+
+        .main-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            padding-bottom: 40px;
+        }
+
+        /* Frosted Glass Base Style */
+        .frosted-glass {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 2px solid transparent;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            position: relative;
+            border-radius: 16px;
+        }
+
+        .frosted-glass::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 16px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
+        h1 {
+            font-size: 42px;
+            font-weight: 900;
+            color: white;
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+        }
+
+        .page-header h1 {
+            margin: 0;
+            text-align: left;
+        }
+
+        .back-link {
+            padding: 10px 24px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid transparent;
+            border-radius: 8px;
+            color: white;
+            text-decoration: none;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .back-link::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 8px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
+        .back-link:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: translateY(-2px);
+        }
+
+        .create-venue {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            padding: 32px;
+            border: 2px solid transparent;
+            border-radius: 16px;
+            margin-bottom: 40px;
+            position: relative;
+        }
+
+        .create-venue::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 16px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
+        .create-venue h2 {
+            font-size: 24px;
+            margin-bottom: 24px;
+            color: white;
+            font-weight: 800;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 15px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            font-size: 16px;
+            background: rgba(44, 46, 50, 0.8);
+            color: white;
+            transition: all 0.2s;
+            backdrop-filter: blur(10px);
+        }
+
+        input::placeholder {
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        input:focus {
+            outline: none;
+            border-color: rgba(138, 43, 226, 0.6);
+            background: rgba(44, 46, 50, 0.9);
+            box-shadow: 0 0 15px rgba(138, 43, 226, 0.3);
+        }
+
+        button {
+            padding: 14px 28px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .venues-list {
+            display: grid;
+            gap: 30px;
+        }
+
+        .venue-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 2px solid transparent;
+            border-radius: 16px;
+            padding: 32px;
+            position: relative;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .venue-card::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 16px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
+        .venue-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .venue-card h3 {
+            color: white;
+            margin-bottom: 24px;
+            font-weight: 800;
+            font-size: 28px;
+        }
+
+        .qr-codes {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-top: 24px;
+        }
+
+        .qr-box {
+            text-align: center;
+            padding: 24px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.2s ease;
+        }
+
+        .qr-box:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateY(-2px);
+        }
+
+        .qr-box h4 {
+            font-size: 16px;
+            margin-bottom: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            font-weight: 700;
+        }
+
+        .qr-box img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 10px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .qr-box code {
+            display: block;
+            margin-top: 16px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            word-break: break-all;
+            padding: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 6px;
+            font-family: 'Courier New', monospace;
+        }
+
+        #venuesList p {
+            color: rgba(255, 255, 255, 0.7);
+            text-align: center;
+            padding: 60px 40px;
+            font-size: 18px;
+        }
+
+        .venue-header-section {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .venue-name-section {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+        }
+
+        .venue-name-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            font-size: 20px;
+            font-weight: 700;
+            background: rgba(44, 46, 50, 0.8);
+            color: white;
+            max-width: 400px;
+        }
+
+        .venue-name-display {
+            font-size: 28px;
+            font-weight: 800;
+            color: white;
+            flex: 1;
+        }
+
+        .venue-actions {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .section-toggle {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .section-toggle:hover {
+            background: rgba(255, 255, 255, 0.15);
+        }
+
+        .section-toggle::after {
+            content: '▼';
+            transition: transform 0.3s;
+        }
+
+        .section-toggle.collapsed::after {
+            transform: rotate(-90deg);
+        }
+
+        .collapsible-section {
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+            max-height: 2000px;
+        }
+
+        .collapsible-section.collapsed {
+            max-height: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .tables-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            cursor: pointer;
+        }
+
+        .section-header h3 {
+            font-size: 20px;
+            font-weight: 800;
+            color: white;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .qr-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .venue-stats {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 10px;
+        }
+
+        .stat-item {
+            flex: 1;
+            text-align: center;
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            color: white;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .add-table-form {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .add-table-form input {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .add-table-form button {
+            white-space: nowrap;
+        }
+
+        /* QR Creator Modal */
+        .qr-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .qr-modal-overlay.active {
+            display: flex;
+        }
+
+        .qr-modal {
+            background: rgba(26, 28, 30, 0.98);
+            backdrop-filter: blur(20px) saturate(180%);
+            border: 2px solid transparent;
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 600px;
+            width: 100%;
+            max-height: 90vh;
+            overflow: hidden;
+            position: relative;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            display: flex;
+            flex-direction: column;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        
+        .qr-modal::-webkit-scrollbar {
+            display: none;
+        }
+
+        .qr-modal::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 20px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
+        .qr-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .qr-modal-header h2 {
+            font-size: 24px;
+            font-weight: 800;
+            color: white;
+            margin: 0;
+        }
+
+        .qr-modal-close {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: white;
+            font-size: 20px;
+            transition: all 0.2s;
+        }
+
+        .qr-modal-close:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: rotate(90deg);
+        }
+
+        .qr-generator-form {
+            margin-bottom: 24px;
+        }
+
+        .qr-result {
+            text-align: center;
+            padding: 24px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            margin-top: 24px;
+            display: none;
+        }
+
+        .qr-result.active {
+            display: block;
+        }
+
+        .qr-result img {
+            max-width: 300px;
+            width: 100%;
+            border-radius: 12px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .qr-result-code {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+            word-break: break-all;
+            padding: 12px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .tables-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+        }
+
+        .table-item {
+            background: rgba(255, 255, 255, 0.08);
+            padding: 20px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .table-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .table-item-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+        }
+
+        .table-qr {
+            text-align: center;
+            margin-top: 16px;
+        }
+
+        .table-qr img {
+            max-width: 150px;
+            border-radius: 8px;
+        }
+
+        .table-qr code {
+            display: block;
+            margin-top: 8px;
+            font-size: 10px;
+            color: rgba(255, 255, 255, 0.6);
+            word-break: break-all;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding-top: 90px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                gap: 20px;
+                align-items: stretch;
+            }
+
+            .page-header h1 {
+                text-align: center;
+            }
+
+            .qr-codes {
+                grid-template-columns: 1fr;
+            }
+
+            .navbar {
+                padding: 12px 20px;
+            }
+
+            .navbar-logo {
+                height: 50px;
+            }
+
+            .main-layout {
+                flex-direction: column;
+                margin-top: 90px;
+            }
+
+            .sidebar {
+                width: 100%;
+                position: relative;
+                top: 0;
+                max-height: none;
+                margin-bottom: 20px;
+            }
+
+            .sidebar-menu {
+                padding: 16px;
+            }
+
+            .sidebar-button {
+                padding: 12px 14px;
+                font-size: 14px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navbar -->
+    <nav class="navbar">
+        <img src="/img/logo.png" alt="whatsthat logo" class="navbar-logo">
+        <ul class="navbar-links">
+            <li><a href="/">Home</a></li>
+            <li><a href="/venues">Venues</a></li>
+            {% if user_name %}
+            <li><a href="#" style="color: rgba(255,255,255,0.6);">Welcome, {{ user_name }}</a></li>
+            {% endif %}
+        </ul>
+        {% if user_name %}
+        <a href="/logout" class="navbar-cta">Logout</a>
+        {% else %}
+        <a href="/login" class="navbar-cta">Login</a>
+        {% endif %}
+    </nav>
+
+    <!-- Content Background Wrapper -->
+    <div class="content-background-wrapper">
+        <img src="/img/background.gif" alt="Background animation">
+    </div>
+
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-menu">
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Navigation</div>
+                    <a href="/venues" class="sidebar-button active">
+                        <span class="sidebar-button-icon"><img src="/img/venues.png" alt="Venues" style="width: 40px; height: 40px; object-fit: contain;"></span>
+                        <span class="sidebar-button-text">Venues</span>
+                        <span class="sidebar-button-badge" id="venue-count-badge">0</span>
+                    </a>
+                    <a href="/" class="sidebar-button">
+                        <span class="sidebar-button-icon"><img src="/img/home.png" alt="Home" style="width: 40px; height: 40px; object-fit: contain;"></span>
+                        <span class="sidebar-button-text">Home</span>
+                    </a>
+                    <a href="/songs" class="sidebar-button">
+                        <span class="sidebar-button-icon"><img src="/img/songs.png" alt="Songs" style="width: 40px; height: 40px; object-fit: contain;"></span>
+                        <span class="sidebar-button-text">Songs</span>
+                    </a>
+                    <a href="/admin/genres" class="sidebar-button" style="display: {% if is_admin %}flex{% else %}none{% endif %};">
+                        <span class="sidebar-button-icon">🎵</span>
+                        <span class="sidebar-button-text">Genre Control</span>
+                    </a>
+                </div>
+
+        {% if is_admin %}
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Quick Actions</div>
+                    <button class="sidebar-button" onclick="scrollToCreate()">
+                        <span class="sidebar-button-icon"><img src="/img/create.png" alt="Create" style="width: 40px; height: 40px; object-fit: contain;"></span>
+                        <span class="sidebar-button-text">Create Venue</span>
+                    </button>
+                    <button class="sidebar-button" onclick="openQRCreator()">
+                        <span class="sidebar-button-icon"><img src="/img/qr.png" alt="QR" style="width: 40px; height: 40px; object-fit: contain;"></span>
+                        <span class="sidebar-button-text">QR Creator</span>
+                    </button>
+                </div>
+        {% endif %}
+
+                <div class="sidebar-section" id="venueQuickLinks" style="display: none;">
+                    <div class="sidebar-section-title">Your Venues</div>
+                    <div id="venueLinksContainer"></div>
+                </div>
+
+                <div class="sidebar-section">
+                    <a href="/logout" class="sidebar-button">
+                        <span class="sidebar-button-icon">🚪</span>
+                        <span class="sidebar-button-text">Logout</span>
+                    </a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- QR Creator Modal -->
+        <div class="qr-modal-overlay" id="qrModalOverlay" onclick="closeQRCreator(event)">
+            <div class="qr-modal" onclick="event.stopPropagation()" style="max-width: 600px;">
+                <div class="qr-modal-header">
+                    <h2 style="display: flex; align-items: center; gap: 12px;"><img src="/img/qr.png" alt="QR" style="width: 32px; height: 32px; object-fit: contain;"> Custom QR Code Creator</h2>
+                    <button class="qr-modal-close" onclick="closeQRCreator()">✕</button>
+                </div>
+                <div class="qr-generator-form">
+                    <div class="form-group">
+                        <label for="qrVenueSelect">Select Venue</label>
+                        <select id="qrVenueSelect" style="width: 100%; padding: 14px 16px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; font-size: 16px; background: rgba(44, 46, 50, 0.8); color: white;">
+                            <option value="">-- Select a venue --</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="qrLogoUpload">Upload Logo (Optional)</label>
+                        <input type="file" id="qrLogoUpload" accept="image/*" style="width: 100%; padding: 12px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; font-size: 14px; background: rgba(44, 46, 50, 0.8); color: white;">
+                        <div id="logoPreview" style="margin-top: 12px; display: none;">
+                            <img id="logoPreviewImg" src="" alt="Logo Preview" style="max-width: 100px; max-height: 100px; border-radius: 8px; border: 1px solid rgba(255, 255, 255, 0.2);">
+                        </div>
+                    </div>
+                    <button onclick="generateCustomQRCode()" class="submit-btn" style="width: 100%; margin-top: 10px;">
+                        🎨 Generate Custom QR Code
+                    </button>
+                    <div id="qrLoading" style="display: none; text-align: center; margin-top: 20px; color: rgba(255, 255, 255, 0.7);">
+                        Generating AI background and QR code... This may take a moment.
+                    </div>
+                </div>
+                <div class="qr-result" id="qrResult">
+                    <h3 style="color: white; margin-bottom: 16px; font-size: 18px;">Your Custom QR Code</h3>
+                    <img id="qrImage" src="" alt="QR Code" style="max-width: 100%; border-radius: 12px;">
+                    <div class="qr-result-code" id="qrCodeText" style="margin-top: 16px;"></div>
+                    <button onclick="downloadQRCode()" class="submit-btn" style="margin-top: 16px; width: 100%;">
+                        Download QR Code
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <div class="container">
+                <div class="page-header">
+                    <h1 style="display: flex; align-items: center; gap: 12px;"><img src="/img/venues.png" alt="Venues" style="width: 48px; height: 48px; object-fit: contain;"> {% if is_admin %}Venue Management{% else %}My Venue{% endif %}</h1>
+                </div>
+
+                <div class="create-venue frosted-glass" style="margin-bottom: 40px;" id="createVenueSection">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <h2 style="margin: 0;">Create New Venue</h2>
+                <div style="font-size: 14px; color: rgba(255,255,255,0.6);">
+                    Total Venues: <strong id="venue-count" style="color: white;">0</strong>
+                </div>
+            </div>
+            <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
+                <div class="form-group" style="flex: 1; min-width: 200px; margin: 0;">
+                    <label for="venueName">Venue Name (optional)</label>
+                    <input type="text" id="venueName" placeholder="e.g., Main Stage, Bar Area, etc.">
+                </div>
+                <div class="form-group" style="flex: 1; min-width: 200px; margin: 0;">
+                    <label for="numTables">Number of Tables</label>
+                    <input type="number" id="numTables" placeholder="e.g., 5" min="0" value="0" style="width: 100%;">
+                </div>
+                <button onclick="createVenue()" style="margin-bottom: 0; white-space: nowrap;">+ Create Venue</button>
+            </div>
+        </div>
+
+        <div class="venues-list" id="venuesList">
+            {% if not is_admin and user_venue_ids %}
+                <!-- For normal users, show loading state -->
+                <div id="loadingVenue" style="text-align: center; padding: 60px 40px; color: rgba(255, 255, 255, 0.7);">
+                    <div style="margin-bottom: 16px; display: flex; justify-content: center;"><img src="/img/venues.png" alt="Venues" style="width: 64px; height: 64px; object-fit: contain;"></div>
+                    <div style="font-size: 18px; margin-bottom: 8px;">Loading your venue...</div>
+                </div>
+            {% else %}
+                <div style="text-align: center; padding: 60px 40px; color: rgba(255, 255, 255, 0.7);">
+                    <div style="margin-bottom: 16px; display: flex; justify-content: center;"><img src="/img/venues.png" alt="Venues" style="width: 64px; height: 64px; object-fit: contain;"></div>
+                    <div style="font-size: 18px; margin-bottom: 8px;">No venues created yet</div>
+                    <div style="font-size: 14px; color: rgba(255, 255, 255, 0.5);">Create your first venue above to get started</div>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <script>
+        const baseUrl = '{{ base_url }}';
+        const isAdmin = {{ 'true' if is_admin else 'false' }};
+        const userVenueIds = {{ user_venue_ids|tojson if user_venue_ids else '[]' }};
+
+        function scrollToCreate() {
+            document.getElementById('createVenueSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            document.getElementById('venueName').focus();
+        }
+
+        function refreshAllVenues() {
+            location.reload();
+        }
+
+        function openQRCreator() {
+            // Populate venue dropdown
+            const venueSelect = document.getElementById('qrVenueSelect');
+            venueSelect.innerHTML = '<option value="">-- Select a venue --</option>';
+            
+            const venueCards = document.querySelectorAll('.venue-card');
+            venueCards.forEach(card => {
+                const venueId = card.id.replace('venue-', '');
+                const nameInput = card.querySelector('.venue-name-input');
+                const venueName = nameInput ? nameInput.value || `Venue ${venueId}` : `Venue ${venueId}`;
+                const option = document.createElement('option');
+                option.value = venueId;
+                option.textContent = venueName;
+                venueSelect.appendChild(option);
+            });
+            
+            document.getElementById('qrModalOverlay').classList.add('active');
+            document.getElementById('qrResult').classList.remove('active');
+            
+            // Reset form
+            document.getElementById('qrLogoUpload').value = '';
+            document.getElementById('logoPreview').style.display = 'none';
+            document.getElementById('qrLoading').style.display = 'none';
+        }
+
+        function closeQRCreator(event) {
+            if (!event || event.target.classList.contains('qr-modal-overlay') || event.target.classList.contains('qr-modal-close')) {
+                document.getElementById('qrModalOverlay').classList.remove('active');
+                document.getElementById('qrResult').classList.remove('active');
+            }
+        }
+
+        // Handle logo preview
+        document.addEventListener('DOMContentLoaded', function() {
+            const logoUpload = document.getElementById('qrLogoUpload');
+            if (logoUpload) {
+                logoUpload.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function(e) {
+                            document.getElementById('logoPreviewImg').src = e.target.result;
+                            document.getElementById('logoPreview').style.display = 'block';
+                        };
+                        reader.readAsDataURL(file);
+                    }
+                });
+            }
+        });
+
+        async function generateCustomQRCode() {
+            const venueId = document.getElementById('qrVenueSelect').value;
+            const logoFile = document.getElementById('qrLogoUpload').files[0];
+            const qrType = document.getElementById('qrTypeSelect').value;
+            
+            if (!venueId) {
+                alert('Please select a venue');
+                return;
+            }
+            
+            const loadingDiv = document.getElementById('qrLoading');
+            const qrResult = document.getElementById('qrResult');
+            loadingDiv.style.display = 'block';
+            qrResult.classList.remove('active');
+            
+            try {
+                // Upload logo if provided
+                if (logoFile) {
+                    const logoFormData = new FormData();
+                    logoFormData.append('logo', logoFile);
+                    
+                    const logoResponse = await fetch(`/venue/${venueId}/upload-logo`, {
+                        method: 'POST',
+                        body: logoFormData
+                    });
+                    
+                    if (!logoResponse.ok) {
+                        const error = await logoResponse.json();
+                        throw new Error(error.error || 'Failed to upload logo');
+                    }
+                }
+                
+                // Use submit URL (for customers) as default
+                const qrData = `${baseUrl}/venue/${venueId}/submit`;
+                
+                // Generate custom QR code
+                const qrResponse = await fetch(`/venue/${venueId}/generate-custom-qr`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ qr_data: qrData })
+                });
+                
+                const qrResultData = await qrResponse.json();
+                
+                if (!qrResponse.ok) {
+                    throw new Error(qrResultData.error || 'Failed to generate QR code');
+                }
+                
+                // Display the QR code
+                document.getElementById('qrImage').src = qrResultData.qr_code_url;
+                document.getElementById('qrCodeText').textContent = qrData;
+                qrResult.classList.add('active');
+                loadingDiv.style.display = 'none';
+                
+                // Scroll to result
+                qrResult.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            } catch (error) {
+                loadingDiv.style.display = 'none';
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function downloadQRCode() {
+            const img = document.getElementById('qrImage');
+            const url = img.src;
+            const venueId = document.getElementById('qrVenueSelect').value;
+            const filename = `custom-qr-${venueId}-${Date.now()}.png`;
+
+            // Create a temporary link and trigger download
+            fetch(url)
+                .then(res => res.blob())
+                .then(blob => {
+                    const link = document.createElement('a');
+                    link.href = URL.createObjectURL(blob);
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(link.href);
+                })
+                .catch(err => {
+                    console.error('Download error:', err);
+                    alert('Error downloading QR code');
+                });
+        }
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeQRCreator();
+            }
+        });
+
+        function updateVenueQuickLinks() {
+            const venueCards = document.querySelectorAll('.venue-card');
+            const linksContainer = document.getElementById('venueLinksContainer');
+            const quickLinksSection = document.getElementById('venueQuickLinks');
+            const venueCountBadge = document.getElementById('venue-count-badge');
+            
+            // Update badge
+            if (venueCountBadge) {
+                venueCountBadge.textContent = venueCards.length;
+            }
+            
+            if (venueCards.length > 0) {
+                quickLinksSection.style.display = 'block';
+                linksContainer.innerHTML = '';
+                
+                venueCards.forEach((card, index) => {
+                    const venueId = card.id.replace('venue-', '');
+                    const nameInput = card.querySelector('.venue-name-input');
+                    const venueName = nameInput ? nameInput.value || `Venue ${venueId}` : `Venue ${venueId}`;
+                    
+                    const link = document.createElement('button');
+                    link.className = 'sidebar-button';
+                    link.onclick = () => {
+                        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        // Add visual feedback
+                        link.style.transform = 'translateX(6px) scale(1.02)';
+                        setTimeout(() => {
+                            link.style.transform = '';
+                        }, 200);
+                    };
+                    link.innerHTML = `
+                        <span class="sidebar-button-icon">📍</span>
+                        <span class="sidebar-button-text">${venueName}</span>
+                    `;
+                    linksContainer.appendChild(link);
+                });
+            } else {
+                quickLinksSection.style.display = 'none';
+            }
+        }
+
+        async function createVenue() {
+            const name = document.getElementById('venueName').value.trim();
+            const numTables = parseInt(document.getElementById('numTables').value) || 0;
+            
+            try {
+                const response = await fetch('/venue/create', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ 
+                        name: name || undefined,
+                        num_tables: numTables
+                    })
+                });
+
+                const data = await response.json();
+                
+                if (data.venue_id) {
+                    addVenueCard(data);
+                    document.getElementById('venueName').value = '';
+                    document.getElementById('numTables').value = '0';
+                    
+                    // Update venue count after adding
+                    setTimeout(() => {
+                        const venuesList = document.getElementById('venuesList');
+                        const venueCards = venuesList.querySelectorAll('.venue-card');
+                        const countEl = document.getElementById('venue-count');
+                        const badgeEl = document.getElementById('venue-count-badge');
+                        if (countEl) {
+                            countEl.textContent = venueCards.length;
+                        }
+                        if (badgeEl) {
+                            badgeEl.textContent = venueCards.length;
+                        }
+                        updateVenueQuickLinks();
+                    }, 100);
+                }
+            } catch (error) {
+                alert('Error creating venue: ' + error.message);
+            }
+        }
+
+        function addVenueCard(venueData) {
+            const venuesList = document.getElementById('venuesList');
+            
+            // Check if we need to remove the empty state
+            if (venuesList.innerHTML.includes('No venues created yet')) {
+                venuesList.innerHTML = '';
+            }
+            
+            // Update venue count before adding
+            const currentCount = venuesList.querySelectorAll('.venue-card').length;
+            const countEl = document.getElementById('venue-count');
+            const badgeEl = document.getElementById('venue-count-badge');
+            if (countEl) {
+                countEl.textContent = currentCount + 1;
+            }
+            if (badgeEl) {
+                badgeEl.textContent = currentCount + 1;
+            }
+
+            const card = document.createElement('div');
+            card.className = 'venue-card';
+            card.id = `venue-${venueData.venue_id}`;
+            card.innerHTML = `
+                <div class="venue-header-section">
+                    <div class="venue-name-section">
+                        <input type="text" 
+                               class="venue-name-input" 
+                               id="venue-name-${venueData.venue_id}" 
+                               value="${venueData.name || venueData.venue_id}"
+                               placeholder="Venue Name">
+                        <button onclick="updateVenueName('${venueData.venue_id}')" style="padding: 12px 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; cursor: pointer; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">Save</button>
+                    </div>
+                    <div class="venue-actions">
+                        <button onclick="window.location.href='/venue/${venueData.venue_id}/live-tables'" 
+                                style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);" 
+                                onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(102, 126, 234, 0.5)'" 
+                                onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(102, 126, 234, 0.4)'">
+                            🎵 Live Tables
+                        </button>
+                    </div>
+                </div>
+
+                <div class="venue-stats" id="stats-${venueData.venue_id}">
+                    <div class="stat-item">
+                        <div class="stat-value" id="table-count-${venueData.venue_id}">0</div>
+                        <div class="stat-label">Tables</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="queue-count-${venueData.venue_id}">0</div>
+                        <div class="stat-label">Queue</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="request-count-${venueData.venue_id}">0</div>
+                        <div class="stat-label">Requests</div>
+                    </div>
+                </div>
+
+                <div class="tables-section">
+                    <div class="section-header" onclick="toggleSection('tables-section-${venueData.venue_id}', this)">
+                        <h3>📋 <span>Tables</span></h3>
+                        <span class="section-toggle">Toggle</span>
+                    </div>
+                    <div class="collapsible-section" id="tables-section-${venueData.venue_id}">
+                        <div class="add-table-form">
+                            <input type="text" 
+                                   id="table-name-${venueData.venue_id}" 
+                                   placeholder="Table name (e.g., Table 1, Bar Area, etc.)">
+                            <button onclick="createTable('${venueData.venue_id}')" style="white-space: nowrap;">Add Table</button>
+                        </div>
+                        <div class="tables-list" id="tables-${venueData.venue_id}" style="margin-top: 20px;">
+                            <p style="color: rgba(255,255,255,0.5); padding: 20px; text-align: center;">No tables yet. Add one above.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="qr-section">
+                    <div class="section-header" onclick="toggleSection('qr-section-${venueData.venue_id}', this)">
+                        <h3>📱 <span>QR Codes</span></h3>
+                        <span class="section-toggle">Toggle</span>
+                    </div>
+                    <div class="collapsible-section" id="qr-section-${venueData.venue_id}">
+                        <div class="qr-codes" style="margin-top: 20px;">
+                            <div class="qr-box">
+                                <h4>📱 General Submission QR</h4>
+                                <img src="${venueData.submit_qr}" alt="Submit QR">
+                                <code>${venueData.submit_url}</code>
+                            </div>
+                            <div class="qr-box">
+                                <h4>🎵 Venue Stream QR</h4>
+                                <img src="${venueData.stream_qr}" alt="Stream QR">
+                                <code>${venueData.stream_url}</code>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            venuesList.appendChild(card);
+            
+            // If tables were automatically created, display them immediately
+            if (venueData.tables && venueData.tables.length > 0) {
+                const tablesContainer = document.getElementById(`tables-${venueData.venue_id}`);
+                const tableCountEl = document.getElementById(`table-count-${venueData.venue_id}`);
+                
+                if (tableCountEl) {
+                    tableCountEl.textContent = venueData.tables.length;
+                }
+                
+                if (tablesContainer) {
+                    tablesContainer.innerHTML = venueData.tables.map(table => `
+                        <div class="table-item">
+                            <div class="table-item-header">
+                                <div class="table-item-name">${table.name}</div>
+                            </div>
+                            <div class="table-qr">
+                                <img src="${table.qr_code}" alt="Table QR">
+                                <code>${table.submit_url}</code>
+                            </div>
+                        </div>
+                    `).join('');
+                }
+            } else {
+                loadTables(venueData.venue_id);
+            }
+            
+            updateVenueStats(venueData.venue_id);
+            
+            // Fix toggle functionality
+            setTimeout(() => {
+                const tablesHeader = document.querySelector(`#venue-${venueData.venue_id} .tables-section .section-header`);
+                const qrHeader = document.querySelector(`#venue-${venueData.venue_id} .qr-section .section-header`);
+                
+                if (tablesHeader) {
+                    tablesHeader.onclick = function() {
+                        const section = document.getElementById(`tables-section-${venueData.venue_id}`);
+                        const toggle = this.querySelector('.section-toggle');
+                        if (section) {
+                            section.classList.toggle('collapsed');
+                            toggle.classList.toggle('collapsed');
+                        }
+                    };
+                }
+                
+                if (qrHeader) {
+                    qrHeader.onclick = function() {
+                        const section = document.getElementById(`qr-section-${venueData.venue_id}`);
+                        const toggle = this.querySelector('.section-toggle');
+                        if (section) {
+                            section.classList.toggle('collapsed');
+                            toggle.classList.toggle('collapsed');
+                        }
+                    };
+                }
+                
+                // Update quick links
+                updateVenueQuickLinks();
+            }, 100);
+        }
+
+        // Update quick links on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            setTimeout(updateVenueQuickLinks, 500);
+            
+            // For normal users, load their venue
+            if (!isAdmin && userVenueIds.length > 0) {
+                loadUserVenues();
+            }
+        });
+        
+        async function loadUserVenues() {
+            try {
+                const loadingEl = document.getElementById('loadingVenue');
+                if (loadingEl) {
+                    loadingEl.remove();
+                }
+                
+                for (const venueId of userVenueIds) {
+                    // Get venue details
+                    const response = await fetch(`/venue/${venueId}/info`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        if (data.success) {
+                            addVenueCard({
+                                venue_id: data.venue_id,
+                                name: data.name,
+                                submit_url: data.submit_url,
+                                stream_url: data.stream_url,
+                                submit_qr: data.submit_qr,
+                                stream_qr: data.stream_qr,
+                                tables: data.tables || []
+                            });
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading user venues:', error);
+                const loadingEl = document.getElementById('loadingVenue');
+                if (loadingEl) {
+                    loadingEl.textContent = 'Error loading venue. Please refresh the page.';
+                }
+            }
+        }
+
+        async function updateVenueName(venueId) {
+            const nameInput = document.getElementById(`venue-name-${venueId}`);
+            const name = nameInput.value.trim();
+            
+            try {
+                const response = await fetch(`/venue/${venueId}/update`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    alert('Venue name updated!');
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to update'));
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        async function createTable(venueId) {
+            const nameInput = document.getElementById(`table-name-${venueId}`);
+            const name = nameInput.value.trim();
+            
+            if (!name) {
+                alert('Please enter a table name');
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/venue/${venueId}/tables`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name })
+                });
+
+                const data = await response.json();
+                if (data.success) {
+                    nameInput.value = '';
+                    loadTables(venueId);
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to create table'));
+                }
+            } catch (error) {
+                alert('Error: ' + error.message);
+            }
+        }
+
+        function toggleSection(sectionId, header) {
+            const section = document.getElementById(sectionId);
+            const toggle = header.querySelector('.section-toggle');
+            
+            if (section) {
+                section.classList.toggle('collapsed');
+                if (toggle) {
+                    toggle.classList.toggle('collapsed');
+                }
+            }
+        }
+
+        async function loadTables(venueId) {
+            try {
+                const response = await fetch(`/venue/${venueId}/tables`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    const tablesContainer = document.getElementById(`tables-${venueId}`);
+                    const tableCountEl = document.getElementById(`table-count-${venueId}`);
+                    
+                    // Update table count
+                    if (tableCountEl) {
+                        tableCountEl.textContent = data.tables.length;
+                    }
+                    
+                    if (data.tables.length === 0) {
+                        tablesContainer.innerHTML = '<p style="color: rgba(255,255,255,0.5); padding: 20px; text-align: center;">No tables yet. Add one above.</p>';
+                    } else {
+                        tablesContainer.innerHTML = data.tables.map(table => `
+                            <div class="table-item">
+                                <div class="table-item-header">
+                                    <div class="table-item-name">${table.name}</div>
+                                </div>
+                                <div class="table-qr">
+                                    <img src="${table.qr_code}" alt="Table QR">
+                                    <code>${table.submit_url}</code>
+                                </div>
+                            </div>
+                        `).join('');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading tables:', error);
+            }
+        }
+
+        async function updateVenueStats(venueId) {
+            try {
+                // Get queue count
+                const queueResponse = await fetch(`/venue/${venueId}/queue`);
+                if (queueResponse.ok) {
+                    const queueData = await queueResponse.json();
+                    const queueCountEl = document.getElementById(`queue-count-${venueId}`);
+                    if (queueCountEl) {
+                        queueCountEl.textContent = queueData.queue_length || 0;
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading stats:', error);
+            }
+        }
+
+    </script>
+</body>
+</html>
+
