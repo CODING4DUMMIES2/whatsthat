@@ -399,7 +399,9 @@ if not os.path.exists(IMG_DIR):
             print(f"⚠️ Could not migrate QR codes: {e}")
 
 # Load data on startup
+print("🚀 Starting application - loading data...")
 load_data()
+print("✅ Application startup complete")
 
 # User authentication storage
 USERS_FILE = os.path.join(BASE_DIR, "users.json")
