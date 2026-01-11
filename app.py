@@ -90,90 +90,122 @@ def load_data():
     if os.path.exists(VENUE_METADATA_FILE):
         try:
             with open(VENUE_METADATA_FILE, 'r', encoding='utf-8') as f:
-                venue_metadata.update(json.load(f))
+                loaded = json.load(f)
+                if isinstance(loaded, dict):
+                    venue_metadata.update(loaded)
         except Exception as e:
             print(f"Error loading venue_metadata: {e}")
+            import traceback
+            traceback.print_exc()
     
     # Load venue queues
     if os.path.exists(VENUE_QUEUES_FILE):
         try:
             with open(VENUE_QUEUES_FILE, 'r', encoding='utf-8') as f:
-                venue_queues.update(json.load(f))
+                loaded = json.load(f)
+                if isinstance(loaded, dict):
+                    venue_queues.update(loaded)
         except Exception as e:
             print(f"Error loading venue_queues: {e}")
+            import traceback
+            traceback.print_exc()
     
     # Load task to venue mapping
     if os.path.exists(TASK_TO_VENUE_FILE):
         try:
             with open(TASK_TO_VENUE_FILE, 'r', encoding='utf-8') as f:
-                task_to_venue.update(json.load(f))
+                loaded = json.load(f)
+                if isinstance(loaded, dict):
+                    task_to_venue.update(loaded)
         except Exception as e:
             print(f"Error loading task_to_venue: {e}")
+            import traceback
+            traceback.print_exc()
     
     # Load song titles
     if os.path.exists(SONG_TITLES_FILE):
         try:
             with open(SONG_TITLES_FILE, 'r', encoding='utf-8') as f:
-                song_titles.update(json.load(f))
+                loaded = json.load(f)
+                if isinstance(loaded, dict):
+                    song_titles.update(loaded)
         except Exception as e:
             print(f"Error loading song_titles: {e}")
+            import traceback
+            traceback.print_exc()
     
     # Load venue owners
     if os.path.exists(VENUE_OWNERS_FILE):
         try:
             with open(VENUE_OWNERS_FILE, 'r', encoding='utf-8') as f:
-                venue_owners.update(json.load(f))
+                loaded = json.load(f)
+                if isinstance(loaded, dict):
+                    venue_owners.update(loaded)
         except Exception as e:
             print(f"Error loading venue_owners: {e}")
+            import traceback
+            traceback.print_exc()
     
     # Load venue tables
     if os.path.exists(VENUE_TABLES_FILE):
         try:
             with open(VENUE_TABLES_FILE, 'r', encoding='utf-8') as f:
-                venue_tables.update(json.load(f))
+                loaded = json.load(f)
+                if isinstance(loaded, dict):
+                    venue_tables.update(loaded)
         except Exception as e:
             print(f"Error loading venue_tables: {e}")
+            import traceback
+            traceback.print_exc()
     
     # Load table requests
     if os.path.exists(TABLE_REQUESTS_FILE):
         try:
             with open(TABLE_REQUESTS_FILE, 'r', encoding='utf-8') as f:
-                table_requests.update(json.load(f))
+                loaded = json.load(f)
+                if isinstance(loaded, dict):
+                    table_requests.update(loaded)
         except Exception as e:
             print(f"Error loading table_requests: {e}")
+            import traceback
+            traceback.print_exc()
 
 def save_data():
     """Save all data to JSON files"""
     try:
         # Save venue metadata
         with open(VENUE_METADATA_FILE, 'w', encoding='utf-8') as f:
-            json.dump(venue_metadata, f, indent=2)
+            json.dump(venue_metadata, f, indent=2, default=str)
         
         # Save venue queues
         with open(VENUE_QUEUES_FILE, 'w', encoding='utf-8') as f:
-            json.dump(venue_queues, f, indent=2)
+            json.dump(venue_queues, f, indent=2, default=str)
         
         # Save task to venue mapping
         with open(TASK_TO_VENUE_FILE, 'w', encoding='utf-8') as f:
-            json.dump(task_to_venue, f, indent=2)
+            json.dump(task_to_venue, f, indent=2, default=str)
         
         # Save song titles
         with open(SONG_TITLES_FILE, 'w', encoding='utf-8') as f:
-            json.dump(song_titles, f, indent=2)
+            json.dump(song_titles, f, indent=2, default=str)
         
         # Save venue owners
         with open(VENUE_OWNERS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(venue_owners, f, indent=2)
+            json.dump(venue_owners, f, indent=2, default=str)
         
         # Save venue tables
         with open(VENUE_TABLES_FILE, 'w', encoding='utf-8') as f:
-            json.dump(venue_tables, f, indent=2)
+            json.dump(venue_tables, f, indent=2, default=str)
         
         # Save table requests
         with open(TABLE_REQUESTS_FILE, 'w', encoding='utf-8') as f:
-            json.dump(table_requests, f, indent=2)
+            json.dump(table_requests, f, indent=2, default=str)
+        
+        print(f"✅ Data saved successfully")
     except Exception as e:
-        print(f"Error saving data: {e}")
+        print(f"❌ Error saving data: {e}")
+        import traceback
+        traceback.print_exc()
 
 # Load data on startup
 load_data()
