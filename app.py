@@ -141,7 +141,8 @@ else:
 
 MESSAGES_DIR = os.path.join(DATA_BASE_DIR, "messages")
 AUDIO_DIR = os.path.join(DATA_BASE_DIR, "audio")
-IMG_DIR = os.path.join(DATA_BASE_DIR, "img")
+# Static images from Git repo stay in BASE_DIR/img (not in volume)
+IMG_DIR = os.path.join(BASE_DIR, "img")
 VENUE_LOGOS_DIR = os.path.join(DATA_BASE_DIR, "venue_logos")
 VENUE_QR_CODES_DIR = os.path.join(DATA_BASE_DIR, "venue_qr_codes")
 os.makedirs(MESSAGES_DIR, exist_ok=True)
