@@ -208,10 +208,15 @@ def load_data():
     global venue_metadata, venue_queues, task_to_venue, song_titles, venue_owners, venue_tables, table_requests
     
     print(f"📂 Loading data from {DATA_DIR}...")
+    print(f"   DATA_DIR exists: {os.path.exists(DATA_DIR)}")
+    print(f"   VENUE_METADATA_FILE: {VENUE_METADATA_FILE}")
+    print(f"   VENUE_OWNERS_FILE: {VENUE_OWNERS_FILE}")
     
     # Load venue metadata
     if os.path.exists(VENUE_METADATA_FILE):
         try:
+            file_size = os.path.getsize(VENUE_METADATA_FILE)
+            print(f"   📄 venue_metadata.json exists ({file_size} bytes)")
             with open(VENUE_METADATA_FILE, 'r', encoding='utf-8') as f:
                 loaded = json.load(f)
                 if isinstance(loaded, dict):
@@ -219,12 +224,16 @@ def load_data():
                     venue_metadata.update(loaded)
                     print(f"   ✅ Loaded {len(venue_metadata)} venues from venue_metadata.json")
                     print(f"   Venue IDs: {list(venue_metadata.keys())}")
+                    for vid, vdata in venue_metadata.items():
+                        print(f"      {vid}: {vdata.get('name', 'Unnamed')} (owner: {vdata.get('owner_email', 'None')})")
+                else:
+                    print(f"   ⚠️ venue_metadata.json is not a dict, ignoring")
         except Exception as e:
             print(f"   ❌ Error loading venue_metadata: {e}")
             import traceback
             traceback.print_exc()
     else:
-        print(f"   ⚠️ venue_metadata.json does not exist yet")
+        print(f"   ⚠️ venue_metadata.json does not exist yet at {VENUE_METADATA_FILE}")
     
     # Load venue queues
     if os.path.exists(VENUE_QUEUES_FILE):
