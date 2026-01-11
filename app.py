@@ -1024,7 +1024,7 @@ def venues():
     if is_admin:
         # Admin sees all venues
         base_url = get_base_url() or ''
-        return render_template('admin_venues.html', base_url=base_url, user_name=session.get('user_name', 'User'), is_admin=True)
+        return render_template('admin_venues.html', base_url=base_url, user_name=session.get('user_name', 'User'), is_admin=True, user_venue_ids=[])
     else:
         # Normal user sees only their venue
         user_venue_ids = venue_owners.get(user_email, [])

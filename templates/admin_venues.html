@@ -1104,6 +1104,43 @@
                     <h1 style="display: flex; align-items: center; gap: 12px;"><img src="/img/venues.png" alt="Venues" style="width: 48px; height: 48px; object-fit: contain;"> {% if is_admin %}Venue Management{% else %}My Venue{% endif %}</h1>
                 </div>
 
+                <!-- Stream Player Section -->
+                <div class="stream-section frosted-glass" id="streamSection" style="display: none; margin-bottom: 40px;">
+                    <div class="section-header" onclick="toggleStreamSection()">
+                        <h2 style="margin: 0; display: flex; align-items: center; gap: 12px;">
+                            <span>🎵</span>
+                            <span>Live Music Stream</span>
+                        </h2>
+                        <span class="section-toggle" id="streamToggle">▼</span>
+                    </div>
+                    <div class="stream-content" id="streamContent">
+                        <div class="now-playing-stream" id="nowPlayingStream">
+                            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 15px;">
+                                <span class="status-indicator-stream waiting" id="statusIndicatorStream"></span>
+                                <span id="statusTextStream">Waiting for songs...</span>
+                            </div>
+                            <div class="song-title-stream" id="currentSongTitleStream">No song playing</div>
+                            <div id="startButtonContainerStream" style="text-align: center; margin-top: 20px;">
+                                <button id="startQueueBtnStream" style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: all 0.2s;">
+                                    ▶️ Start Queue
+                                </button>
+                            </div>
+                            <div class="audio-player-stream" id="audioPlayerContainerStream" style="display: none; margin-top: 15px;">
+                                <audio id="currentAudioStream" controls style="width: 100%;"></audio>
+                            </div>
+                        </div>
+                        <div class="queue-section-stream" style="margin-top: 20px;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                                <h3 style="margin: 0; font-size: 16px;">Queue</h3>
+                                <span class="queue-count-stream" id="queueCountStream">0 songs</span>
+                            </div>
+                            <div class="queue-list-stream" id="queueListStream" style="max-height: 200px; overflow-y: auto;">
+                                <div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">No songs in queue</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="create-venue frosted-glass" style="margin-bottom: 40px;" id="createVenueSection">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
                 <h2 style="margin: 0;">Create New Venue</h2>
@@ -1703,6 +1740,194 @@
             } catch (error) {
                 console.error('Error loading stats:', error);
             }
+        }
+
+        // Stream Player Functions
+        let currentStreamSong = null;
+        let isStreamPlaying = false;
+        let streamQueueCheckInterval = null;
+        let streamAudioElement = null;
+        let streamAutoplayEnabled = false;
+        const streamPlayedSongs = new Set();
+
+        function toggleStreamSection() {
+            const section = document.getElementById('streamSection');
+            const content = document.getElementById('streamContent');
+            const toggle = document.getElementById('streamToggle');
+            const btn = document.getElementById('streamToggleBtn');
+            
+            if (section.style.display === 'none') {
+                section.style.display = 'block';
+                content.style.display = 'block';
+                toggle.textContent = '▼';
+                btn.classList.add('active');
+                if (currentVenueId || (isAdmin && document.querySelectorAll('.venue-card').length > 0)) {
+                    initializeStreamPlayer();
+                }
+            } else {
+                content.style.display = content.style.display === 'none' ? 'block' : 'none';
+                toggle.textContent = content.style.display === 'none' ? '▶' : '▼';
+            }
+        }
+
+        function initializeStreamPlayer() {
+            const venueId = currentVenueId || (isAdmin ? getFirstVenueId() : null);
+            if (!venueId) {
+                document.getElementById('statusTextStream').textContent = 'No venue available';
+                return;
+            }
+            
+            // Start button click handler
+            const startBtn = document.getElementById('startQueueBtnStream');
+            if (startBtn && !startBtn.hasAttribute('data-listener')) {
+                startBtn.setAttribute('data-listener', 'true');
+                startBtn.addEventListener('click', function() {
+                    streamAutoplayEnabled = true;
+                    this.style.display = 'none';
+                    document.getElementById('statusTextStream').textContent = 'Queue Active - Waiting for songs...';
+                    startStreamQueuePolling(venueId);
+                });
+            }
+        }
+
+        function getFirstVenueId() {
+            const firstCard = document.querySelector('.venue-card');
+            if (firstCard) {
+                return firstCard.id.replace('venue-', '');
+            }
+            return null;
+        }
+
+        function startStreamQueuePolling(venueId) {
+            if (streamQueueCheckInterval) return;
+            streamQueueCheckInterval = setInterval(() => checkStreamQueue(venueId), 3000);
+            checkStreamQueue(venueId);
+        }
+
+        async function checkStreamQueue(venueId) {
+            if (!venueId) return;
+            
+            try {
+                const response = await fetch(`/venue/${venueId}/queue`);
+                const data = await response.json();
+                
+                updateStreamQueueDisplay(data.queue);
+                
+                if (!isStreamPlaying && data.queue.length > 0 && streamAutoplayEnabled) {
+                    const nextSong = data.queue.find(song => !streamPlayedSongs.has(song.task_id));
+                    if (nextSong) {
+                        playNextStreamSong(nextSong);
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking stream queue:', error);
+            }
+        }
+
+        function updateStreamQueueDisplay(queue) {
+            const queueList = document.getElementById('queueListStream');
+            const queueCount = document.getElementById('queueCountStream');
+            
+            if (queueCount) {
+                queueCount.textContent = `${queue.length} song${queue.length !== 1 ? 's' : ''}`;
+            }
+            
+            if (!queueList) return;
+            
+            if (queue.length === 0) {
+                queueList.innerHTML = '<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">No songs in queue</div>';
+                return;
+            }
+
+            let nextUnplayedIndex = 0;
+            for (let i = 0; i < queue.length; i++) {
+                if (!streamPlayedSongs.has(queue[i].task_id)) {
+                    nextUnplayedIndex = i;
+                    break;
+                }
+            }
+
+            queueList.innerHTML = queue.map((song, index) => {
+                const isPlayed = streamPlayedSongs.has(song.task_id);
+                const isCurrent = index === nextUnplayedIndex && isStreamPlaying && !isPlayed;
+                
+                return `
+                    <div style="background: rgba(45, 27, 78, 0.3); padding: 12px; border-radius: 8px; margin-bottom: 8px; ${isCurrent ? 'background: rgba(102, 126, 234, 0.4); border: 1px solid rgba(102, 126, 234, 0.6);' : ''} ${isPlayed ? 'opacity: 0.4;' : ''}">
+                        <div style="font-weight: 600; margin-bottom: 4px;">${escapeHtml(song.title || 'Untitled')}</div>
+                        <div style="font-size: 12px; color: rgba(255,255,255,0.6);">${isPlayed ? '✓ Played' : `#${index + 1} - Added at ${song.added_at || ''}`}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function playNextStreamSong(song) {
+            if (isStreamPlaying) return;
+            
+            isStreamPlaying = true;
+            currentStreamSong = song;
+            
+            document.getElementById('statusTextStream').textContent = 'Now Playing';
+            document.getElementById('statusIndicatorStream').className = 'status-indicator-stream playing';
+            document.getElementById('currentSongTitleStream').textContent = song.title || 'Untitled';
+            document.getElementById('startButtonContainerStream').style.display = 'none';
+            
+            const audioContainer = document.getElementById('audioPlayerContainerStream');
+            audioContainer.style.display = 'block';
+            
+            if (streamAudioElement) {
+                streamAudioElement.pause();
+                streamAudioElement.remove();
+            }
+            
+            streamAudioElement = document.createElement('audio');
+            streamAudioElement.id = 'currentAudioStream';
+            streamAudioElement.controls = true;
+            streamAudioElement.autoplay = true;
+            streamAudioElement.preload = 'auto';
+            streamAudioElement.src = `/audio/${song.filename}`;
+            
+            audioContainer.innerHTML = '';
+            audioContainer.appendChild(streamAudioElement);
+            
+            streamAudioElement.addEventListener('loadeddata', async () => {
+                try {
+                    await streamAudioElement.play();
+                } catch (error) {
+                    console.log('Autoplay blocked:', error);
+                }
+            });
+            
+            streamAudioElement.load();
+            
+            streamAudioElement.addEventListener('ended', async () => {
+                if (currentStreamSong && currentStreamSong.task_id) {
+                    streamPlayedSongs.add(currentStreamSong.task_id);
+                }
+                
+                isStreamPlaying = false;
+                currentStreamSong = null;
+                
+                const venueId = currentVenueId || getFirstVenueId();
+                setTimeout(() => {
+                    checkStreamQueue(venueId);
+                }, 500);
+            });
+            
+            streamAudioElement.addEventListener('error', (e) => {
+                console.error('Audio error:', e);
+                isStreamPlaying = false;
+                const venueId = currentVenueId || getFirstVenueId();
+                setTimeout(() => checkStreamQueue(venueId), 2000);
+            });
+            
+            const venueId = currentVenueId || getFirstVenueId();
+            checkStreamQueue(venueId);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
     </script>
