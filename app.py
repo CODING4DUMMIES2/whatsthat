@@ -130,9 +130,13 @@ if PERSISTENT_DATA_DIR and os.path.exists(PERSISTENT_DATA_DIR):
     # Use Railway volume for persistent storage
     DATA_BASE_DIR = PERSISTENT_DATA_DIR
     print(f"✅ Using persistent volume at: {DATA_BASE_DIR}")
+    # Also keep BASE_DIR for static files that should stay in the app directory
+    # Images and uploaded files go to DATA_BASE_DIR, but we can migrate old images
+    OLD_BASE_DIR = BASE_DIR  # Keep reference to old location for migration
 else:
     # Fall back to local directory
     DATA_BASE_DIR = BASE_DIR
+    OLD_BASE_DIR = BASE_DIR
     print(f"📁 Using local directory: {DATA_BASE_DIR}")
 
 MESSAGES_DIR = os.path.join(DATA_BASE_DIR, "messages")
@@ -344,6 +348,37 @@ def save_data():
         print(f"❌ ERROR saving data: {e}")
         import traceback
         traceback.print_exc()
+
+# Migrate old images to new location if using persistent volume
+if PERSISTENT_DATA_DIR and os.path.exists(PERSISTENT_DATA_DIR) and OLD_BASE_DIR != DATA_BASE_DIR:
+    import shutil
+    old_img_dir = os.path.join(OLD_BASE_DIR, "img")
+    old_logos_dir = os.path.join(OLD_BASE_DIR, "venue_logos")
+    old_qr_dir = os.path.join(OLD_BASE_DIR, "venue_qr_codes")
+    
+    # Migrate img directory
+    if os.path.exists(old_img_dir) and not os.path.exists(IMG_DIR):
+        try:
+            shutil.copytree(old_img_dir, IMG_DIR)
+            print(f"✅ Migrated images from {old_img_dir} to {IMG_DIR}")
+        except Exception as e:
+            print(f"⚠️ Could not migrate images: {e}")
+    
+    # Migrate venue_logos directory
+    if os.path.exists(old_logos_dir) and not os.path.exists(VENUE_LOGOS_DIR):
+        try:
+            shutil.copytree(old_logos_dir, VENUE_LOGOS_DIR)
+            print(f"✅ Migrated venue logos from {old_logos_dir} to {VENUE_LOGOS_DIR}")
+        except Exception as e:
+            print(f"⚠️ Could not migrate venue logos: {e}")
+    
+    # Migrate venue_qr_codes directory
+    if os.path.exists(old_qr_dir) and not os.path.exists(VENUE_QR_CODES_DIR):
+        try:
+            shutil.copytree(old_qr_dir, VENUE_QR_CODES_DIR)
+            print(f"✅ Migrated QR codes from {old_qr_dir} to {VENUE_QR_CODES_DIR}")
+        except Exception as e:
+            print(f"⚠️ Could not migrate QR codes: {e}")
 
 # Load data on startup
 load_data()
