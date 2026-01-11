@@ -356,13 +356,21 @@ if PERSISTENT_DATA_DIR and os.path.exists(PERSISTENT_DATA_DIR) and OLD_BASE_DIR 
     old_logos_dir = os.path.join(OLD_BASE_DIR, "venue_logos")
     old_qr_dir = os.path.join(OLD_BASE_DIR, "venue_qr_codes")
     
-    # Migrate img directory
+    # Migrate img directory (also check if images are in Git repo and copy them)
+    old_git_img_dir = os.path.join(OLD_BASE_DIR, "img")
     if os.path.exists(old_img_dir) and not os.path.exists(IMG_DIR):
         try:
             shutil.copytree(old_img_dir, IMG_DIR)
             print(f"✅ Migrated images from {old_img_dir} to {IMG_DIR}")
         except Exception as e:
             print(f"⚠️ Could not migrate images: {e}")
+    elif os.path.exists(old_git_img_dir) and not os.path.exists(IMG_DIR):
+        # Also copy from Git repo location if it exists
+        try:
+            shutil.copytree(old_git_img_dir, IMG_DIR)
+            print(f"✅ Copied images from Git repo ({old_git_img_dir}) to persistent volume ({IMG_DIR})")
+        except Exception as e:
+            print(f"⚠️ Could not copy images from Git repo: {e}")
     
     # Migrate venue_logos directory
     if os.path.exists(old_logos_dir) and not os.path.exists(VENUE_LOGOS_DIR):
