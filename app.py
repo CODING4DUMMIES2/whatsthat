@@ -1025,6 +1025,7 @@ def signup():
         save_users(users)
         
         # Log in the user
+        session.permanent = True  # Make session permanent
         session['user_id'] = email
         session['user_name'] = users[email]['name']
         session['is_admin'] = users[email].get('is_admin', False)
@@ -1069,6 +1070,7 @@ def login():
             return render_template('login.html', error='Invalid email or password')
         
         # Log in the user
+        session.permanent = True  # Make session permanent
         session['user_id'] = email
         session['user_name'] = users[email]['name']
         session['is_admin'] = users[email].get('is_admin', False)
@@ -1218,6 +1220,7 @@ def update_venue_genres(venue_id):
         allowed_genres = [g for g in allowed_genres if g in all_genres]
         
         venue_metadata[venue_id]['allowed_genres'] = allowed_genres
+        save_data()  # Save updated genres
         
         return jsonify({
             'success': True,
