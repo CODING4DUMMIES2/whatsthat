@@ -15,7 +15,13 @@ from io import BytesIO
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production-' + str(hash('whatsthat')))
 # Make sessions permanent so users stay logged in
-app.config['PERMANENT_SESSION_LIFETIME'] = 86400 * 30  # 30 days
+from datetime import timedelta
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(days=30)
+
+@app.before_request
+def make_session_permanent():
+    """Make all sessions permanent so users stay logged in"""
+    session.permanent = True
 
 # Create directories if they don't exist
 BASE_DIR = os.path.dirname(__file__)
