@@ -429,8 +429,10 @@ ADMIN_EMAIL = "admin@whatsthat.com"
 ADMIN_PASSWORD = "admin123"  # Change this in production!
 
 def load_users():
-    """Load users from file"""
+    """Load users from file, with migration from old location"""
     users = {}
+    
+    # First, try to load from the persistent location
     if os.path.exists(USERS_FILE):
         try:
             with open(USERS_FILE, 'r', encoding='utf-8') as f:
@@ -442,6 +444,21 @@ def load_users():
             traceback.print_exc()
     else:
         print(f"📄 Users file does not exist: {USERS_FILE}")
+        
+        # Try to migrate from old location (BASE_DIR)
+        old_users_file = os.path.join(BASE_DIR, "users.json")
+        if os.path.exists(old_users_file) and BASE_DIR != DATA_BASE_DIR:
+            try:
+                print(f"🔄 Migrating users.json from {old_users_file} to {USERS_FILE}")
+                with open(old_users_file, 'r', encoding='utf-8') as f:
+                    users = json.load(f)
+                # Save to new location
+                save_users(users)
+                print(f"✅ Migrated {len(users)} user(s) to persistent location")
+            except Exception as e:
+                print(f"⚠️ Could not migrate users.json: {e}")
+                import traceback
+                traceback.print_exc()
     
     # Always add hardwired admin account
     users[ADMIN_EMAIL] = {
@@ -460,12 +477,18 @@ def save_users(users):
     users_to_save = {k: v for k, v in users.items() if k != ADMIN_EMAIL}
     try:
         # Ensure directory exists
-        os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
+        users_dir = os.path.dirname(USERS_FILE)
+        if users_dir:  # Only create if there's a directory path
+            os.makedirs(users_dir, exist_ok=True)
         with open(USERS_FILE, 'w', encoding='utf-8') as f:
             json.dump(users_to_save, f, indent=2, ensure_ascii=False)
             f.flush()  # Force write to disk
             os.fsync(f.fileno())  # Ensure OS writes to disk
         print(f"✅ Saved {len(users_to_save)} user(s) to {USERS_FILE}")
+        print(f"   File exists after save: {os.path.exists(USERS_FILE)}")
+        if os.path.exists(USERS_FILE):
+            file_size = os.path.getsize(USERS_FILE)
+            print(f"   File size: {file_size} bytes")
     except Exception as e:
         print(f"❌ Error saving users to {USERS_FILE}: {e}")
         import traceback
