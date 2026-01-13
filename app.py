@@ -851,6 +851,18 @@ def send_message():
             print("❌ ERROR: Empty message")
             return jsonify({'success': False, 'error': 'Empty message'}), 400
 
+        # Validate genre if venue_id is provided and genre is specified
+        if venue_id and genre:
+            load_data()
+            if venue_id in venue_metadata:
+                allowed_genres = venue_metadata[venue_id].get('allowed_genres', [])
+                if allowed_genres and genre not in allowed_genres:
+                    print(f"❌ ERROR: Genre '{genre}' not in allowed genres: {allowed_genres}")
+                    return jsonify({
+                        'success': False, 
+                        'error': f'Genre "{genre}" is not allowed for this venue. Allowed genres: {", ".join(allowed_genres)}'
+                    }), 400
+
         # Save message to file
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
         filename = f"message_{timestamp}.txt"
@@ -1074,13 +1086,27 @@ def call_suno_generate_music(prompt: str, venue_id: str = None, table_id: str = 
             genre = detect_genre(prompt)
             print(f"   Detected genre: {genre}")
         
+        # Get venue settings for explicit content
+        explicit_content = None
+        if venue_id and venue_id in venue_metadata:
+            explicit_content = venue_metadata[venue_id].get('explicit_content')
+        
+        # Build prompt with genre
         if genre:
             # Strongly hint the genre to Suno
             final_prompt = f"Make a {genre} song about: {prompt}"
         else:
             # Let Suno decide, but still ask for a full vocal song
             final_prompt = f"Make a full vocal song about: {prompt}"
-
+        
+        # Add explicit/non-explicit instruction ONLY if setting is configured
+        if explicit_content is not None:
+            if explicit_content:
+                final_prompt += " Use explicit lyrics."
+            else:
+                final_prompt += " Use clean, non-explicit lyrics only."
+            print(f"   Explicit content setting: {'explicit' if explicit_content else 'non-explicit'}")
+        
         final_prompt = final_prompt[:500]  # non-custom mode prompt limit
         print(f"   Final prompt: {final_prompt}")
 
@@ -1800,6 +1826,88 @@ def update_venue_genres(venue_id):
             'success': True,
             'venue_id': venue_id,
             'allowed_genres': allowed_genres
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/settings')
+@require_login
+def settings():
+    """Settings page for venue configuration"""
+    user_email = session.get('user_id')
+    is_admin = session.get('is_admin', False)
+    
+    load_data()
+    
+    # Get user's venues
+    if is_admin:
+        # Admin sees all venues
+        user_venue_ids = list(venue_metadata.keys())
+    else:
+        user_venue_ids = venue_owners.get(user_email, [])
+    
+    # If user has no venues, redirect to venues page
+    if not user_venue_ids:
+        return redirect(url_for('venues'))
+    
+    # Get settings for first venue (or allow selection)
+    venue_id = user_venue_ids[0] if user_venue_ids else None
+    if venue_id and venue_id in venue_metadata:
+        metadata = venue_metadata[venue_id]
+        allowed_genres = metadata.get('allowed_genres', ['country', 'rap', 'rock', 'pop', 'jazz', 'lofi', 'electronic', 'r&b', 'metal', 'classical'])
+        explicit_content = metadata.get('explicit_content', None)  # None = not set, True = explicit, False = non-explicit
+    else:
+        allowed_genres = ['country', 'rap', 'rock', 'pop', 'jazz', 'lofi', 'electronic', 'r&b', 'metal', 'classical']
+        explicit_content = None
+    
+    all_genres = ['country', 'rap', 'rock', 'pop', 'jazz', 'lofi', 'electronic', 'r&b', 'metal', 'classical']
+    
+    return render_template('settings.html', 
+                         venue_id=venue_id,
+                         user_venue_ids=user_venue_ids,
+                         allowed_genres=allowed_genres,
+                         explicit_content=explicit_content,
+                         all_genres=all_genres,
+                         user_name=session.get('user_name', 'User'),
+                         is_admin=is_admin)
+
+
+@app.route('/venue/<venue_id>/settings', methods=['POST'])
+@require_login
+def update_venue_settings(venue_id):
+    """Update venue settings (genres and explicit content)"""
+    try:
+        data = request.get_json()
+        allowed_genres = data.get('allowed_genres', [])
+        explicit_content = data.get('explicit_content', None)  # None, True, or False
+        
+        if venue_id not in venue_metadata:
+            return jsonify({'success': False, 'error': 'Venue not found'}), 404
+        
+        # Validate genres
+        all_genres = ['country', 'rap', 'rock', 'pop', 'jazz', 'lofi', 'electronic', 'r&b', 'metal', 'classical']
+        if not isinstance(allowed_genres, list):
+            return jsonify({'success': False, 'error': 'allowed_genres must be a list'}), 400
+        
+        # Filter to only valid genres
+        allowed_genres = [g for g in allowed_genres if g in all_genres]
+        
+        # Update settings
+        venue_metadata[venue_id]['allowed_genres'] = allowed_genres
+        if explicit_content is not None:
+            venue_metadata[venue_id]['explicit_content'] = explicit_content
+        else:
+            # Remove the setting if None (not set)
+            venue_metadata[venue_id].pop('explicit_content', None)
+        
+        save_data()
+        
+        return jsonify({
+            'success': True,
+            'venue_id': venue_id,
+            'allowed_genres': allowed_genres,
+            'explicit_content': explicit_content
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
