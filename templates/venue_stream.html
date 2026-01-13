@@ -219,6 +219,52 @@
         #startQueueBtn:active {
             transform: translateY(0);
         }
+
+        .player-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding: 15px;
+        }
+
+        .control-button {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            font-size: 20px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: all 0.2s;
+        }
+
+        .control-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+
+        .control-button:active {
+            transform: translateY(0);
+        }
+
+        .control-button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .control-button.pause-play {
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+        }
     </style>
 </head>
 <body>
@@ -238,6 +284,11 @@
                 <button id="startQueueBtn" style="padding: 15px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 12px; font-size: 16px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: all 0.2s;">
                     ▶️ Start Queue
                 </button>
+            </div>
+            <div class="player-controls" id="playerControls" style="display: none;">
+                <button class="control-button" id="prevButton" onclick="playPreviousSong()" title="Previous Track">⏮️</button>
+                <button class="control-button pause-play" id="pausePlayButton" onclick="togglePause()" title="Pause/Play">⏸️</button>
+                <button class="control-button" id="nextButton" onclick="skipToNextSong()" title="Next Track">⏭️</button>
             </div>
             <div class="audio-player" id="audioPlayerContainer" style="display: none;">
                 <audio id="currentAudio" controls autoplay></audio>
@@ -294,6 +345,7 @@
                 const data = await response.json();
                 
                 const currentQueue = data.queue || [];
+                currentQueueList = currentQueue; // Store for navigation
                 const currentTaskIds = new Set(currentQueue.map(song => song.task_id));
                 
                 // Detect new songs (songs that weren't in the queue before)
@@ -384,6 +436,7 @@
             document.getElementById('statusIndicator').className = 'status-indicator playing';
             document.getElementById('currentSongTitle').textContent = song.title;
             document.getElementById('startButtonContainer').style.display = 'none';
+            document.getElementById('playerControls').style.display = 'flex';
             
             // Create audio element
             const audioContainer = document.getElementById('audioPlayerContainer');
@@ -424,6 +477,17 @@
                 }
             });
             
+            // Update pause/play button
+            const pausePlayBtn = document.getElementById('pausePlayButton');
+            audioElement.addEventListener('play', () => {
+                pausePlayBtn.textContent = '⏸️';
+                pausePlayBtn.title = 'Pause';
+            });
+            audioElement.addEventListener('pause', () => {
+                pausePlayBtn.textContent = '▶️';
+                pausePlayBtn.title = 'Play';
+            });
+            
             // Load the audio
             audioElement.load();
             
@@ -458,6 +522,97 @@
             const div = document.createElement('div');
             div.textContent = text;
             return div.innerHTML;
+        }
+
+        // Store current queue for navigation
+        let currentQueueList = [];
+
+        async function togglePause() {
+            if (!audioElement) return;
+            
+            const pausePlayBtn = document.getElementById('pausePlayButton');
+            if (audioElement.paused) {
+                await audioElement.play();
+                pausePlayBtn.textContent = '⏸️';
+                pausePlayBtn.title = 'Pause';
+            } else {
+                audioElement.pause();
+                pausePlayBtn.textContent = '▶️';
+                pausePlayBtn.title = 'Play';
+            }
+        }
+
+        async function playPreviousSong() {
+            if (!currentQueueList.length) {
+                await checkQueue();
+                return;
+            }
+            
+            // Find current song index
+            let currentIndex = -1;
+            if (currentSong && currentSong.task_id) {
+                currentIndex = currentQueueList.findIndex(song => song.task_id === currentSong.task_id);
+            }
+            
+            // If we're at the first song or before, go to first unplayed
+            if (currentIndex <= 0) {
+                // Find first unplayed song
+                const firstUnplayed = currentQueueList.find(song => !playedSongs.has(song.task_id));
+                if (firstUnplayed) {
+                    await playNextSong(firstUnplayed);
+                }
+                return;
+            }
+            
+            // Find previous unplayed song
+            for (let i = currentIndex - 1; i >= 0; i--) {
+                if (!playedSongs.has(currentQueueList[i].task_id)) {
+                    // Remove current song from played if we're going back
+                    if (currentSong && currentSong.task_id) {
+                        playedSongs.delete(currentSong.task_id);
+                    }
+                    await playNextSong(currentQueueList[i]);
+                    return;
+                }
+            }
+            
+            // If no previous unplayed, go to first unplayed
+            const firstUnplayed = currentQueueList.find(song => !playedSongs.has(song.task_id));
+            if (firstUnplayed) {
+                if (currentSong && currentSong.task_id) {
+                    playedSongs.delete(currentSong.task_id);
+                }
+                await playNextSong(firstUnplayed);
+            }
+        }
+
+        async function skipToNextSong() {
+            if (!currentQueueList.length) {
+                await checkQueue();
+                return;
+            }
+            
+            // Find next unplayed song
+            let startIndex = 0;
+            if (currentSong && currentSong.task_id) {
+                const currentIndex = currentQueueList.findIndex(song => song.task_id === currentSong.task_id);
+                startIndex = currentIndex + 1;
+            }
+            
+            for (let i = startIndex; i < currentQueueList.length; i++) {
+                if (!playedSongs.has(currentQueueList[i].task_id)) {
+                    // Mark current as played
+                    if (currentSong && currentSong.task_id) {
+                        playedSongs.add(currentSong.task_id);
+                    }
+                    isPlaying = false;
+                    await playNextSong(currentQueueList[i]);
+                    return;
+                }
+            }
+            
+            // If no next unplayed, check queue again
+            await checkQueue();
         }
 
         // Polling starts immediately on page load to show queue updates

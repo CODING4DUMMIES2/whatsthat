@@ -1224,6 +1224,11 @@
                                     ▶️ Start Queue
                                 </button>
                             </div>
+                            <div class="player-controls" id="playerControlsStream" style="display: none; justify-content: center; align-items: center; gap: 15px; margin: 20px 0;">
+                                <button class="control-button" id="prevButtonStream" onclick="playPreviousStreamSong()" title="Previous Track" style="width: 50px; height: 50px; border-radius: 50%; border: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: all 0.2s;">⏮️</button>
+                                <button class="control-button pause-play" id="pausePlayButtonStream" onclick="toggleStreamPause()" title="Pause/Play" style="width: 60px; height: 60px; border-radius: 50%; border: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: all 0.2s;">⏸️</button>
+                                <button class="control-button" id="nextButtonStream" onclick="skipToNextStreamSong()" title="Next Track" style="width: 50px; height: 50px; border-radius: 50%; border: none; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4); transition: all 0.2s;">⏭️</button>
+                            </div>
                             <div class="audio-player-stream" id="audioPlayerContainerStream" style="display: none; margin-top: 15px;">
                                 <audio id="currentAudioStream" controls style="width: 100%;"></audio>
                             </div>
@@ -1969,6 +1974,7 @@
             document.getElementById('statusIndicatorStream').className = 'status-indicator-stream playing';
             document.getElementById('currentSongTitleStream').textContent = song.title || 'Untitled';
             document.getElementById('startButtonContainerStream').style.display = 'none';
+            document.getElementById('playerControlsStream').style.display = 'flex';
             
             const audioContainer = document.getElementById('audioPlayerContainerStream');
             audioContainer.style.display = 'block';
@@ -1996,6 +2002,17 @@
                 }
             });
             
+            // Update pause/play button
+            const pausePlayBtn = document.getElementById('pausePlayButtonStream');
+            streamAudioElement.addEventListener('play', () => {
+                pausePlayBtn.textContent = '⏸️';
+                pausePlayBtn.title = 'Pause';
+            });
+            streamAudioElement.addEventListener('pause', () => {
+                pausePlayBtn.textContent = '▶️';
+                pausePlayBtn.title = 'Play';
+            });
+            
             streamAudioElement.load();
             
             streamAudioElement.addEventListener('ended', async () => {
@@ -2021,6 +2038,118 @@
             
             const venueId = currentVenueId || getFirstVenueId();
             checkStreamQueue(venueId);
+        }
+
+        // Store current stream queue for navigation
+        let currentStreamQueueList = [];
+
+        async function toggleStreamPause() {
+            if (!streamAudioElement) return;
+            
+            const pausePlayBtn = document.getElementById('pausePlayButtonStream');
+            if (streamAudioElement.paused) {
+                await streamAudioElement.play();
+                pausePlayBtn.textContent = '⏸️';
+                pausePlayBtn.title = 'Pause';
+            } else {
+                streamAudioElement.pause();
+                pausePlayBtn.textContent = '▶️';
+                pausePlayBtn.title = 'Play';
+            }
+        }
+
+        async function playPreviousStreamSong() {
+            const venueId = currentVenueId || getFirstVenueId();
+            if (!currentStreamQueueList.length) {
+                await checkStreamQueue(venueId);
+                return;
+            }
+            
+            // Find current song index
+            let currentIndex = -1;
+            if (currentStreamSong && currentStreamSong.task_id) {
+                currentIndex = currentStreamQueueList.findIndex(song => song.task_id === currentStreamSong.task_id);
+            }
+            
+            // If we're at the first song or before, go to first unplayed
+            if (currentIndex <= 0) {
+                const firstUnplayed = currentStreamQueueList.find(song => !streamPlayedSongs.has(song.task_id));
+                if (firstUnplayed) {
+                    await playNextStreamSong(firstUnplayed);
+                }
+                return;
+            }
+            
+            // Find previous unplayed song
+            for (let i = currentIndex - 1; i >= 0; i--) {
+                if (!streamPlayedSongs.has(currentStreamQueueList[i].task_id)) {
+                    if (currentStreamSong && currentStreamSong.task_id) {
+                        streamPlayedSongs.delete(currentStreamSong.task_id);
+                    }
+                    await playNextStreamSong(currentStreamQueueList[i]);
+                    return;
+                }
+            }
+            
+            // If no previous unplayed, go to first unplayed
+            const firstUnplayed = currentStreamQueueList.find(song => !streamPlayedSongs.has(song.task_id));
+            if (firstUnplayed) {
+                if (currentStreamSong && currentStreamSong.task_id) {
+                    streamPlayedSongs.delete(currentStreamSong.task_id);
+                }
+                await playNextStreamSong(firstUnplayed);
+            }
+        }
+
+        async function skipToNextStreamSong() {
+            const venueId = currentVenueId || getFirstVenueId();
+            if (!currentStreamQueueList.length) {
+                await checkStreamQueue(venueId);
+                return;
+            }
+            
+            // Find next unplayed song
+            let startIndex = 0;
+            if (currentStreamSong && currentStreamSong.task_id) {
+                const currentIndex = currentStreamQueueList.findIndex(song => song.task_id === currentStreamSong.task_id);
+                startIndex = currentIndex + 1;
+            }
+            
+            for (let i = startIndex; i < currentStreamQueueList.length; i++) {
+                if (!streamPlayedSongs.has(currentStreamQueueList[i].task_id)) {
+                    // Mark current as played
+                    if (currentStreamSong && currentStreamSong.task_id) {
+                        streamPlayedSongs.add(currentStreamSong.task_id);
+                    }
+                    isStreamPlaying = false;
+                    await playNextStreamSong(currentStreamQueueList[i]);
+                    return;
+                }
+            }
+            
+            // If no next unplayed, check queue again
+            await checkStreamQueue(venueId);
+        }
+
+        async function checkStreamQueue(venueId) {
+            try {
+                const response = await fetch(`/venue/${venueId}/queue`);
+                const data = await response.json();
+                
+                const currentQueue = data.queue || [];
+                currentStreamQueueList = currentQueue; // Store for navigation
+                
+                updateStreamQueueDisplay(currentQueue);
+                
+                if (!isStreamPlaying && currentQueue.length > 0 && streamAutoplayEnabled) {
+                    const nextSong = currentQueue.find(song => !streamPlayedSongs.has(song.task_id));
+                    if (nextSong) {
+                        playNextStreamSong(nextSong);
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking stream queue:', error);
+            }
         }
 
         function escapeHtml(text) {
