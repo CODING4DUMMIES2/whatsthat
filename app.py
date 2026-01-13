@@ -1,3 +1,11 @@
+# -*- coding: utf-8 -*-
+import sys
+import io
+# Set UTF-8 encoding for stdout/stderr on Windows
+if sys.platform == 'win32':
+    sys.stdout = io.TextIOWrapper(sys.stdout.buffer, encoding='utf-8', errors='replace')
+    sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
+
 from flask import Flask, render_template, request, jsonify, send_from_directory, session, redirect, url_for
 from datetime import datetime
 import os
