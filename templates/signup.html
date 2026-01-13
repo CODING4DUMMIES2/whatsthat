@@ -321,6 +321,11 @@
                     <input type="password" id="password" name="password" placeholder="Create a password" required>
                 </div>
 
+                <div class="form-group" style="display: flex; align-items: center; margin-bottom: 20px;">
+                    <input type="checkbox" id="rememberMe" name="rememberMe" checked style="width: auto; margin-right: 8px; cursor: pointer;">
+                    <label for="rememberMe" style="margin: 0; font-weight: 400; cursor: pointer; color: rgba(255, 255, 255, 0.8);">Stay logged in</label>
+                </div>
+
                 <button type="submit" class="submit-btn" id="submitBtn">
                     Sign Up
                 </button>
@@ -352,6 +357,7 @@
             submitBtn.textContent = 'Creating Account...';
 
             try {
+                const rememberMe = document.getElementById('rememberMe').checked;
                 const response = await fetch('/signup', {
                     method: 'POST',
                     headers: {
@@ -360,7 +366,8 @@
                     body: JSON.stringify({
                         email: email,
                         password: password,
-                        name: name
+                        name: name,
+                        remember_me: rememberMe
                     })
                 });
 

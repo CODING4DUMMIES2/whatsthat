@@ -126,8 +126,12 @@ class SongTitle(db.Model):
 
 @app.before_request
 def make_session_permanent():
-    """Make all sessions permanent so users stay logged in"""
-    session.permanent = True
+    """Make sessions permanent if user chose to stay logged in"""
+    # Only make permanent if user is logged in and chose to remember
+    # Default to True if not set (for backward compatibility)
+    if session.get('user_id'):
+        remember_me = session.get('remember_me', True)
+        session.permanent = remember_me
 
 # Create directories if they don't exist
 BASE_DIR = os.path.dirname(__file__)
@@ -1493,11 +1497,18 @@ def signup():
         }
         save_users(users)
         
+        # Check if user wants to stay logged in
+        remember_me = data.get('remember_me', True)  # Default to True for better UX
+        
         # Log in the user
-        session.permanent = True  # Make session permanent
+        session.permanent = remember_me  # Make session permanent if remember_me is True
         session['user_id'] = email
         session['user_name'] = users[email]['name']
         session['is_admin'] = users[email].get('is_admin', False)
+        session['remember_me'] = remember_me  # Store preference in session
+        
+        # Mark session as modified to ensure it's saved
+        session.modified = True
         
         if request.is_json:
             redirect_url = '/venues'
@@ -1538,11 +1549,18 @@ def login():
                 return jsonify({'success': False, 'error': 'Invalid email or password'}), 401
             return render_template('login.html', error='Invalid email or password')
         
+        # Check if user wants to stay logged in
+        remember_me = data.get('remember_me', True)  # Default to True for better UX
+        
         # Log in the user
-        session.permanent = True  # Make session permanent
+        session.permanent = remember_me  # Make session permanent if remember_me is True
         session['user_id'] = email
         session['user_name'] = users[email]['name']
         session['is_admin'] = users[email].get('is_admin', False)
+        session['remember_me'] = remember_me  # Store preference in session
+        
+        # Mark session as modified to ensure it's saved
+        session.modified = True
         
         if request.is_json:
             return jsonify({
