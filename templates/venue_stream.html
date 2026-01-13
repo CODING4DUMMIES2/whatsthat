@@ -533,12 +533,14 @@
             // Update pause/play button
             const pausePlayBtn = document.getElementById('pausePlayButton');
             audioElement.addEventListener('play', () => {
-                pausePlayBtn.textContent = '⏸️';
+                pausePlayBtn.textContent = '⏸';
                 pausePlayBtn.title = 'Pause';
+                pausePlayBtn.style.color = '#FFFFFF';
             });
             audioElement.addEventListener('pause', () => {
-                pausePlayBtn.textContent = '▶️';
+                pausePlayBtn.textContent = '▶';
                 pausePlayBtn.title = 'Play';
+                pausePlayBtn.style.color = '#FFFFFF';
             });
             
             // Load the audio
