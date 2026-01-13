@@ -421,8 +421,8 @@ print("🚀 Starting application - loading data...")
 load_data()
 print("✅ Application startup complete")
 
-# User authentication storage
-USERS_FILE = os.path.join(BASE_DIR, "users.json")
+# User authentication storage - MUST use DATA_BASE_DIR for persistence!
+USERS_FILE = os.path.join(DATA_BASE_DIR, "users.json")
 
 # Hardwired admin credentials
 ADMIN_EMAIL = "admin@whatsthat.com"
@@ -433,10 +433,15 @@ def load_users():
     users = {}
     if os.path.exists(USERS_FILE):
         try:
-            with open(USERS_FILE, 'r') as f:
+            with open(USERS_FILE, 'r', encoding='utf-8') as f:
                 users = json.load(f)
-        except:
-            pass
+            print(f"✅ Loaded {len(users)} user(s) from {USERS_FILE}")
+        except Exception as e:
+            print(f"❌ Error loading users from {USERS_FILE}: {e}")
+            import traceback
+            traceback.print_exc()
+    else:
+        print(f"📄 Users file does not exist: {USERS_FILE}")
     
     # Always add hardwired admin account
     users[ADMIN_EMAIL] = {
@@ -453,8 +458,18 @@ def save_users(users):
     """Save users to file (preserves hardwired admin)"""
     # Remove admin from saved users (it's always hardwired)
     users_to_save = {k: v for k, v in users.items() if k != ADMIN_EMAIL}
-    with open(USERS_FILE, 'w') as f:
-        json.dump(users_to_save, f, indent=2)
+    try:
+        # Ensure directory exists
+        os.makedirs(os.path.dirname(USERS_FILE), exist_ok=True)
+        with open(USERS_FILE, 'w', encoding='utf-8') as f:
+            json.dump(users_to_save, f, indent=2, ensure_ascii=False)
+            f.flush()  # Force write to disk
+            os.fsync(f.fileno())  # Ensure OS writes to disk
+        print(f"✅ Saved {len(users_to_save)} user(s) to {USERS_FILE}")
+    except Exception as e:
+        print(f"❌ Error saving users to {USERS_FILE}: {e}")
+        import traceback
+        traceback.print_exc()
 
 def hash_password(password):
     """Hash a password"""
@@ -1489,13 +1504,16 @@ def signup():
             return render_template('signup.html', error='Email already registered')
         
         # Create new user
+        password_hash = hash_password(password)
         users[email] = {
             'email': email,
             'name': name or email.split('@')[0],
-            'password_hash': hash_password(password),
+            'password_hash': password_hash,
             'created_at': datetime.now().isoformat()
         }
+        print(f"🔐 Creating user '{email}' with password hash: {password_hash[:20]}...")
         save_users(users)
+        print(f"✅ User '{email}' created and saved successfully")
         
         # Check if user wants to stay logged in
         remember_me = data.get('remember_me', True)  # Default to True for better UX
@@ -1540,14 +1558,33 @@ def login():
         users = load_users()
         
         if email not in users:
+            print(f"❌ Login failed: Email '{email}' not found in users")
+            print(f"   Available users: {list(users.keys())}")
             if request.is_json:
                 return jsonify({'success': False, 'error': 'Invalid email or password'}), 401
             return render_template('login.html', error='Invalid email or password')
         
-        if not verify_password(password, users[email]['password_hash']):
+        stored_hash = users[email].get('password_hash')
+        if not stored_hash:
+            print(f"❌ Login failed: No password hash found for user '{email}'")
             if request.is_json:
                 return jsonify({'success': False, 'error': 'Invalid email or password'}), 401
             return render_template('login.html', error='Invalid email or password')
+        
+        # Debug logging
+        password_hash = hash_password(password)
+        print(f"🔍 Login attempt for '{email}'")
+        print(f"   Stored hash: {stored_hash[:20]}...")
+        print(f"   Computed hash: {password_hash[:20]}...")
+        print(f"   Match: {password_hash == stored_hash}")
+        
+        if not verify_password(password, stored_hash):
+            print(f"❌ Login failed: Password mismatch for '{email}'")
+            if request.is_json:
+                return jsonify({'success': False, 'error': 'Invalid email or password'}), 401
+            return render_template('login.html', error='Invalid email or password')
+        
+        print(f"✅ Login successful for '{email}'")
         
         # Check if user wants to stay logged in
         remember_me = data.get('remember_me', True)  # Default to True for better UX
