@@ -245,6 +245,17 @@
             transition: all 0.2s;
         }
 
+        .control-button::before {
+            content: '';
+            color: white;
+            filter: brightness(0) invert(1);
+        }
+
+        .control-button {
+            color: #FFFFFF;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        }
+
         .control-button:hover {
             transform: translateY(-2px);
             box-shadow: 0 6px 20px rgba(255, 20, 147, 0.6);
@@ -328,9 +339,9 @@
                 </button>
             </div>
             <div class="player-controls" id="playerControls" style="display: none;">
-                <button class="control-button" id="prevButton" onclick="playPreviousSong()" title="Previous Track" style="font-size: 18px;">⏮</button>
-                <button class="control-button pause-play" id="pausePlayButton" onclick="togglePause()" title="Pause/Play" style="font-size: 22px;">⏸</button>
-                <button class="control-button" id="nextButton" onclick="skipToNextSong()" title="Next Track" style="font-size: 18px;">⏭</button>
+                <button class="control-button" id="prevButton" onclick="playPreviousSong()" title="Previous Track" style="font-size: 18px; color: #FFFFFF;">⏮</button>
+                <button class="control-button pause-play" id="pausePlayButton" onclick="togglePause()" title="Pause/Play" style="font-size: 22px; color: #FFFFFF;">⏸</button>
+                <button class="control-button" id="nextButton" onclick="skipToNextSong()" title="Next Track" style="font-size: 18px; color: #FFFFFF;">⏭</button>
             </div>
             <div class="audio-player" id="audioPlayerContainer" style="display: none;">
                 <audio id="currentAudio" controls autoplay></audio>
@@ -575,12 +586,14 @@
             const pausePlayBtn = document.getElementById('pausePlayButton');
             if (audioElement.paused) {
                 await audioElement.play();
-                pausePlayBtn.textContent = '⏸️';
+                pausePlayBtn.textContent = '⏸';
                 pausePlayBtn.title = 'Pause';
+                pausePlayBtn.style.color = '#FFFFFF';
             } else {
                 audioElement.pause();
-                pausePlayBtn.textContent = '▶️';
+                pausePlayBtn.textContent = '▶';
                 pausePlayBtn.title = 'Play';
+                pausePlayBtn.style.color = '#FFFFFF';
             }
         }
 

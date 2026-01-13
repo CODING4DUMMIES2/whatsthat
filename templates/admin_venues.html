@@ -1225,9 +1225,9 @@
                                 </button>
                             </div>
                             <div class="player-controls" id="playerControlsStream" style="display: none; justify-content: center; align-items: center; gap: 15px; margin: 20px 0;">
-                                <button class="control-button" id="prevButtonStream" onclick="playPreviousStreamSong()" title="Previous Track" style="width: 50px; height: 50px; border-radius: 50%; border: none; background: linear-gradient(135deg, #8B2BE2 0%, #FF1493 100%); color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(139, 43, 226, 0.5); transition: all 0.2s;">⏮</button>
-                                <button class="control-button pause-play" id="pausePlayButtonStream" onclick="toggleStreamPause()" title="Pause/Play" style="width: 60px; height: 60px; border-radius: 50%; border: none; background: linear-gradient(135deg, #8B2BE2 0%, #FF1493 100%); color: white; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(139, 43, 226, 0.5); transition: all 0.2s;">⏸</button>
-                                <button class="control-button" id="nextButtonStream" onclick="skipToNextStreamSong()" title="Next Track" style="width: 50px; height: 50px; border-radius: 50%; border: none; background: linear-gradient(135deg, #8B2BE2 0%, #FF1493 100%); color: white; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(139, 43, 226, 0.5); transition: all 0.2s;">⏭</button>
+                                <button class="control-button" id="prevButtonStream" onclick="playPreviousStreamSong()" title="Previous Track" style="width: 50px; height: 50px; border-radius: 50%; border: none; background: linear-gradient(135deg, #8B2BE2 0%, #FF1493 100%); color: #FFFFFF; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(139, 43, 226, 0.5); transition: all 0.2s; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">⏮</button>
+                                <button class="control-button pause-play" id="pausePlayButtonStream" onclick="toggleStreamPause()" title="Pause/Play" style="width: 60px; height: 60px; border-radius: 50%; border: none; background: linear-gradient(135deg, #8B2BE2 0%, #FF1493 100%); color: #FFFFFF; font-size: 22px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(139, 43, 226, 0.5); transition: all 0.2s; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">⏸</button>
+                                <button class="control-button" id="nextButtonStream" onclick="skipToNextStreamSong()" title="Next Track" style="width: 50px; height: 50px; border-radius: 50%; border: none; background: linear-gradient(135deg, #8B2BE2 0%, #FF1493 100%); color: #FFFFFF; font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 15px rgba(139, 43, 226, 0.5); transition: all 0.2s; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);">⏭</button>
                             </div>
                             <div class="audio-player-stream" id="audioPlayerContainerStream" style="display: none; margin-top: 15px;">
                                 <audio id="currentAudioStream" controls style="width: 100%;"></audio>
@@ -2005,12 +2005,14 @@
             // Update pause/play button
             const pausePlayBtn = document.getElementById('pausePlayButtonStream');
             streamAudioElement.addEventListener('play', () => {
-                pausePlayBtn.textContent = '⏸️';
+                pausePlayBtn.textContent = '⏸';
                 pausePlayBtn.title = 'Pause';
+                pausePlayBtn.style.color = '#FFFFFF';
             });
             streamAudioElement.addEventListener('pause', () => {
-                pausePlayBtn.textContent = '▶️';
+                pausePlayBtn.textContent = '▶';
                 pausePlayBtn.title = 'Play';
+                pausePlayBtn.style.color = '#FFFFFF';
             });
             
             streamAudioElement.load();
@@ -2049,12 +2051,14 @@
             const pausePlayBtn = document.getElementById('pausePlayButtonStream');
             if (streamAudioElement.paused) {
                 await streamAudioElement.play();
-                pausePlayBtn.textContent = '⏸️';
+                pausePlayBtn.textContent = '⏸';
                 pausePlayBtn.title = 'Pause';
+                pausePlayBtn.style.color = '#FFFFFF';
             } else {
                 streamAudioElement.pause();
-                pausePlayBtn.textContent = '▶️';
+                pausePlayBtn.textContent = '▶';
                 pausePlayBtn.title = 'Play';
+                pausePlayBtn.style.color = '#FFFFFF';
             }
         }
 
