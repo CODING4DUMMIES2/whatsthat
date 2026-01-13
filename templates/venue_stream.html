@@ -262,20 +262,30 @@
         let queueCheckInterval = null;
         let audioElement = null;
         let autoplayEnabled = false;
+        let lastQueueLength = 0;
+        let lastQueueTaskIds = new Set();
+
+        // Start polling immediately when page loads (to show queue updates)
+        // But autoplay requires user interaction
+        window.addEventListener('DOMContentLoaded', function() {
+            startQueuePolling();
+            // Initial check
+            checkQueue();
+        });
 
         // Start button click handler
         document.getElementById('startQueueBtn').addEventListener('click', function() {
             autoplayEnabled = true;
             this.style.display = 'none';
             document.getElementById('statusText').textContent = 'Queue Active - Waiting for songs...';
-            startQueuePolling();
+            // Immediately check for songs to play
+            checkQueue();
         });
 
-        // Check for new songs every 3 seconds
+        // Check for new songs every 1.5 seconds (faster updates)
         function startQueuePolling() {
             if (queueCheckInterval) return; // Already started
-            queueCheckInterval = setInterval(checkQueue, 3000);
-            checkQueue(); // Check immediately
+            queueCheckInterval = setInterval(checkQueue, 1500);
         }
 
         async function checkQueue() {
@@ -283,16 +293,41 @@
                 const response = await fetch(`/venue/${venueId}/queue`);
                 const data = await response.json();
                 
-                updateQueueDisplay(data.queue);
+                const currentQueue = data.queue || [];
+                const currentTaskIds = new Set(currentQueue.map(song => song.task_id));
                 
-                // If not playing and queue has songs and autoplay is enabled, find next unplayed song
-                if (!isPlaying && data.queue.length > 0 && autoplayEnabled) {
+                // Detect new songs (songs that weren't in the queue before)
+                const newSongs = currentQueue.filter(song => !lastQueueTaskIds.has(song.task_id));
+                
+                // Update display
+                updateQueueDisplay(currentQueue);
+                
+                // If autoplay is enabled and we're not playing, check for next song
+                if (autoplayEnabled && !isPlaying && currentQueue.length > 0) {
                     // Find first unplayed song
-                    const nextSong = data.queue.find(song => !playedSongs.has(song.task_id));
+                    const nextSong = currentQueue.find(song => !playedSongs.has(song.task_id));
                     if (nextSong) {
+                        console.log('🎵 Auto-playing next song:', nextSong.title);
                         playNextSong(nextSong);
                     }
                 }
+                
+                // If new songs were detected and autoplay is enabled, log it
+                if (newSongs.length > 0 && autoplayEnabled) {
+                    console.log(`✨ ${newSongs.length} new song(s) detected!`);
+                    // If not currently playing, try to play the first new song
+                    if (!isPlaying) {
+                        const firstNewSong = newSongs.find(song => !playedSongs.has(song.task_id));
+                        if (firstNewSong) {
+                            console.log('🎵 Auto-playing new song:', firstNewSong.title);
+                            playNextSong(firstNewSong);
+                        }
+                    }
+                }
+                
+                // Update tracking
+                lastQueueLength = currentQueue.length;
+                lastQueueTaskIds = currentTaskIds;
             } catch (error) {
                 console.error('Error checking queue:', error);
             }
@@ -394,7 +429,7 @@
             
             // When song ends, mark as played and play next
             audioElement.addEventListener('ended', async () => {
-                console.log('Song ended, marking as played and playing next');
+                console.log('🎵 Song ended, marking as played and playing next');
                 
                 // Mark song as played (but keep it in queue)
                 if (currentSong && currentSong.task_id) {
@@ -404,10 +439,8 @@
                 isPlaying = false;
                 currentSong = null;
                 
-                // Check for next song immediately
-                setTimeout(() => {
-                    checkQueue();
-                }, 500);
+                // Immediately check for next song (don't wait)
+                await checkQueue();
             });
             
             // Also handle errors
@@ -427,11 +460,14 @@
             return div.innerHTML;
         }
 
-        // Don't start polling until user clicks "Start Queue" button
-        // This ensures autoplay works after user interaction
+        // Polling starts immediately on page load to show queue updates
+        // Autoplay requires user interaction (clicking "Start Queue" button)
     </script>
 </body>
 </html>
+
+
+
 
 
 
