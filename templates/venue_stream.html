@@ -234,20 +234,21 @@
             height: 50px;
             border-radius: 50%;
             border: none;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #8B2BE2 0%, #FF1493 100%);
             color: white;
             font-size: 20px;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            box-shadow: 0 4px 15px rgba(139, 43, 226, 0.5);
             transition: all 0.2s;
         }
 
         .control-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+            box-shadow: 0 6px 20px rgba(255, 20, 147, 0.6);
+            background: linear-gradient(135deg, #9B3BF2 0%, #FF1FA3 100%);
         }
 
         .control-button:active {
@@ -264,6 +265,47 @@
             width: 60px;
             height: 60px;
             font-size: 24px;
+        }
+
+        /* Style audio player progress bar with magenta/purple gradient */
+        .now-playing .audio-player audio::-webkit-media-controls-panel {
+            background: rgba(139, 43, 226, 0.2);
+        }
+
+        .now-playing .audio-player audio::-webkit-media-controls-play-button {
+            background: linear-gradient(135deg, #8B2BE2 0%, #FF1493 100%);
+            border-radius: 50%;
+        }
+
+        .now-playing .audio-player audio::-webkit-media-controls-current-time-display,
+        .now-playing .audio-player audio::-webkit-media-controls-time-remaining-display {
+            color: white;
+        }
+
+        .now-playing .audio-player audio::-webkit-media-controls-timeline {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+
+        .now-playing .audio-player audio::-webkit-media-controls-timeline::-webkit-slider-thumb {
+            background: linear-gradient(135deg, #8B2BE2 0%, #FF1493 100%);
+            border: 2px solid white;
+            box-shadow: 0 2px 8px rgba(139, 43, 226, 0.5);
+        }
+
+        .now-playing .audio-player audio::-webkit-media-controls-volume-slider {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 5px;
+        }
+
+        .now-playing .audio-player audio::-webkit-media-controls-volume-slider::-webkit-slider-thumb {
+            background: linear-gradient(135deg, #8B2BE2 0%, #FF1493 100%);
+            border: 2px solid white;
+        }
+
+        .now-playing .audio-player audio::-webkit-media-controls-mute-button {
+            background: linear-gradient(135deg, #8B2BE2 0%, #FF1493 100%);
+            border-radius: 50%;
         }
     </style>
 </head>
@@ -286,9 +328,9 @@
                 </button>
             </div>
             <div class="player-controls" id="playerControls" style="display: none;">
-                <button class="control-button" id="prevButton" onclick="playPreviousSong()" title="Previous Track">⏮️</button>
-                <button class="control-button pause-play" id="pausePlayButton" onclick="togglePause()" title="Pause/Play">⏸️</button>
-                <button class="control-button" id="nextButton" onclick="skipToNextSong()" title="Next Track">⏭️</button>
+                <button class="control-button" id="prevButton" onclick="playPreviousSong()" title="Previous Track" style="font-size: 18px;">⏮</button>
+                <button class="control-button pause-play" id="pausePlayButton" onclick="togglePause()" title="Pause/Play" style="font-size: 22px;">⏸</button>
+                <button class="control-button" id="nextButton" onclick="skipToNextSong()" title="Next Track" style="font-size: 18px;">⏭</button>
             </div>
             <div class="audio-player" id="audioPlayerContainer" style="display: none;">
                 <audio id="currentAudio" controls autoplay></audio>
