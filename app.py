@@ -1535,8 +1535,14 @@ def signup():
             'created_at': datetime.now().isoformat()
         }
         print(f"🔐 Creating user '{email}' with password hash: {password_hash[:20]}...")
+        print(f"   Users dict now has {len(users)} user(s): {list(users.keys())}")
         save_users(users)
-        print(f"✅ User '{email}' created and saved successfully")
+        # Reload to verify it was saved
+        users = load_users()
+        if email in users:
+            print(f"✅ User '{email}' created and saved successfully - verified in file")
+        else:
+            print(f"❌ WARNING: User '{email}' was not found after save! This is a critical error!")
         
         # Check if user wants to stay logged in
         remember_me = data.get('remember_me', True)  # Default to True for better UX
