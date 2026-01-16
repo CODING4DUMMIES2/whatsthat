@@ -542,6 +542,114 @@ def venue_stream(venue_id):
     return render_template('venue_stream.html', venue_id=venue_id)
 
 
+@app.route('/demo/generate', methods=['POST'])
+def generate_demo():
+    """Generate a demo venue for the landing page"""
+    try:
+        data = request.get_json()
+        venue_name = data.get('venue_name', '').strip()
+        business_email = data.get('business_email', '').strip()
+        venue_type = data.get('venue_type', '').strip()
+        
+        if not venue_name or not business_email:
+            return jsonify({'success': False, 'error': 'Venue name and business email are required'}), 400
+        
+        # Generate a demo venue ID
+        demo_id = hashlib.md5(f"demo_{venue_name}_{business_email}".encode()).hexdigest()[:8]
+        
+        # Create demo venue metadata
+        load_data()
+        venue_metadata[demo_id] = {
+            'name': venue_name,
+            'owner_email': business_email,
+            'created_at': datetime.now().isoformat(),
+            'is_demo': True,
+            'venue_type': venue_type,
+            'demo_created_at': datetime.now().isoformat()
+        }
+        
+        # Initialize empty queue for demo
+        venue_queues[demo_id] = []
+        venue_owners[business_email] = venue_owners.get(business_email, []) + [demo_id]
+        
+        # Save data
+        save_data()
+        
+        # Generate QR code for demo
+        base_url = get_base_url() or request.host_url.rstrip('/')
+        submit_url = f"{base_url}/venue/{demo_id}/submit"
+        
+        qr = qrcode.QRCode(version=1, box_size=10, border=5)
+        qr.add_data(submit_url)
+        qr.make(fit=True)
+        qr_img = qr.make_image(fill_color="black", back_color="white")
+        
+        # Convert QR to base64
+        buffered = BytesIO()
+        qr_img.save(buffered, format="PNG")
+        qr_base64 = base64.b64encode(buffered.getvalue()).decode()
+        
+        return jsonify({
+            'success': True,
+            'demo_id': demo_id,
+            'venue_name': venue_name,
+            'qr_code': f"data:image/png;base64,{qr_base64}",
+            'submit_url': submit_url,
+            'stream_url': f"{base_url}/venue/{demo_id}/stream"
+        })
+    except Exception as e:
+        import traceback
+        print(f"❌ Error generating demo: {e}")
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/demo/<demo_id>/submit', methods=['POST'])
+def demo_submit_song(demo_id):
+    """Submit a song request for a demo venue"""
+    try:
+        data = request.get_json()
+        message = data.get('message', '').strip()
+        table_id = data.get('table_id', 'demo-table-1')
+        
+        if not message:
+            return jsonify({'success': False, 'error': 'Message is required'}), 400
+        
+        # Call the regular /send endpoint logic
+        music_info = call_suno_generate_music(prompt=message, venue_id=demo_id, table_id=table_id, genre=None)
+        
+        return jsonify({
+            'success': True,
+            'message': message,
+            'music_generation': music_info,
+            'venue_id': demo_id
+        })
+    except Exception as e:
+        import traceback
+        print(f"❌ Error in demo submit: {e}")
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
+@app.route('/demo/<demo_id>/queue')
+def demo_get_queue(demo_id):
+    """Get the queue for a demo venue"""
+    try:
+        load_data()
+        check_and_process_pending_tasks(demo_id)
+        queue = venue_queues.get(demo_id, [])
+        return jsonify({
+            'venue_id': demo_id,
+            'queue': queue,
+            'queue_length': len(queue)
+        })
+    except Exception as e:
+        import traceback
+        print(f"❌ Error getting demo queue: {e}")
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @app.route('/venue/create', methods=['POST'])
 @require_login
 def create_venue():

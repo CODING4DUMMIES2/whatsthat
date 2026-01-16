@@ -1687,6 +1687,33 @@
             font-size: 14px;
         }
 
+        /* Demo Modal Styles */
+        .demo-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            z-index: 2000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .demo-modal-content {
+            position: relative;
+            max-width: 500px;
+            width: 100%;
+            padding: 40px;
+        }
+
+        .demo-panel {
+            min-height: 400px;
+        }
+
         /* Responsive */
         @media (max-width: 768px) {
             .navbar {
@@ -1801,64 +1828,114 @@
 
         <!-- Hero Section -->
         <div class="hero">
-            <h1 class="hero-headline">Turn Tables Into Entertainment Without Hiring A DJ</h1>
+            <h1 class="hero-headline">Turn Tables Into Live Music Experiences — Without DJs or Hardware</h1>
             <p class="hero-subtitle">
-                Let customers create custom songs and karaoke covers instantly. Scan a QR code, make a request, and watch the magic happen.
+                Try it with your venue name and see how guests create songs in real time.
             </p>
             
-            <div class="hero-input-container">
-                <div class="hero-input-wrapper">
-                    <div style="flex: 1; position: relative; min-width: 500px;">
+            <button class="cta-button" id="tryDemoBtn" onclick="openDemoModal()" style="margin-top: 30px; padding: 18px 40px; font-size: 18px;">
+                Try This in My Venue
+            </button>
+        </div>
+
+        <!-- Demo Modal -->
+        <div id="demoModal" class="demo-modal" style="display: none;">
+            <div class="demo-modal-content frosted-glass">
+                <h2 style="font-size: 32px; margin-bottom: 10px; color: white; font-weight: 900;">Let's Set This Up for Your Venue</h2>
+                <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 30px; font-size: 16px;">We'll send your QR kit and demo link.</p>
+                
+                <form id="demoForm" onsubmit="generateDemo(event)">
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">Venue name *</label>
                         <input 
                             type="text" 
-                            class="hero-input" 
-                            id="songPromptInput"
-                            style="width: 100%;"
+                            id="venueNameInput" 
+                            required 
+                            placeholder="The Bar"
+                            style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none;"
                         />
-                        <div class="hero-placeholder-overlay" id="placeholderOverlay">
-                            <div class="hero-placeholder-text">
-                                <span class="hero-placeholder-slide" id="placeholderSlide"></span>
-                                <span class="hero-placeholder-cursor" id="placeholderCursor"></span>
-                            </div>
-                        </div>
+                    </div>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">Business email *</label>
+                        <input 
+                            type="email" 
+                            id="businessEmailInput" 
+                            required 
+                            placeholder="owner@venue.com"
+                            style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none;"
+                        />
+                    </div>
+                    
+                    <div style="margin-bottom: 30px;">
+                        <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">Venue type (optional)</label>
+                        <select 
+                            id="venueTypeInput"
+                            style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none;"
+                        >
+                            <option value="">Select venue type</option>
+                            <option value="bar">Bar & Lounge</option>
+                            <option value="restaurant">Restaurant</option>
+                            <option value="sports">Sports Bar</option>
+                            <option value="event">Event Venue</option>
+                        </select>
+                    </div>
+                    
+                    <button type="submit" class="cta-button" style="width: 100%; padding: 16px; font-size: 18px;">
+                        Generate My Venue Demo
+                    </button>
+                </form>
+                
+                <button onclick="closeDemoModal()" style="position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: rgba(255, 255, 255, 0.7); font-size: 24px; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'" onmouseout="this.style.background='transparent'; this.style.color='rgba(255,255,255,0.7)'">×</button>
+            </div>
+        </div>
+
+        <!-- Demo Experience Section -->
+        <div id="demoExperience" style="display: none; margin-top: 80px; margin-bottom: 100px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+                <!-- Guest View -->
+                <div class="demo-panel frosted-glass" style="padding: 40px;">
+                    <h3 id="guestViewTitle" style="font-size: 24px; margin-bottom: 20px; color: white; font-weight: 800;">Create a Song at <span id="guestVenueName"></span></h3>
+                    
+                    <div style="margin-bottom: 20px;">
+                        <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">What should the song be about?</label>
+                        <input 
+                            type="text" 
+                            id="demoSongInput" 
+                            placeholder="A birthday song for my friend"
+                            style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none; margin-bottom: 15px;"
+                        />
+                        <button onclick="submitDemoSong()" class="cta-button" style="width: 100%; padding: 14px; font-size: 16px;">
+                            Create Song
+                        </button>
+                    </div>
+                    
+                    <div id="demoQRCode" style="text-align: center; margin-top: 30px;">
+                        <p style="color: rgba(255, 255, 255, 0.9); margin-bottom: 15px; font-weight: 600;">Song Requests at <span id="qrVenueName"></span></p>
+                        <img id="qrCodeImage" src="" alt="QR Code" style="max-width: 200px; border-radius: 12px; background: white; padding: 10px;">
                     </div>
                 </div>
                 
-                <div class="hero-right-controls">
-                    <button class="hero-submit-btn" onclick="generateSong()" id="generateBtn" title="Create">
-                        <span>→</span>
-                    </button>
+                <!-- Venue View -->
+                <div class="demo-panel frosted-glass" style="padding: 40px;">
+                    <h3 id="venueViewTitle" style="font-size: 24px; margin-bottom: 20px; color: white; font-weight: 800;">Live Queue — <span id="venueVenueName"></span></h3>
+                    
+                    <div id="demoQueueStatus" style="color: rgba(255, 255, 255, 0.7); margin-bottom: 20px; font-size: 16px;">
+                        Waiting for song requests...
+                    </div>
+                    
+                    <div id="demoQueueItems" style="display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Queue items will be added here dynamically -->
+                    </div>
                 </div>
             </div>
             
-            <div class="hero-action-buttons">
-                <button class="hero-action-btn create-song" onclick="generateSong()">
-                    <span class="icon">🎵</span>
-                    <span>Create song</span>
+            <!-- Secondary CTA -->
+            <div id="secondaryCTA" style="display: none; text-align: center; margin-top: 60px; padding: 40px; background: rgba(255, 255, 255, 0.05); backdrop-filter: blur(20px); border-radius: 16px; max-width: 800px; margin-left: auto; margin-right: auto;">
+                <h3 style="font-size: 28px; margin-bottom: 15px; color: white; font-weight: 800;">Want this live tonight?</h3>
+                <button onclick="activateVenue()" class="cta-button" id="activateBtn" style="padding: 16px 40px; font-size: 18px;">
+                    Activate for <span id="activateVenueName"></span>
                 </button>
-                <button class="hero-action-btn create-sound" onclick="generateSound()">
-                    <span class="icon">🎤</span>
-                    <span>Karaoke</span>
-                </button>
-                <button class="hero-action-btn speak-text" onclick="speakText()">
-                    <span class="icon">🎵</span>
-                    <span>Cover song</span>
-                </button>
-                <button class="hero-action-btn change-file" onclick="changeFile()">
-                    <span class="icon">✨</span>
-                    <span>Night Album</span>
-                </button>
-                <button class="hero-action-btn random" onclick="randomPrompt()">
-                    <span class="icon">🎲</span>
-                    <span>Hype Mode</span>
-                </button>
-            </div>
-            
-            <div id="songStatusContainer" style="max-width: 800px; margin: 30px auto 0; display: none;">
-                <div id="songStatus" class="frosted-glass" style="padding: 20px; border-radius: 16px; text-align: center;">
-                    <div id="songStatusText" style="font-weight: 700; font-size: 18px; margin-bottom: 15px;"></div>
-                    <div id="songAudioPlayer" style="display: none;"></div>
-                </div>
             </div>
         </div>
 
@@ -2233,17 +2310,248 @@
     </div>
 
     <script>
-        async function generateSong() {
-            const prompt = document.getElementById('songPromptInput').value.trim();
-            if (!prompt) {
-                alert('Please enter a song prompt');
+        let currentDemoId = null;
+        let currentVenueName = null;
+        let demoInteractionCount = 0;
+        let queueCheckInterval = null;
+
+        // Demo Modal Functions
+        function openDemoModal() {
+            document.getElementById('demoModal').style.display = 'flex';
+        }
+
+        function closeDemoModal() {
+            document.getElementById('demoModal').style.display = 'none';
+        }
+
+        // Close modal when clicking outside
+        document.addEventListener('click', function(event) {
+            const modal = document.getElementById('demoModal');
+            if (event.target === modal) {
+                closeDemoModal();
+            }
+        });
+
+        // Generate Demo
+        async function generateDemo(event) {
+            event.preventDefault();
+            
+            const venueName = document.getElementById('venueNameInput').value.trim();
+            const businessEmail = document.getElementById('businessEmailInput').value.trim();
+            const venueType = document.getElementById('venueTypeInput').value;
+            
+            if (!venueName || !businessEmail) {
+                alert('Please fill in all required fields');
                 return;
             }
+            
+            const submitBtn = event.target.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Generating...';
+            
+            try {
+                const response = await fetch('/demo/generate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        venue_name: venueName,
+                        business_email: businessEmail,
+                        venue_type: venueType
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    currentDemoId = data.demo_id;
+                    currentVenueName = venueName;
+                    
+                    // Close modal
+                    closeDemoModal();
+                    
+                    // Show demo experience
+                    showDemoExperience(data);
+                    
+                    // Start polling queue
+                    startQueuePolling();
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to generate demo'));
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalText;
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error generating demo: ' + error.message);
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        }
 
-            const generateBtn = document.getElementById('generateBtn');
-            const statusContainer = document.getElementById('songStatusContainer');
-            const statusText = document.getElementById('songStatusText');
-            const audioPlayer = document.getElementById('songAudioPlayer');
+        function showDemoExperience(data) {
+            // Update all venue name references
+            document.getElementById('guestVenueName').textContent = currentVenueName;
+            document.getElementById('qrVenueName').textContent = currentVenueName;
+            document.getElementById('venueVenueName').textContent = currentVenueName;
+            document.getElementById('activateVenueName').textContent = currentVenueName;
+            
+            // Set QR code
+            document.getElementById('qrCodeImage').src = data.qr_code;
+            
+            // Show demo experience section
+            document.getElementById('demoExperience').style.display = 'block';
+            
+            // Scroll to demo
+            setTimeout(() => {
+                document.getElementById('demoExperience').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }, 100);
+        }
+
+        // Submit Demo Song
+        async function submitDemoSong() {
+            const message = document.getElementById('demoSongInput').value.trim();
+            
+            if (!message) {
+                alert('Please enter a song description');
+                return;
+            }
+            
+            if (!currentDemoId) {
+                alert('Demo not initialized');
+                return;
+            }
+            
+            const submitBtn = document.querySelector('#demoSongInput').nextElementSibling;
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Creating...';
+            
+            // Update status
+            document.getElementById('demoQueueStatus').textContent = 'Generating song...';
+            
+            try {
+                const response = await fetch(`/demo/${currentDemoId}/submit`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        message: message,
+                        table_id: 'demo-table-1'
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Increment interaction count
+                    demoInteractionCount++;
+                    
+                    // Clear input
+                    document.getElementById('demoSongInput').value = '';
+                    
+                    // Show secondary CTA after 2-3 interactions
+                    if (demoInteractionCount >= 2) {
+                        document.getElementById('secondaryCTA').style.display = 'block';
+                    }
+                    
+                    // Add to queue display
+                    addQueueItem({
+                        title: message,
+                        status: 'generating',
+                        table_id: 'demo-table-1'
+                    });
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to create song'));
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Error creating song: ' + error.message);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        }
+
+        function addQueueItem(item) {
+            const queueItems = document.getElementById('demoQueueItems');
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'demo-queue-item';
+            itemDiv.style.cssText = 'padding: 15px; background: rgba(255, 255, 255, 0.1); border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;';
+            
+            const title = item.title || 'Untitled Song';
+            const tableText = item.table_id ? `Table ${item.table_id.split('-').pop()}` : 'Table 1';
+            
+            itemDiv.innerHTML = `
+                <div>
+                    <div style="color: white; font-weight: 600; margin-bottom: 4px;">${title}</div>
+                    <div style="color: rgba(255, 255, 255, 0.7); font-size: 14px;">${tableText} – ${currentVenueName}</div>
+                </div>
+                <div style="color: rgba(255, 255, 255, 0.7); font-size: 14px;">${item.status === 'generating' ? '⏳ Generating...' : '✅ Ready'}</div>
+            `;
+            
+            queueItems.insertBefore(itemDiv, queueItems.firstChild);
+        }
+
+        function startQueuePolling() {
+            if (queueCheckInterval) {
+                clearInterval(queueCheckInterval);
+            }
+            
+            queueCheckInterval = setInterval(async () => {
+                if (!currentDemoId) return;
+                
+                try {
+                    const response = await fetch(`/demo/${currentDemoId}/queue`);
+                    const data = await response.json();
+                    
+                    if (data.queue && data.queue.length > 0) {
+                        // Update queue display
+                        const queueItems = document.getElementById('demoQueueItems');
+                        queueItems.innerHTML = '';
+                        
+                        data.queue.forEach((item, index) => {
+                            addQueueItem({
+                                title: item.title || 'Untitled Song',
+                                status: 'ready',
+                                table_id: 'demo-table-1'
+                            });
+                        });
+                        
+                        document.getElementById('demoQueueStatus').textContent = `${data.queue_length} song(s) in queue`;
+                    } else {
+                        document.getElementById('demoQueueStatus').textContent = 'Waiting for song requests...';
+                    }
+                } catch (error) {
+                    console.error('Error polling queue:', error);
+                }
+            }, 3000); // Poll every 3 seconds
+        }
+
+        function activateVenue() {
+            // Redirect to signup with venue name pre-filled
+            window.location.href = `/signup?venue_name=${encodeURIComponent(currentVenueName)}`;
+        }
+
+        // Enter key in demo song input
+        document.addEventListener('DOMContentLoaded', function() {
+            const demoSongInput = document.getElementById('demoSongInput');
+            if (demoSongInput) {
+                demoSongInput.addEventListener('keypress', function(e) {
+                    if (e.key === 'Enter') {
+                        submitDemoSong();
+                    }
+                });
+            }
+        });
+
+        // Old generateSong function removed - no longer needed
+        async function generateSong() {
+            // This function is kept for backwards compatibility but is not used
+            console.log('generateSong called but not implemented in demo mode');
+        }
 
             // Disable button and show loading
             generateBtn.disabled = true;
