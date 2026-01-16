@@ -1833,7 +1833,7 @@
                 Try it with your venue name and see how guests create songs in real time.
             </p>
             
-            <button class="cta-button" id="tryDemoBtn" onclick="openDemoModal()" style="margin-top: 30px; padding: 18px 40px; font-size: 18px;">
+            <button class="cta-button" id="tryDemoBtn" onclick="openDemoModal(); return false;" style="margin-top: 30px; padding: 18px 40px; font-size: 18px; cursor: pointer;">
                 Try This in My Venue
             </button>
         </div>
@@ -2317,17 +2317,27 @@
 
         // Demo Modal Functions
         function openDemoModal() {
-            document.getElementById('demoModal').style.display = 'flex';
+            console.log('openDemoModal called');
+            const modal = document.getElementById('demoModal');
+            if (modal) {
+                modal.style.display = 'flex';
+                console.log('Modal should be visible now');
+            } else {
+                console.error('Modal element not found!');
+            }
         }
 
         function closeDemoModal() {
-            document.getElementById('demoModal').style.display = 'none';
+            const modal = document.getElementById('demoModal');
+            if (modal) {
+                modal.style.display = 'none';
+            }
         }
 
         // Close modal when clicking outside
         document.addEventListener('click', function(event) {
             const modal = document.getElementById('demoModal');
-            if (event.target === modal) {
+            if (modal && event.target === modal) {
                 closeDemoModal();
             }
         });
