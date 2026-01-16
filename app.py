@@ -615,15 +615,31 @@ def demo_submit_song(demo_id):
         if not message:
             return jsonify({'success': False, 'error': 'Message is required'}), 400
         
-        # Call the regular /send endpoint logic
-        music_info = call_suno_generate_music(prompt=message, venue_id=demo_id, table_id=table_id, genre=None)
+        # Save message to file
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+        filename = f"message_{timestamp}.txt"
+        filepath = os.path.join(MESSAGES_DIR, filename)
         
-        return jsonify({
+        with open(filepath, "w", encoding="utf-8") as f:
+            f.write(message)
+        print(f"✅ Saved message to: {filepath}")
+        
+        # Trigger Suno music generation
+        print("🎵 Calling Suno API for demo...")
+        music_info = call_suno_generate_music(prompt=message, venue_id=demo_id, table_id=table_id, genre=None)
+        print(f"🎵 Suno API response: {music_info}")
+        
+        # Return success with timestamp + music generation info
+        display_timestamp = datetime.now().strftime("%H:%M:%S")
+        response_data = {
             'success': True,
+            'timestamp': display_timestamp,
             'message': message,
             'music_generation': music_info,
             'venue_id': demo_id
-        })
+        }
+        print(f"✅ Returning success response: {response_data}")
+        return jsonify(response_data)
     except Exception as e:
         import traceback
         print(f"❌ Error in demo submit: {e}")
