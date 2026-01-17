@@ -570,6 +570,19 @@
             gap: 30px;
             flex-wrap: nowrap;
             margin-top: 50px;
+            position: relative;
+        }
+        
+        .flow-line::before {
+            content: '';
+            flex: 1;
+            max-width: calc((100% - 1200px) / 2);
+        }
+        
+        .flow-line::after {
+            content: '';
+            flex: 1;
+            max-width: calc((100% - 1200px) / 2);
         }
 
         .flow-item {
