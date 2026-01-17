@@ -1854,16 +1854,9 @@
                 Try it with your venue name and see how guests create songs in real time.
             </p>
             
-            <button class="cta-button" id="tryDemoBtn" onclick="openDemoModal(); return false;" style="margin-top: 30px; padding: 18px 40px; font-size: 18px; cursor: pointer;">
-                Try This in My Venue
-            </button>
-        </div>
-
-        <!-- Demo Modal -->
-        <div id="demoModal" class="demo-modal" style="display: none;">
-            <div class="demo-modal-content frosted-glass">
-                <h2 style="font-size: 32px; margin-bottom: 10px; color: white; font-weight: 900;">Let's Set This Up for Your Venue</h2>
-                <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 30px; font-size: 16px;">We'll send your QR kit and demo link.</p>
+            <div class="frosted-glass" style="max-width: 500px; margin: 30px auto 0; padding: 40px;">
+                <h2 style="font-size: 32px; margin-bottom: 10px; color: white; font-weight: 900; text-align: center;">Let's Set This Up for Your Venue</h2>
+                <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 30px; font-size: 16px; text-align: center;">We'll send your QR kit and demo link.</p>
                 
                 <form id="demoForm" onsubmit="generateDemo(event)">
                     <div style="margin-bottom: 20px;">
@@ -1906,8 +1899,6 @@
                         Generate My Venue Demo
                     </button>
                 </form>
-                
-                <button onclick="closeDemoModal()" style="position: absolute; top: 20px; right: 20px; background: transparent; border: none; color: rgba(255, 255, 255, 0.7); font-size: 24px; cursor: pointer; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 50%; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.1)'; this.style.color='white'" onmouseout="this.style.background='transparent'; this.style.color='rgba(255,255,255,0.7)'">×</button>
             </div>
         </div>
 
