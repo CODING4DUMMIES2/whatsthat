@@ -1918,15 +1918,22 @@
                 </div>
                 
                 <!-- Venue View -->
-                <div class="demo-panel frosted-glass" style="padding: 40px;">
+                <div class="demo-panel frosted-glass" style="padding: 40px; display: flex; flex-direction: column;">
                     <h3 id="venueViewTitle" style="font-size: 24px; margin-bottom: 20px; color: white; font-weight: 800;">Live Queue — <span id="venueVenueName"></span></h3>
                     
                     <div id="demoQueueStatus" style="color: rgba(255, 255, 255, 0.7); margin-bottom: 20px; font-size: 16px;">
                         Waiting for song requests...
                     </div>
                     
-                    <div id="demoQueueItems" style="display: flex; flex-direction: column; gap: 12px;">
+                    <div id="demoQueueItems" style="display: flex; flex-direction: column; gap: 12px; flex: 1;">
                         <!-- Queue items will be added here dynamically -->
+                    </div>
+                    
+                    <!-- Sign Up Button - appears when queue has items -->
+                    <div id="demoSignUpButton" style="display: none; margin-top: 30px; padding-top: 30px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
+                        <button onclick="activateVenue()" class="cta-button" style="width: 100%; padding: 16px; font-size: 18px;">
+                            Sign Up
+                        </button>
                     </div>
                 </div>
             </div>
@@ -2494,16 +2501,30 @@
             
             const title = item.title || 'Untitled Song';
             const tableText = item.table_id ? `Table ${item.table_id.split('-').pop()}` : 'Table 1';
+            const isReady = item.status === 'ready';
             
             itemDiv.innerHTML = `
-                <div>
+                <div style="flex: 1;">
                     <div style="color: white; font-weight: 600; margin-bottom: 4px;">${title}</div>
                     <div style="color: rgba(255, 255, 255, 0.7); font-size: 14px;">${tableText} – ${currentVenueName}</div>
                 </div>
-                <div style="color: rgba(255, 255, 255, 0.7); font-size: 14px;">${item.status === 'generating' ? '⏳ Generating...' : '✅ Ready'}</div>
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="color: rgba(255, 255, 255, 0.7); font-size: 14px;">${item.status === 'generating' ? '⏳ Generating...' : '✅ Ready'}</div>
+                    ${isReady ? '<button onclick="playDemoSong(\'' + (item.filename || '') + '\')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform=\'scale(1.05)\';" onmouseout="this.style.transform=\'scale(1)\';">▶ Play</button>' : ''}
+                </div>
             `;
             
             queueItems.insertBefore(itemDiv, queueItems.firstChild);
+            
+            // Show Sign Up button when queue has items
+            if (queueItems.children.length > 0) {
+                document.getElementById('demoSignUpButton').style.display = 'block';
+            }
+        }
+
+        function playDemoSong(filename) {
+            // This is a demo, so we'll just show an alert or could open the audio player
+            alert('Demo: This would play the song "' + filename + '" in the full version. Sign up to enable playback!');
         }
 
         function startQueuePolling() {
@@ -2527,7 +2548,8 @@
                             addQueueItem({
                                 title: item.title || 'Untitled Song',
                                 status: 'ready',
-                                table_id: 'demo-table-1'
+                                table_id: 'demo-table-1',
+                                filename: item.filename || ''
                             });
                         });
                         
