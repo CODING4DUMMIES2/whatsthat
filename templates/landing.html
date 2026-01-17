@@ -2486,9 +2486,35 @@
             }
         }
 
+        let currentDemoAudio = null;
+        
         function playDemoSong(filename) {
-            // This is a demo, so we'll just show an alert or could open the audio player
-            alert('Demo: This would play the song "' + filename + '" in the full version. Sign up to enable playback!');
+            // Stop any currently playing audio
+            if (currentDemoAudio) {
+                currentDemoAudio.pause();
+                currentDemoAudio = null;
+            }
+            
+            // Create new audio element and play
+            const audioUrl = `/audio/${filename}`;
+            currentDemoAudio = new Audio(audioUrl);
+            
+            currentDemoAudio.onloadeddata = function() {
+                currentDemoAudio.play().catch(function(error) {
+                    console.error('Error playing audio:', error);
+                    alert('Error playing audio. Please try again.');
+                });
+            };
+            
+            currentDemoAudio.onerror = function() {
+                console.error('Error loading audio:', audioUrl);
+                alert('Error loading audio file. The song may still be generating.');
+            };
+            
+            // Update button state when audio ends
+            currentDemoAudio.onended = function() {
+                currentDemoAudio = null;
+            };
         }
 
         function startQueuePolling() {
