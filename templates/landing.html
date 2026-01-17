@@ -579,14 +579,14 @@
             align-items: center;
             text-align: center;
             flex: 0 0 auto;
-            max-width: 350px;
-            min-width: 300px;
+            max-width: 700px;
+            min-width: 600px;
             justify-content: flex-start;
         }
         
         .flow-item img {
             flex-shrink: 0;
-            max-height: 280px;
+            max-height: 560px;
             object-fit: contain;
         }
         
@@ -595,7 +595,11 @@
         }
         
         .flow-item[style*="max-width: 450px"] img {
-            max-height: 280px;
+            max-height: 560px;
+        }
+        
+        .flow-item[style*="max-width: 900px"] img {
+            max-height: 560px;
         }
 
         .flow-icon {
@@ -1974,24 +1978,24 @@
             <h2>How It Works</h2>
             <div class="flow-line">
                 <div class="flow-item">
-                    <div style="width: 100%; max-width: 400px; height: 280px; display: flex; align-items: center; justify-content: center; margin-bottom: 0;">
-                        <img src="/img/qr-on-table.png" alt="QR on Table" style="width: 100%; max-width: 400px; max-height: 280px; height: auto; border-radius: 12px; object-fit: contain;">
+                    <div style="width: 100%; max-width: 800px; height: 560px; display: flex; align-items: center; justify-content: center; margin-bottom: 0;">
+                        <img src="/img/qr-on-table.png" alt="QR on Table" style="width: 100%; max-width: 800px; max-height: 560px; height: auto; border-radius: 12px; object-fit: contain;">
                     </div>
                     <h3 style="margin-top: 15px;">QR on Table</h3>
                     <p>Each table gets a unique QR code</p>
                 </div>
                 <div class="flow-arrow">→</div>
-                <div class="flow-item" style="max-width: 450px; min-width: 400px;">
-                    <div style="width: 100%; max-width: 450px; height: 280px; display: flex; align-items: center; justify-content: center; margin-bottom: 0;">
-                        <img src="/img/guest-makes-song.png" alt="Guest Makes Song" style="width: 100%; max-width: 450px; max-height: 280px; height: auto; border-radius: 12px; object-fit: contain;">
+                <div class="flow-item" style="max-width: 900px; min-width: 800px;">
+                    <div style="width: 100%; max-width: 900px; height: 560px; display: flex; align-items: center; justify-content: center; margin-bottom: 0;">
+                        <img src="/img/guest-makes-song.png" alt="Guest Makes Song" style="width: 100%; max-width: 900px; max-height: 560px; height: auto; border-radius: 12px; object-fit: contain;">
                     </div>
                     <h3 style="margin-top: 15px;">Guest Makes Song</h3>
                     <p>Customers scan and type their request</p>
                 </div>
                 <div class="flow-arrow">→</div>
-                <div class="flow-item" style="max-width: 450px; min-width: 400px;">
-                    <div style="width: 100%; max-width: 450px; height: 280px; display: flex; align-items: center; justify-content: center; margin-bottom: 0;">
-                        <img src="/img/song-plays-queue.png" alt="Song Plays in Queue" style="width: 100%; max-width: 450px; max-height: 280px; height: auto; border-radius: 12px; object-fit: contain;">
+                <div class="flow-item" style="max-width: 900px; min-width: 800px;">
+                    <div style="width: 100%; max-width: 900px; height: 560px; display: flex; align-items: center; justify-content: center; margin-bottom: 0;">
+                        <img src="/img/song-plays-queue.png" alt="Song Plays in Queue" style="width: 100%; max-width: 900px; max-height: 560px; height: auto; border-radius: 12px; object-fit: contain;">
                     </div>
                     <h3 style="margin-top: 15px;">Song Plays in Queue</h3>
                     <p>Automatically joins and plays in order</p>
