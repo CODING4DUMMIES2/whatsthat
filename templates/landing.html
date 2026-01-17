@@ -2341,32 +2341,7 @@
         let demoInteractionCount = 0;
         let queueCheckInterval = null;
 
-        // Demo Modal Functions
-        function openDemoModal() {
-            console.log('openDemoModal called');
-            const modal = document.getElementById('demoModal');
-            if (modal) {
-                modal.style.display = 'flex';
-                console.log('Modal should be visible now');
-            } else {
-                console.error('Modal element not found!');
-            }
-        }
-
-        function closeDemoModal() {
-            const modal = document.getElementById('demoModal');
-            if (modal) {
-                modal.style.display = 'none';
-            }
-        }
-
-        // Close modal when clicking outside
-        document.addEventListener('click', function(event) {
-            const modal = document.getElementById('demoModal');
-            if (modal && event.target === modal) {
-                closeDemoModal();
-            }
-        });
+        // Demo form is now in hero section, no modal needed
 
         // Generate Demo
         async function generateDemo(event) {
