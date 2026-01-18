@@ -1857,7 +1857,7 @@
             <div class="frosted-glass" style="max-width: 500px; margin: 30px auto 0; padding: 40px;">
                 <h2 style="font-size: 32px; margin-bottom: 10px; color: white; font-weight: 900; text-align: center;">Let's Set This Up for Your Venue</h2>
                 <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 30px; font-size: 16px; text-align: center;">We'll send your QR kit and demo link.</p>
-                
+            
                 <form id="demoForm" onsubmit="generateDemo(event)">
                     <div style="margin-bottom: 20px;">
                         <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">Venue name *</label>
@@ -1868,7 +1868,7 @@
                             placeholder="The Bar"
                             style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none;"
                         />
-                    </div>
+                            </div>
                     
                     <div style="margin-bottom: 20px;">
                         <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">Business email *</label>
@@ -1879,15 +1879,15 @@
                             placeholder="owner@venue.com"
                             style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none;"
                         />
-                    </div>
+                        </div>
                     
                     <button type="submit" class="cta-button" style="width: 100%; padding: 16px; font-size: 18px;">
                         Generate My Venue Demo
                     </button>
                 </form>
-            </div>
-        </div>
-
+                    </div>
+                </div>
+                
         <!-- Demo Experience Section -->
         <div id="demoExperience" style="display: none; margin-top: 80px; margin-bottom: 100px;">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; max-width: 1200px; margin: 0 auto; padding: 0 20px;">
@@ -1905,27 +1905,27 @@
                         />
                         <button onclick="submitDemoSong()" class="cta-button" style="width: 100%; padding: 14px; font-size: 16px;">
                             Create Song
-                        </button>
-                    </div>
+                    </button>
+                </div>
                     
                     <div id="demoQRCode" style="text-align: center; margin-top: 30px;">
                         <p style="color: rgba(255, 255, 255, 0.9); margin-bottom: 15px; font-weight: 600;">Song Requests at <span id="qrVenueName"></span></p>
                         <img id="qrCodeImage" src="" alt="QR Code" style="max-width: 200px; border-radius: 12px; background: white; padding: 10px;">
                         <p style="color: rgba(255, 255, 255, 0.8); margin-top: 15px; font-size: 14px; line-height: 1.5;">Customers Scan The Printable Qr Code To Make A Custom Song Request</p>
                     </div>
-                </div>
-                
+            </div>
+            
                 <!-- Venue View -->
                 <div class="demo-panel frosted-glass" style="padding: 40px; display: flex; flex-direction: column;">
                     <h3 id="venueViewTitle" style="font-size: 24px; margin-bottom: 20px; color: white; font-weight: 800;">Live Queue — <span id="venueVenueName"></span></h3>
                     
                     <div id="demoQueueStatus" style="color: rgba(255, 255, 255, 0.7); margin-bottom: 20px; font-size: 16px;">
                         Waiting for song requests...
-                    </div>
-                    
+            </div>
+            
                     <div id="demoQueueItems" style="display: flex; flex-direction: column; gap: 12px; flex: 1;">
                         <!-- Queue items will be added here dynamically -->
-                    </div>
+                </div>
                     
                     <!-- Sign Up Button - appears when queue has items -->
                     <div id="demoSignUpButton" style="display: none; margin-top: 30px; padding-top: 30px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
@@ -1998,7 +1998,7 @@
                         One queue, no chaos
                     </li>
                 </ul>
-            </div>
+                </div>
         </div>
 
         <!-- Venue Control Section -->
@@ -2031,22 +2031,7 @@
                     </div>
                 </div>
                 <div class="control-mock-ui">
-                    <h4 style="color: white; font-size: 18px; margin-bottom: 10px;">Queue Management</h4>
-                    <div class="mock-queue-item">
-                        <span>🎂 Birthday Song - Table 5</span>
-                        <button>Approve</button>
-                    </div>
-                    <div class="mock-queue-item">
-                        <span>🎉 Party Anthem - Table 12</span>
-                        <button>Approve</button>
-                    </div>
-                    <div class="mock-queue-item">
-                        <span>🏆 Victory Song - Table 8</span>
-                        <button>Approve</button>
-                    </div>
-                    <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-                        <p style="color: rgba(255, 255, 255, 0.6); font-size: 13px; margin: 0;">Clean Mode: ON | Rate Limit: 2/hour</p>
-                    </div>
+                    <img src="/img/queue-management.png" alt="Queue Management" style="width: 100%; height: auto; border-radius: 12px; object-fit: contain;">
                 </div>
             </div>
         </div>
@@ -2291,12 +2276,12 @@
                 alert('Please fill in all required fields');
                 return;
             }
-            
+
             const submitBtn = event.target.querySelector('button[type="submit"]');
             const originalText = submitBtn.textContent;
             submitBtn.disabled = true;
             submitBtn.textContent = 'Generating...';
-            
+
             try {
                 const response = await fetch('/demo/generate', {
                     method: 'POST',
@@ -2308,9 +2293,9 @@
                         business_email: businessEmail
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (data.success) {
                     currentDemoId = data.demo_id;
                     currentVenueName = venueName;
@@ -2350,7 +2335,7 @@
             setTimeout(() => {
                 document.getElementById('demoExperience').scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
-        }
+                }
 
         // Submit Demo Song
         async function submitDemoSong() {
@@ -2398,7 +2383,7 @@
                     // Show secondary CTA after 2-3 interactions
                     if (demoInteractionCount >= 2) {
                         document.getElementById('secondaryCTA').style.display = 'block';
-                    }
+            }
                     
                     // Add to queue display
                     addQueueItem({
@@ -2505,9 +2490,9 @@
                         });
                         
                         document.getElementById('demoQueueStatus').textContent = `${data.queue_length} song(s) in queue`;
-                    } else {
+            } else {
                         document.getElementById('demoQueueStatus').textContent = 'Waiting for song requests...';
-                    }
+        }
                 } catch (error) {
                     console.error('Error polling queue:', error);
                 }
