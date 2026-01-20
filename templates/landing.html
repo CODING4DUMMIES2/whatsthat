@@ -1049,7 +1049,8 @@
         }
 
         .setup-next-button,
-        .setup-back-button {
+        .setup-back-button,
+        .setup-download-button {
             display: flex;
             justify-content: center;
         }
@@ -1069,6 +1070,32 @@
             justify-content: center;
             box-shadow: 0 4px 15px rgba(255, 20, 147, 0.4);
             transition: all 0.3s ease;
+        }
+
+        .setup-download-button button {
+            padding: 12px 24px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%);
+            border: none;
+            color: white;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(255, 20, 147, 0.4);
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .setup-download-button button:hover {
+            transform: translateY(-2px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(255, 20, 147, 0.6);
+        }
+
+        .setup-download-button button:active {
+            transform: translateY(0) scale(1.02);
         }
 
         .setup-next-button button:hover {
@@ -2228,6 +2255,9 @@
                 <div class="setup-next-button">
                     <button onclick="scrollToNextSetup()" aria-label="Next step">→</button>
                 </div>
+                <div class="setup-download-button">
+                    <button onclick="downloadSetupGuide()" aria-label="Download Setup Guide">Download Setup Guide</button>
+                </div>
             </div>
         </div>
 
@@ -2264,6 +2294,9 @@
                 </div>
                 <div class="setup-next-button">
                     <button onclick="scrollToSetupSection3()" aria-label="Next step">→</button>
+                </div>
+                <div class="setup-download-button">
+                    <button onclick="downloadSetupGuide()" aria-label="Download Setup Guide">Download Setup Guide</button>
                 </div>
             </div>
         </div>
@@ -2302,6 +2335,9 @@
                 <div class="setup-next-button">
                     <button onclick="scrollToSetupSection4()" aria-label="Next step">→</button>
                 </div>
+                <div class="setup-download-button">
+                    <button onclick="downloadSetupGuide()" aria-label="Download Setup Guide">Download Setup Guide</button>
+                </div>
             </div>
         </div>
 
@@ -2335,6 +2371,9 @@
             <div class="setup-navigation">
                 <div class="setup-back-button">
                     <button onclick="scrollToSetupSection3()" aria-label="Previous step">←</button>
+                </div>
+                <div class="setup-download-button">
+                    <button onclick="downloadSetupGuide()" aria-label="Download Setup Guide">Download Setup Guide</button>
                 </div>
             </div>
         </div>
