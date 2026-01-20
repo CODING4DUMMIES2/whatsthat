@@ -1057,19 +1057,21 @@
 
         .setup-next-button button,
         .setup-back-button button {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
+            padding: 12px 20px;
+            border-radius: 30px;
             background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%);
             border: none;
             color: white;
-            font-size: 28px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
             display: flex;
             align-items: center;
             justify-content: center;
+            gap: 8px;
             box-shadow: 0 4px 15px rgba(255, 20, 147, 0.4);
             transition: all 0.3s ease;
+            white-space: nowrap;
         }
 
         .setup-download-button button {
@@ -1099,21 +1101,21 @@
         }
 
         .setup-next-button button:hover {
-            transform: translateX(5px) scale(1.1);
+            transform: translateX(5px) scale(1.05);
             box-shadow: 0 6px 20px rgba(255, 20, 147, 0.6);
         }
 
         .setup-next-button button:active {
-            transform: translateX(3px) scale(1.05);
+            transform: translateX(3px) scale(1.02);
         }
 
         .setup-back-button button:hover {
-            transform: translateX(-5px) scale(1.1);
+            transform: translateX(-5px) scale(1.05);
             box-shadow: 0 6px 20px rgba(255, 20, 147, 0.6);
         }
 
         .setup-back-button button:active {
-            transform: translateX(-3px) scale(1.05);
+            transform: translateX(-3px) scale(1.02);
         }
 
         /* Setup Section 2 */
@@ -2253,7 +2255,7 @@
             </div>
             <div class="setup-navigation">
                 <div class="setup-next-button">
-                    <button onclick="scrollToNextSetup()" aria-label="Next step">→</button>
+                    <button onclick="scrollToNextSetup()" aria-label="Next step">Next →</button>
                 </div>
                 <div class="setup-download-button">
                     <button onclick="downloadSetupGuide()" aria-label="Download Setup Guide">Download Setup Guide</button>
@@ -2290,10 +2292,10 @@
             </div>
             <div class="setup-navigation">
                 <div class="setup-back-button">
-                    <button onclick="scrollToSetupSection1()" aria-label="Previous step">←</button>
+                    <button onclick="scrollToSetupSection1()" aria-label="Previous step">← Previous</button>
                 </div>
                 <div class="setup-next-button">
-                    <button onclick="scrollToSetupSection3()" aria-label="Next step">→</button>
+                    <button onclick="scrollToSetupSection3()" aria-label="Next step">Next →</button>
                 </div>
                 <div class="setup-download-button">
                     <button onclick="downloadSetupGuide()" aria-label="Download Setup Guide">Download Setup Guide</button>
@@ -2330,10 +2332,10 @@
             </div>
             <div class="setup-navigation">
                 <div class="setup-back-button">
-                    <button onclick="scrollToSetupSection2()" aria-label="Previous step">←</button>
+                    <button onclick="scrollToSetupSection2()" aria-label="Previous step">← Previous</button>
                 </div>
                 <div class="setup-next-button">
-                    <button onclick="scrollToSetupSection4()" aria-label="Next step">→</button>
+                    <button onclick="scrollToSetupSection4()" aria-label="Next step">Next →</button>
                 </div>
                 <div class="setup-download-button">
                     <button onclick="downloadSetupGuide()" aria-label="Download Setup Guide">Download Setup Guide</button>
@@ -2370,7 +2372,7 @@
             </div>
             <div class="setup-navigation">
                 <div class="setup-back-button">
-                    <button onclick="scrollToSetupSection3()" aria-label="Previous step">←</button>
+                    <button onclick="scrollToSetupSection3()" aria-label="Previous step">← Previous</button>
                 </div>
                 <div class="setup-download-button">
                     <button onclick="downloadSetupGuide()" aria-label="Download Setup Guide">Download Setup Guide</button>
