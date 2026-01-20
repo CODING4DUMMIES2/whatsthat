@@ -1909,6 +1909,46 @@
             return null;
         }
 
+        // Copy Queue View Link
+        function copyQueueViewLink(venueId) {
+            const urlElement = document.getElementById(`queue-view-url-${venueId}`);
+            if (!urlElement) return;
+            
+            const url = urlElement.textContent.trim();
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(url).then(() => {
+                    // Show feedback
+                    const button = event.target;
+                    const originalText = button.textContent;
+                    button.textContent = 'Copied!';
+                    button.style.background = 'linear-gradient(135deg, #00ff00 0%, #00cc00 100%)';
+                    setTimeout(() => {
+                        button.textContent = originalText;
+                        button.style.background = 'linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%)';
+                    }, 2000);
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                    alert('Failed to copy link. Please copy manually:\n' + url);
+                });
+            } else {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = url;
+                textArea.style.position = 'fixed';
+                textArea.style.opacity = '0';
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    alert('Link copied to clipboard!');
+                } catch (err) {
+                    alert('Please copy manually:\n' + url);
+                }
+                document.body.removeChild(textArea);
+            }
+        }
+
         function startStreamQueuePolling(venueId) {
             if (streamQueueCheckInterval) return;
             streamQueueCheckInterval = setInterval(() => checkStreamQueue(venueId), 3000);
