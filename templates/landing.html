@@ -2753,66 +2753,71 @@
 
         // Old generateSong function removed - no longer needed in demo mode
 
+        // Store scroll position to prevent jumping
+        function switchSetupSection(hideSection, showSection) {
+            if (hideSection && showSection) {
+                // Store current scroll position
+                const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+                
+                // Hide current section
+                hideSection.style.display = 'none';
+                hideSection.classList.remove('active');
+                
+                // Show new section
+                showSection.style.display = 'block';
+                showSection.classList.add('active');
+                
+                // Restore scroll position immediately to prevent jumping
+                requestAnimationFrame(() => {
+                    window.scrollTo(0, scrollPosition);
+                });
+            }
+        }
+
         // Switch to Next Setup Section (Section 1 -> Section 2)
         function scrollToNextSetup() {
             const firstSection = document.getElementById('setupSection1');
             const secondSection = document.getElementById('setupSection2');
-            
-            if (firstSection && secondSection) {
-                // Hide first section
-                firstSection.style.display = 'none';
-                
-                // Show second section
-                secondSection.style.display = 'block';
-                secondSection.classList.add('active');
-                
-                // Smooth scroll to second section
-                setTimeout(() => {
-                    secondSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 50);
-            }
+            switchSetupSection(firstSection, secondSection);
         }
 
-        // Switch to Setup Section 3 (Section 2 -> Section 3)
+        // Switch to Setup Section 1 (Section 2 -> Section 1)
+        function scrollToSetupSection1() {
+            const secondSection = document.getElementById('setupSection2');
+            const firstSection = document.getElementById('setupSection1');
+            switchSetupSection(secondSection, firstSection);
+        }
+
+        // Switch to Setup Section 3 (Section 2 -> Section 3 or Section 4 -> Section 3)
         function scrollToSetupSection3() {
             const secondSection = document.getElementById('setupSection2');
             const thirdSection = document.getElementById('setupSection3');
+            const fourthSection = document.getElementById('setupSection4');
             
-            if (secondSection && thirdSection) {
-                // Hide second section
-                secondSection.style.display = 'none';
-                secondSection.classList.remove('active');
-                
-                // Show third section
-                thirdSection.style.display = 'block';
-                thirdSection.classList.add('active');
-                
-                // Smooth scroll to third section
-                setTimeout(() => {
-                    thirdSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 50);
+            // Check which section is currently active
+            if (secondSection && thirdSection && fourthSection) {
+                if (secondSection.style.display !== 'none' && secondSection.classList.contains('active')) {
+                    // Going forward: Section 2 -> Section 3
+                    switchSetupSection(secondSection, thirdSection);
+                } else if (fourthSection.style.display !== 'none' && fourthSection.classList.contains('active')) {
+                    // Going backward: Section 4 -> Section 3
+                    switchSetupSection(fourthSection, thirdSection);
+                }
             }
+        }
+
+        // Switch to Setup Section 2 (Section 3 -> Section 2)
+        function scrollToSetupSection2() {
+            const thirdSection = document.getElementById('setupSection3');
+            const secondSection = document.getElementById('setupSection2');
+            switchSetupSection(thirdSection, secondSection);
         }
 
         // Switch to Setup Section 4 (Section 3 -> Section 4)
         function scrollToSetupSection4() {
             const thirdSection = document.getElementById('setupSection3');
             const fourthSection = document.getElementById('setupSection4');
-            
-            if (thirdSection && fourthSection) {
-                // Hide third section
-                thirdSection.style.display = 'none';
-                thirdSection.classList.remove('active');
-                
-                // Show fourth section
-                fourthSection.style.display = 'block';
-                fourthSection.classList.add('active');
-                
-                // Smooth scroll to fourth section
-                setTimeout(() => {
-                    fourthSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                }, 50);
-            }
+            switchSetupSection(thirdSection, fourthSection);
         }
 
         // FAQ Toggle Function
