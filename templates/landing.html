@@ -612,14 +612,21 @@
             display: flex;
             opacity: 0.5;
             z-index: 2;
-            transform: translateX(-65%) scale(0.9);
+            transform: translateX(-35%) scale(0.9);
         }
 
         .flow-item.next {
             display: flex;
             opacity: 0.5;
             z-index: 2;
-            transform: translateX(-35%) scale(0.9);
+            transform: translateX(-65%) scale(0.9);
+        }
+
+        .flow-item.previous h3,
+        .flow-item.previous p,
+        .flow-item.next h3,
+        .flow-item.next p {
+            opacity: 0;
         }
         
         .flow-item img {
