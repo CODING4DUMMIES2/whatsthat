@@ -1038,6 +1038,44 @@
             line-height: 1.5;
         }
 
+        /* Setup Next Button */
+        .setup-next-button {
+            display: flex;
+            justify-content: center;
+            margin-top: 50px;
+            padding: 20px 0;
+        }
+
+        .setup-next-button button {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%);
+            border: none;
+            color: white;
+            font-size: 28px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 15px rgba(255, 20, 147, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .setup-next-button button:hover {
+            transform: translateX(5px) scale(1.1);
+            box-shadow: 0 6px 20px rgba(255, 20, 147, 0.6);
+        }
+
+        .setup-next-button button:active {
+            transform: translateX(3px) scale(1.05);
+        }
+
+        /* Setup Section 2 */
+        .setup-section-2 {
+            margin-top: 80px;
+        }
+
         .keepsake-item {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px) saturate(180%);
@@ -2146,6 +2184,38 @@
                     </div>
                 </div>
             </div>
+            <div class="setup-next-button">
+                <button onclick="scrollToNextSetup()" aria-label="Next step">→</button>
+            </div>
+        </div>
+
+        <!-- Set Your Music Rules Section -->
+        <div class="keepsake-section setup-section-2" id="setupSection2">
+            <div class="setup-content-wrapper">
+                <div class="setup-image-container">
+                    <img src="/img/settings-screenshot.png" alt="Settings Screenshot" style="width: 100%; height: auto; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);">
+                </div>
+                <div class="setup-content-container">
+                    <h2 style="color: white; font-size: 48px; margin-bottom: 30px; font-weight: 900;">Set Your Music Rules</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8); font-size: 20px; line-height: 1.7; margin-bottom: 50px;">
+                        Choose which genres guests can request and control whether lyrics stay clean or explicit.
+                    </p>
+                    <div class="setup-checklist">
+                        <div class="checklist-item">
+                            <div class="checklist-number">1</div>
+                            <div class="checklist-text">Select allowed music genres</div>
+                        </div>
+                        <div class="checklist-item">
+                            <div class="checklist-number">2</div>
+                            <div class="checklist-text">Set explicit or non-explicit lyrics</div>
+                        </div>
+                        <div class="checklist-item">
+                            <div class="checklist-number">3</div>
+                            <div class="checklist-text">Save your venue settings</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
 
 
@@ -2561,6 +2631,14 @@
         });
 
         // Old generateSong function removed - no longer needed in demo mode
+
+        // Scroll to Next Setup Section
+        function scrollToNextSetup() {
+            const nextSection = document.getElementById('setupSection2');
+            if (nextSection) {
+                nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+        }
 
         // FAQ Toggle Function
         function toggleFaq(header) {
