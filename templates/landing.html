@@ -1117,10 +1117,40 @@
         .setup-content-wrapper {
             display: grid;
             grid-template-columns: 1.2fr 1fr;
-            gap: 80px;
-            align-items: center;
+            gap: 60px;
+            align-items: start;
             margin-top: 60px;
-            padding: 40px 0;
+            padding: 50px 60px;
+            background: rgba(10, 6, 30, 0.8);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 2px solid transparent;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
+            border-radius: 24px;
+            position: relative;
+        }
+
+        .setup-content-wrapper::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 24px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
         }
 
         .setup-image-container {
@@ -1139,21 +1169,22 @@
         .setup-content-container {
             display: flex;
             flex-direction: column;
-            justify-content: center;
-            padding: 20px;
+            justify-content: flex-start;
+            padding: 10px 20px;
+            align-self: center;
         }
 
         .setup-checklist {
             display: flex;
             flex-direction: column;
-            gap: 35px;
-            margin-top: 20px;
+            gap: 24px;
+            margin-top: 10px;
         }
 
         .checklist-item {
             display: flex;
             align-items: center;
-            gap: 30px;
+            gap: 20px;
         }
 
         .checklist-number {
@@ -1173,9 +1204,9 @@
 
         .checklist-text {
             color: rgba(255, 255, 255, 0.9);
-            font-size: 24px;
+            font-size: 22px;
             font-weight: 600;
-            line-height: 1.5;
+            line-height: 1.4;
         }
 
         /* Setup Navigation Buttons */
@@ -2400,8 +2431,8 @@
                     <img src="/img/setup-screenshot.png" alt="Setup Screenshot" style="width: 100%; height: auto; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);">
                 </div>
                 <div class="setup-content-container">
-                    <h2 style="color: white; font-size: 48px; margin-bottom: 30px; font-weight: 900;">Create Your Venue</h2>
-                    <p style="color: rgba(255, 255, 255, 0.8); font-size: 20px; line-height: 1.7; margin-bottom: 50px;">
+                    <h2 style="color: white; font-size: 48px; margin-bottom: 20px; font-weight: 900;">Create Your Venue</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8); font-size: 20px; line-height: 1.5; margin-bottom: 30px;">
                         Set up your venue, define your tables, and generate QR codes guests will use to request songs.
                     </p>
                     <div class="setup-checklist">
@@ -2437,8 +2468,8 @@
                     <img src="/img/settings-screenshot.png" alt="Settings Screenshot" style="width: 100%; height: auto; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);">
                 </div>
                 <div class="setup-content-container">
-                    <h2 style="color: white; font-size: 48px; margin-bottom: 30px; font-weight: 900;">Set Your Music Rules</h2>
-                    <p style="color: rgba(255, 255, 255, 0.8); font-size: 20px; line-height: 1.7; margin-bottom: 50px;">
+                    <h2 style="color: white; font-size: 48px; margin-bottom: 20px; font-weight: 900;">Set Your Music Rules</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8); font-size: 20px; line-height: 1.5; margin-bottom: 30px;">
                         Choose which genres guests can request and control whether lyrics stay clean or explicit.
                     </p>
                     <div class="setup-checklist">
@@ -2477,8 +2508,8 @@
                     <img src="/img/guest-request-screenshot.png" alt="Guest Request Screenshot" style="width: 100%; height: auto; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);">
                 </div>
                 <div class="setup-content-container">
-                    <h2 style="color: white; font-size: 48px; margin-bottom: 30px; font-weight: 900;">Guests Request a Song</h2>
-                    <p style="color: rgba(255, 255, 255, 0.8); font-size: 20px; line-height: 1.7; margin-bottom: 50px;">
+                    <h2 style="color: white; font-size: 48px; margin-bottom: 20px; font-weight: 900;">Guests Request a Song</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8); font-size: 20px; line-height: 1.5; margin-bottom: 30px;">
                         Guests describe the song they want to hear, and a custom, original track is created for your venue.
                     </p>
                     <div class="setup-checklist">
@@ -2517,8 +2548,8 @@
                     <img src="/img/live-queue-screenshot.png" alt="Live Queue Screenshot" style="width: 100%; height: auto; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);">
                 </div>
                 <div class="setup-content-container">
-                    <h2 style="color: white; font-size: 48px; margin-bottom: 30px; font-weight: 900;">Live Song Queue</h2>
-                    <p style="color: rgba(255, 255, 255, 0.8); font-size: 20px; line-height: 1.7; margin-bottom: 50px;">
+                    <h2 style="color: white; font-size: 48px; margin-bottom: 20px; font-weight: 900;">Live Song Queue</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8); font-size: 20px; line-height: 1.5; margin-bottom: 30px;">
                         Songs play automatically in the order they're requested, creating a smooth, hands-off music flow.
                     </p>
                     <div class="setup-checklist">
