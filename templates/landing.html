@@ -580,6 +580,8 @@
             justify-content: center;
             gap: 0;
             margin: 50px auto 0;
+            position: relative;
+            min-height: 720px;
         }
 
         .flow-item {
@@ -591,10 +593,33 @@
             width: 100%;
             justify-content: flex-start;
             margin: 0 auto;
+            position: absolute;
+            left: 50%;
+            top: 0;
+            transform: translateX(-50%);
+            opacity: 0;
+            transition: transform 0.4s ease, opacity 0.4s ease;
         }
 
         .flow-item.active {
             display: flex;
+            opacity: 1;
+            z-index: 3;
+            transform: translateX(-50%) scale(1);
+        }
+
+        .flow-item.previous {
+            display: flex;
+            opacity: 0.5;
+            z-index: 2;
+            transform: translateX(-65%) scale(0.9);
+        }
+
+        .flow-item.next {
+            display: flex;
+            opacity: 0.5;
+            z-index: 2;
+            transform: translateX(-35%) scale(0.9);
         }
         
         .flow-item img {
@@ -2026,6 +2051,12 @@
                 align-items: center;
             }
 
+            #howItWorksSwiper .flow-item {
+                position: relative;
+                left: 0;
+                transform: none;
+            }
+
             .flow-arrow {
                 transform: rotate(90deg);
             }
@@ -3049,7 +3080,15 @@
             howItWorksIndex = (index + total) % total;
             
             items.forEach((item, i) => {
-                item.classList.toggle('active', i === howItWorksIndex);
+                item.classList.remove('active', 'previous', 'next');
+                
+                if (i === howItWorksIndex) {
+                    item.classList.add('active');
+                } else if (i === (howItWorksIndex - 1 + total) % total) {
+                    item.classList.add('previous');
+                } else if (i === (howItWorksIndex + 1) % total) {
+                    item.classList.add('next');
+                }
             });
             
             dots.forEach((dot, i) => {
