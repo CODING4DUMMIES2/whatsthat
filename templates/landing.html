@@ -1038,15 +1038,24 @@
             line-height: 1.5;
         }
 
-        /* Setup Next Button */
-        .setup-next-button {
+        /* Setup Navigation Buttons */
+        .setup-navigation {
             display: flex;
             justify-content: center;
+            align-items: center;
+            gap: 20px;
             margin-top: 50px;
             padding: 20px 0;
         }
 
-        .setup-next-button button {
+        .setup-next-button,
+        .setup-back-button {
+            display: flex;
+            justify-content: center;
+        }
+
+        .setup-next-button button,
+        .setup-back-button button {
             width: 60px;
             height: 60px;
             border-radius: 50%;
@@ -1069,6 +1078,15 @@
 
         .setup-next-button button:active {
             transform: translateX(3px) scale(1.05);
+        }
+
+        .setup-back-button button:hover {
+            transform: translateX(-5px) scale(1.1);
+            box-shadow: 0 6px 20px rgba(255, 20, 147, 0.6);
+        }
+
+        .setup-back-button button:active {
+            transform: translateX(-3px) scale(1.05);
         }
 
         /* Setup Section 2 */
@@ -2206,8 +2224,10 @@
                     </div>
                 </div>
             </div>
-            <div class="setup-next-button">
-                <button onclick="scrollToNextSetup()" aria-label="Next step">→</button>
+            <div class="setup-navigation">
+                <div class="setup-next-button">
+                    <button onclick="scrollToNextSetup()" aria-label="Next step">→</button>
+                </div>
             </div>
         </div>
 
@@ -2238,8 +2258,13 @@
                     </div>
                 </div>
             </div>
-            <div class="setup-next-button">
-                <button onclick="scrollToSetupSection3()" aria-label="Next step">→</button>
+            <div class="setup-navigation">
+                <div class="setup-back-button">
+                    <button onclick="scrollToSetupSection1()" aria-label="Previous step">←</button>
+                </div>
+                <div class="setup-next-button">
+                    <button onclick="scrollToSetupSection3()" aria-label="Next step">→</button>
+                </div>
             </div>
         </div>
 
@@ -2270,8 +2295,13 @@
                     </div>
                 </div>
             </div>
-            <div class="setup-next-button">
-                <button onclick="scrollToSetupSection4()" aria-label="Next step">→</button>
+            <div class="setup-navigation">
+                <div class="setup-back-button">
+                    <button onclick="scrollToSetupSection2()" aria-label="Previous step">←</button>
+                </div>
+                <div class="setup-next-button">
+                    <button onclick="scrollToSetupSection4()" aria-label="Next step">→</button>
+                </div>
             </div>
         </div>
 
@@ -2300,6 +2330,11 @@
                             <div class="checklist-text">Staff can monitor or manage the queue live</div>
                         </div>
                     </div>
+                </div>
+            </div>
+            <div class="setup-navigation">
+                <div class="setup-back-button">
+                    <button onclick="scrollToSetupSection3()" aria-label="Previous step">←</button>
                 </div>
             </div>
         </div>
