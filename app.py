@@ -561,9 +561,10 @@ def generate_demo():
         venue_name = data.get('venue_name', '').strip()
         business_email = data.get('business_email', '').strip()
         venue_type = data.get('venue_type', '').strip()
+        city = data.get('city', '').strip()
         
-        if not venue_name or not business_email:
-            return jsonify({'success': False, 'error': 'Venue name and business email are required'}), 400
+        if not venue_name or not business_email or not city:
+            return jsonify({'success': False, 'error': 'Venue name, city, and business email are required'}), 400
         
         # Generate a demo venue ID
         demo_id = hashlib.md5(f"demo_{venue_name}_{business_email}".encode()).hexdigest()[:8]
@@ -576,6 +577,7 @@ def generate_demo():
             'created_at': datetime.now().isoformat(),
             'is_demo': True,
             'venue_type': venue_type,
+            'city': city,
             'demo_created_at': datetime.now().isoformat()
         }
         

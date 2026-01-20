@@ -2074,6 +2074,17 @@
                             </div>
                     
                     <div style="margin-bottom: 20px;">
+                        <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">City *</label>
+                        <input 
+                            type="text" 
+                            id="cityInput" 
+                            required 
+                            placeholder="Austin, TX"
+                            style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none;"
+                        />
+                        </div>
+                    
+                    <div style="margin-bottom: 20px;">
                         <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">Business email *</label>
                         <input 
                             type="email" 
@@ -2561,8 +2572,9 @@
             
             const venueName = document.getElementById('venueNameInput').value.trim();
             const businessEmail = document.getElementById('businessEmailInput').value.trim();
+            const city = document.getElementById('cityInput').value.trim();
             
-            if (!venueName || !businessEmail) {
+            if (!venueName || !businessEmail || !city) {
                 alert('Please fill in all required fields');
                 return;
             }
@@ -2580,7 +2592,8 @@
                     },
                     body: JSON.stringify({
                         venue_name: venueName,
-                        business_email: businessEmail
+                        business_email: businessEmail,
+                        city: city
                     })
                 });
 
