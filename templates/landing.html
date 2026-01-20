@@ -1080,6 +1080,15 @@
             display: block;
         }
 
+        /* Setup Section 3 */
+        .setup-section-3 {
+            display: none;
+        }
+
+        .setup-section-3.active {
+            display: block;
+        }
+
         .keepsake-item {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px) saturate(180%);
@@ -2636,7 +2645,7 @@
 
         // Old generateSong function removed - no longer needed in demo mode
 
-        // Switch to Next Setup Section
+        // Switch to Next Setup Section (Section 1 -> Section 2)
         function scrollToNextSetup() {
             const firstSection = document.getElementById('setupSection1');
             const secondSection = document.getElementById('setupSection2');
@@ -2652,6 +2661,27 @@
                 // Smooth scroll to second section
                 setTimeout(() => {
                     secondSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 50);
+            }
+        }
+
+        // Switch to Setup Section 3 (Section 2 -> Section 3)
+        function scrollToSetupSection3() {
+            const secondSection = document.getElementById('setupSection2');
+            const thirdSection = document.getElementById('setupSection3');
+            
+            if (secondSection && thirdSection) {
+                // Hide second section
+                secondSection.style.display = 'none';
+                secondSection.classList.remove('active');
+                
+                // Show third section
+                thirdSection.style.display = 'block';
+                thirdSection.classList.add('active');
+                
+                // Smooth scroll to third section
+                setTimeout(() => {
+                    thirdSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
                 }, 50);
             }
         }
