@@ -953,7 +953,7 @@
             }
         }
 
-        /* Keepsake Albums Section */
+        /* Keepsake Albums Section / Setup Section */
         .keepsake-section {
             margin-bottom: 100px;
         }
@@ -971,6 +971,61 @@
             grid-template-columns: repeat(2, 1fr);
             gap: 30px;
             margin-top: 50px;
+        }
+
+        /* Setup Content Wrapper */
+        .setup-content-wrapper {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            margin-top: 40px;
+        }
+
+        .setup-image-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .setup-content-container {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .setup-checklist {
+            display: flex;
+            flex-direction: column;
+            gap: 25px;
+        }
+
+        .checklist-item {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .checklist-number {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: bold;
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(255, 20, 147, 0.4);
+        }
+
+        .checklist-text {
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 20px;
+            font-weight: 600;
+            line-height: 1.4;
         }
 
         .keepsake-item {
@@ -1794,6 +1849,24 @@
                 grid-template-columns: 1fr;
             }
 
+            .setup-content-wrapper {
+                grid-template-columns: 1fr;
+                gap: 40px;
+            }
+
+            .setup-content-container h2 {
+                font-size: 32px;
+                text-align: center;
+            }
+
+            .setup-content-container p {
+                text-align: center;
+            }
+
+            .checklist-text {
+                font-size: 18px;
+            }
+
             .venue-tabs {
                 flex-direction: column;
                 align-items: stretch;
@@ -2036,44 +2109,30 @@
             </div>
         </div>
 
-        <!-- Why People Love This Section -->
+        <!-- Create Your Venue Section -->
         <div class="keepsake-section">
-            <h2>Why People Love Using This</h2>
-            <div class="keepsake-features">
-                <div class="keepsake-item">
-                    <div style="padding: 30px;">
-                        <div style="font-size: 48px; margin-bottom: 20px; text-align: center;">🎉</div>
-                        <h3 style="color: white; font-size: 24px; margin-bottom: 15px; text-align: center;">Instant Engagement</h3>
-                        <p style="color: rgba(255, 255, 255, 0.8); font-size: 16px; line-height: 1.6; text-align: center;">
-                            Guests get excited the moment their song idea becomes reality. No waiting, no disappointment—just pure joy when their custom song starts playing.
-                        </p>
-                    </div>
+            <div class="setup-content-wrapper">
+                <div class="setup-image-container">
+                    <img src="/img/setup-screenshot.png" alt="Setup Screenshot" style="width: 100%; height: auto; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);">
                 </div>
-                <div class="keepsake-item">
-                    <div style="padding: 30px;">
-                        <div style="font-size: 48px; margin-bottom: 20px; text-align: center;">✨</div>
-                        <h3 style="color: white; font-size: 24px; margin-bottom: 15px; text-align: center;">Unique Experiences</h3>
-                        <p style="color: rgba(255, 255, 255, 0.8); font-size: 16px; line-height: 1.6; text-align: center;">
-                            Every song is one-of-a-kind. Birthdays, anniversaries, celebrations—each moment gets its own personalized soundtrack that can't be found anywhere else.
-                        </p>
-                    </div>
-                </div>
-                <div class="keepsake-item">
-                    <div style="padding: 30px;">
-                        <div style="font-size: 48px; margin-bottom: 20px; text-align: center;">🚀</div>
-                        <h3 style="color: white; font-size: 24px; margin-bottom: 15px; text-align: center;">Zero Friction</h3>
-                        <p style="color: rgba(255, 255, 255, 0.8); font-size: 16px; line-height: 1.6; text-align: center;">
-                            Just scan, type, and play. No apps to download, no accounts to create. It's so simple that even the least tech-savvy guests can use it instantly.
-                        </p>
-                    </div>
-                </div>
-                <div class="keepsake-item">
-                    <div style="padding: 30px;">
-                        <div style="font-size: 48px; margin-bottom: 20px; text-align: center;">💎</div>
-                        <h3 style="color: white; font-size: 24px; margin-bottom: 15px; text-align: center;">Memorable Moments</h3>
-                        <p style="color: rgba(255, 255, 255, 0.8); font-size: 16px; line-height: 1.6; text-align: center;">
-                            People remember nights where they created something special. These moments turn into stories they share and memories that bring them back to your venue.
-                        </p>
+                <div class="setup-content-container">
+                    <h2 style="color: white; font-size: 42px; margin-bottom: 20px; font-weight: 900;">Create Your Venue</h2>
+                    <p style="color: rgba(255, 255, 255, 0.8); font-size: 18px; line-height: 1.6; margin-bottom: 40px;">
+                        Set up your venue, define your tables, and generate QR codes guests will use to request songs.
+                    </p>
+                    <div class="setup-checklist">
+                        <div class="checklist-item">
+                            <div class="checklist-number">1</div>
+                            <div class="checklist-text">Enter your venue name</div>
+                        </div>
+                        <div class="checklist-item">
+                            <div class="checklist-number">2</div>
+                            <div class="checklist-text">Set how many tables you need</div>
+                        </div>
+                        <div class="checklist-item">
+                            <div class="checklist-number">3</div>
+                            <div class="checklist-text">Generate printable QR codes</div>
+                        </div>
                     </div>
                 </div>
             </div>
