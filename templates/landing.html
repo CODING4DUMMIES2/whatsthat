@@ -1073,7 +1073,11 @@
 
         /* Setup Section 2 */
         .setup-section-2 {
-            margin-top: 80px;
+            display: none;
+        }
+
+        .setup-section-2.active {
+            display: block;
         }
 
         .keepsake-item {
@@ -2158,7 +2162,7 @@
         </div>
 
         <!-- Create Your Venue Section -->
-        <div class="keepsake-section">
+        <div class="keepsake-section" id="setupSection1">
             <div class="setup-content-wrapper">
                 <div class="setup-image-container">
                     <img src="/img/setup-screenshot.png" alt="Setup Screenshot" style="width: 100%; height: auto; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);">
@@ -2632,11 +2636,23 @@
 
         // Old generateSong function removed - no longer needed in demo mode
 
-        // Scroll to Next Setup Section
+        // Switch to Next Setup Section
         function scrollToNextSetup() {
-            const nextSection = document.getElementById('setupSection2');
-            if (nextSection) {
-                nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            const firstSection = document.getElementById('setupSection1');
+            const secondSection = document.getElementById('setupSection2');
+            
+            if (firstSection && secondSection) {
+                // Hide first section
+                firstSection.style.display = 'none';
+                
+                // Show second section
+                secondSection.style.display = 'block';
+                secondSection.classList.add('active');
+                
+                // Smooth scroll to second section
+                setTimeout(() => {
+                    secondSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 50);
             }
         }
 
