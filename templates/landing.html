@@ -664,17 +664,52 @@
             margin: 0;
         }
 
+        .flow-nav-wrapper {
+            position: absolute;
+            left: 50%;
+            top: 940px;
+            transform: translateX(-50%);
+            z-index: 5;
+            padding: 20px 40px;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 2px solid transparent;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border-radius: 16px;
+        }
+
+        .flow-nav-wrapper::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 16px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
+        }
+
         .flow-nav {
             margin-top: 0;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 16px;
-            position: absolute;
-            left: 50%;
-            top: 940px;
-            transform: translateX(-50%);
-            z-index: 5;
+            position: relative;
+            z-index: 1;
         }
 
         .flow-arrow-btn {
@@ -2292,18 +2327,20 @@
                     <h3 style="margin-top: 15px;">Song Plays in Queue</h3>
                     <p>Automatically joins and plays in order</p>
                 </div>
-                <div class="flow-nav">
-                    <button type="button" class="flow-arrow-btn" onclick="prevHowItWorks()">
-                        ← <span>Previous</span>
-                    </button>
-                    <div class="flow-dots">
-                        <span class="flow-dot active" data-step="0"></span>
-                        <span class="flow-dot" data-step="1"></span>
-                        <span class="flow-dot" data-step="2"></span>
+                <div class="flow-nav-wrapper">
+                    <div class="flow-nav">
+                        <button type="button" class="flow-arrow-btn" onclick="prevHowItWorks()">
+                            ← <span>Previous</span>
+                        </button>
+                        <div class="flow-dots">
+                            <span class="flow-dot active" data-step="0"></span>
+                            <span class="flow-dot" data-step="1"></span>
+                            <span class="flow-dot" data-step="2"></span>
+                        </div>
+                        <button type="button" class="flow-arrow-btn" onclick="nextHowItWorks()">
+                            <span>Next</span> →
+                        </button>
                     </div>
-                    <button type="button" class="flow-arrow-btn" onclick="nextHowItWorks()">
-                        <span>Next</span> →
-                    </button>
                 </div>
             </div>
         </div>
