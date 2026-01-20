@@ -36,20 +36,20 @@
             position: absolute;
             top: 50%;
             left: 50%;
-            transform: translate(-50%, -50%);
             width: 100%;
             height: 100%;
             object-fit: cover;
             opacity: 0.3;
+            transform: translate(-60%, -50%) scale(1);
             animation: slowGif 3s ease-in-out infinite;
         }
 
         @keyframes slowGif {
             0%, 100% {
-                transform: translate(-50%, -50%) scale(1);
+                transform: translate(-60%, -50%) scale(1);
             }
             50% {
-                transform: translate(-50%, -50%) scale(1.02);
+                transform: translate(-60%, -50%) scale(1.02);
             }
         }
 
@@ -590,7 +590,7 @@
             flex-direction: column;
             align-items: center;
             text-align: center;
-            max-width: 1000px;
+            max-width: 1200px;
             width: 100%;
             justify-content: flex-start;
             margin: 0 auto;
@@ -632,7 +632,7 @@
         
         .flow-item img {
             flex-shrink: 0;
-            max-height: 620px;
+            max-height: 744px;
             object-fit: contain;
         }
         
@@ -883,66 +883,65 @@
         }
 
         /* Moments Section */
-        .moments-section {
-            margin-bottom: 100px;
+        .moments-feature-card {
+            max-width: 900px;
+            margin: 60px auto 100px;
+            padding: 40px 50px;
+            border-radius: 20px;
         }
 
-        .moments-section h2 {
+        .frosted-glass.moments-feature-card {
+            background: rgba(10, 6, 30, 0.8);
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
+        }
+
+        .moments-feature-card h2 {
             text-align: center;
             font-size: 42px;
-            margin-bottom: 20px;
+            margin-bottom: 16px;
             font-weight: 900;
             color: white;
         }
 
-        .moments-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 40px;
-            margin-top: 50px;
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
+        .moments-feature-subtitle {
+            text-align: center;
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 16px;
+            margin-top: 10px;
         }
 
-        @media (max-width: 968px) {
-            .moments-grid {
-                grid-template-columns: 1fr;
-            }
+        .moments-features {
+            list-style: none;
+            padding: 0;
+            margin: 30px 0 0;
+            display: flex;
+            flex-direction: column;
+            gap: 18px;
         }
 
-        .moment-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            padding: 50px 40px;
-            border: 2px solid transparent;
-            border-radius: 16px;
+        .moments-features li {
             position: relative;
+            padding-left: 36px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 18px;
+            font-weight: 600;
+            line-height: 1.6;
         }
 
-        .moment-card::before {
+        .moments-features li::before {
             content: '';
             position: absolute;
-            inset: -3px;
-            border-radius: 16px;
-            padding: 2px;
-            background: linear-gradient(
-                90deg,
-                rgba(75, 0, 130, 0.3) 0%,
-                rgba(106, 90, 205, 0.8) 25%,
-                rgba(138, 43, 226, 1) 50%,
-                rgba(106, 90, 205, 0.8) 75%,
-                rgba(75, 0, 130, 0.3) 100%
-            );
-            background-size: 200% 100%;
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask-composite: exclude;
-            z-index: -1;
-            animation: shimmer 6s linear infinite;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%);
+            box-shadow: 0 0 10px rgba(255, 20, 147, 0.8);
         }
+
+        /* legacy moment cards (unused) kept for reference */
 
         .moment-icon {
             font-size: 48px;
@@ -2273,22 +2272,22 @@
             <h2>How It Works</h2>
             <div class="flow-line" id="howItWorksSwiper">
                 <div class="flow-item active" data-step="0">
-                    <div style="width: 100%; max-width: 1000px; height: 620px; display: flex; align-items: center; justify-content: center; margin-bottom: 0;">
-                        <img src="/img/qr-on-table.png" alt="QR on Table" style="width: 100%; max-width: 1000px; max-height: 620px; height: auto; border-radius: 12px; object-fit: contain;">
+                    <div style="width: 100%; max-width: 1200px; height: 744px; display: flex; align-items: center; justify-content: center; margin-bottom: 0;">
+                        <img src="/img/qr-on-table.png" alt="QR on Table" style="width: 100%; max-width: 1200px; max-height: 744px; height: auto; border-radius: 12px; object-fit: contain;">
                     </div>
                     <h3 style="margin-top: 15px;">Scan QR</h3>
                     <p>Printable Unique QR Codes Are Generated Per Table</p>
                 </div>
                 <div class="flow-item" data-step="1">
-                    <div style="width: 100%; max-width: 1000px; height: 620px; display: flex; align-items: center; justify-content: center; margin-bottom: 0;">
-                        <img src="/img/guest-makes-song.png" alt="Guest Makes Song" style="width: 100%; max-width: 1000px; max-height: 620px; height: auto; border-radius: 12px; object-fit: contain;">
+                    <div style="width: 100%; max-width: 1200px; height: 744px; display: flex; align-items: center; justify-content: center; margin-bottom: 0;">
+                        <img src="/img/guest-makes-song.png" alt="Guest Makes Song" style="width: 100%; max-width: 1200px; max-height: 744px; height: auto; border-radius: 12px; object-fit: contain;">
                     </div>
                     <h3 style="margin-top: 15px;">Type Any Song Idea</h3>
                     <p>Customers scan and type their request</p>
                 </div>
                 <div class="flow-item" data-step="2">
-                    <div style="width: 100%; max-width: 1000px; height: 620px; display: flex; align-items: center; justify-content: center; margin-bottom: 0;">
-                        <img src="/img/song-plays-queue.png" alt="Song Plays in Queue" style="width: 100%; max-width: 1000px; max-height: 620px; height: auto; border-radius: 12px; object-fit: contain;">
+                    <div style="width: 100%; max-width: 1200px; height: 744px; display: flex; align-items: center; justify-content: center; margin-bottom: 0;">
+                        <img src="/img/song-plays-queue.png" alt="Song Plays in Queue" style="width: 100%; max-width: 1200px; max-height: 744px; height: auto; border-radius: 12px; object-fit: contain;">
                     </div>
                     <h3 style="margin-top: 15px;">Song Plays in Queue</h3>
                     <p>Automatically joins and plays in order</p>
@@ -2311,23 +2310,15 @@
 
         <!-- Built for Venues Section -->
         <div class="moments-section animate-on-scroll" id="features">
-            <h2>Built for Real Venues, Not Playlists</h2>
-            <div style="max-width: 800px; margin: 50px auto; text-align: left;">
-                <ul style="list-style: none; padding: 0; margin: 0;">
-                    <li style="color: rgba(255, 255, 255, 0.9); padding: 15px 0; padding-left: 30px; position: relative; font-size: 18px; font-weight: 600; line-height: 1.6;">
-                        <span style="position: absolute; left: 0; color: rgba(138, 43, 226, 0.9); font-weight: bold; font-size: 20px;">•</span>
-                        Works with your speakers & TVs
-                    </li>
-                    <li style="color: rgba(255, 255, 255, 0.9); padding: 15px 0; padding-left: 30px; position: relative; font-size: 18px; font-weight: 600; line-height: 1.6;">
-                        <span style="position: absolute; left: 0; color: rgba(138, 43, 226, 0.9); font-weight: bold; font-size: 20px;">•</span>
-                        Staff approval & safety controls
-                    </li>
-                    <li style="color: rgba(255, 255, 255, 0.9); padding: 15px 0; padding-left: 30px; position: relative; font-size: 18px; font-weight: 600; line-height: 1.6;">
-                        <span style="position: absolute; left: 0; color: rgba(138, 43, 226, 0.9); font-weight: bold; font-size: 20px;">•</span>
-                        One queue, no chaos
-                    </li>
+            <div class="frosted-glass moments-feature-card">
+                <h2>Built for Real Venues, Not Playlists</h2>
+                <p class="moments-feature-subtitle">The system is designed around how bars and restaurants actually run, not just play songs.</p>
+                <ul class="moments-features">
+                    <li>Works with your existing speakers, TVs, and streaming setup.</li>
+                    <li>Staff approval and safety controls keep the room on-brand and under control.</li>
+                    <li>One shared queue for the whole venue so the night feels organized, not chaotic.</li>
                 </ul>
-                </div>
+            </div>
         </div>
 
         <!-- Venue Control Section -->
