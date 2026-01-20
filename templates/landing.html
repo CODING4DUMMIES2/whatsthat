@@ -575,23 +575,26 @@
 
         .flow-line {
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
             gap: 0;
-            flex-wrap: nowrap;
             margin-top: 50px;
-            margin-left: 17%;
+            margin-left: 0;
         }
 
         .flow-item {
-            display: flex;
+            display: none;
             flex-direction: column;
             align-items: center;
             text-align: center;
-            flex: 0 0 auto;
-            max-width: 700px;
-            min-width: 600px;
+            max-width: 900px;
+            width: 100%;
             justify-content: flex-start;
+        }
+
+        .flow-item.active {
+            display: flex;
         }
         
         .flow-item img {
@@ -622,6 +625,61 @@
             font-size: 24px;
             color: rgba(138, 43, 226, 0.6);
             margin: 0;
+        }
+
+        .flow-nav {
+            margin-top: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .flow-arrow-btn {
+            padding: 8px 18px;
+            border-radius: 30px;
+            background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%);
+            border: none;
+            color: white;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            box-shadow: 0 4px 15px rgba(255, 20, 147, 0.4);
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .flow-arrow-btn:hover {
+            transform: translateY(-1px) scale(1.03);
+            box-shadow: 0 6px 20px rgba(255, 20, 147, 0.6);
+        }
+
+        .flow-arrow-btn:active {
+            transform: translateY(0) scale(1.01);
+        }
+
+        .flow-dots {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .flow-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            transition: all 0.2s;
+        }
+
+        .flow-dot.active {
+            background: #FF1493;
+            transform: scale(1.2);
         }
 
         .flow-item h3 {
@@ -2167,29 +2225,40 @@
         <!-- How It Works -->
         <div class="how-it-works animate-on-scroll">
             <h2>How It Works</h2>
-            <div class="flow-line">
-                <div class="flow-item" style="margin-right: -100px;">
-                    <div style="width: 100%; max-width: 800px; height: 560px; display: flex; align-items: center; justify-content: center; margin-bottom: 0;">
-                        <img src="/img/qr-on-table.png" alt="QR on Table" style="width: 100%; max-width: 800px; max-height: 560px; height: auto; border-radius: 12px; object-fit: contain;">
+            <div class="flow-line" id="howItWorksSwiper">
+                <div class="flow-item active" data-step="0">
+                    <div style="width: 100%; max-width: 900px; height: 560px; display: flex; align-items: center; justify-content: center; margin-bottom: 0;">
+                        <img src="/img/qr-on-table.png" alt="QR on Table" style="width: 100%; max-width: 900px; max-height: 560px; height: auto; border-radius: 12px; object-fit: contain;">
                     </div>
                     <h3 style="margin-top: 15px;">Scan QR</h3>
                     <p>Printable Unique QR Codes Are Generated Per Table</p>
                 </div>
-                <div class="flow-arrow">→</div>
-                <div class="flow-item" style="max-width: 900px; min-width: 800px; margin-left: -100px; margin-right: -100px;">
+                <div class="flow-item" data-step="1">
                     <div style="width: 100%; max-width: 900px; height: 560px; display: flex; align-items: center; justify-content: center; margin-bottom: 0;">
                         <img src="/img/guest-makes-song.png" alt="Guest Makes Song" style="width: 100%; max-width: 900px; max-height: 560px; height: auto; border-radius: 12px; object-fit: contain;">
                     </div>
                     <h3 style="margin-top: 15px;">Type Any Song Idea</h3>
                     <p>Customers scan and type their request</p>
                 </div>
-                <div class="flow-arrow">→</div>
-                <div class="flow-item" style="max-width: 900px; min-width: 800px; margin-left: -100px;">
+                <div class="flow-item" data-step="2">
                     <div style="width: 100%; max-width: 900px; height: 560px; display: flex; align-items: center; justify-content: center; margin-bottom: 0;">
                         <img src="/img/song-plays-queue.png" alt="Song Plays in Queue" style="width: 100%; max-width: 900px; max-height: 560px; height: auto; border-radius: 12px; object-fit: contain;">
                     </div>
                     <h3 style="margin-top: 15px;">Song Plays in Queue</h3>
                     <p>Automatically joins and plays in order</p>
+                </div>
+                <div class="flow-nav">
+                    <button type="button" class="flow-arrow-btn" onclick="prevHowItWorks()">
+                        ← <span>Previous</span>
+                    </button>
+                    <div class="flow-dots">
+                        <span class="flow-dot active" data-step="0"></span>
+                        <span class="flow-dot" data-step="1"></span>
+                        <span class="flow-dot" data-step="2"></span>
+                    </div>
+                    <button type="button" class="flow-arrow-btn" onclick="nextHowItWorks()">
+                        <span>Next</span> →
+                    </button>
                 </div>
             </div>
         </div>
@@ -2951,9 +3020,74 @@
 
         // Initialize on page load
         if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', initScrollAnimations);
+            document.addEventListener('DOMContentLoaded', () => {
+                initScrollAnimations();
+                // Init How It Works swiper
+                showHowItWorksStep(0);
+                initHowItWorksSwipe();
+            });
         } else {
             initScrollAnimations();
+            showHowItWorksStep(0);
+            initHowItWorksSwipe();
+        }
+
+        // How It Works Swiper
+        let howItWorksIndex = 0;
+
+        function showHowItWorksStep(index) {
+            const items = document.querySelectorAll('#howItWorksSwiper .flow-item');
+            const dots = document.querySelectorAll('#howItWorksSwiper .flow-dot');
+            
+            if (!items.length) return;
+            
+            const total = items.length;
+            howItWorksIndex = (index + total) % total;
+            
+            items.forEach((item, i) => {
+                item.classList.toggle('active', i === howItWorksIndex);
+            });
+            
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === howItWorksIndex);
+            });
+        }
+
+        function nextHowItWorks() {
+            showHowItWorksStep(howItWorksIndex + 1);
+        }
+
+        function prevHowItWorks() {
+            showHowItWorksStep(howItWorksIndex - 1);
+        }
+
+        function initHowItWorksSwipe() {
+            const swiper = document.getElementById('howItWorksSwiper');
+            if (!swiper) return;
+            
+            let startX = 0;
+            let isSwiping = false;
+            
+            swiper.addEventListener('touchstart', (e) => {
+                if (!e.touches || !e.touches.length) return;
+                isSwiping = true;
+                startX = e.touches[0].clientX;
+            }, { passive: true });
+            
+            swiper.addEventListener('touchend', (e) => {
+                if (!isSwiping || !e.changedTouches || !e.changedTouches.length) return;
+                const endX = e.changedTouches[0].clientX;
+                const diffX = endX - startX;
+                const threshold = 50;
+                
+                if (diffX > threshold) {
+                    prevHowItWorks();
+                } else if (diffX < -threshold) {
+                    nextHowItWorks();
+                }
+                
+                isSwiping = false;
+            });
         }
 
         // Venue Type Tabs
