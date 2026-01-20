@@ -1709,6 +1709,37 @@
         /* Venue Types Section */
         .venue-types-section {
             margin-bottom: 100px;
+            padding: 50px 60px;
+            background: rgba(10, 6, 30, 0.8);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 2px solid transparent;
+            box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
+            border-radius: 24px;
+            position: relative;
+        }
+
+        .venue-types-section::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 24px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
         }
 
         .venue-types-section h2 {
@@ -1717,6 +1748,8 @@
             margin-bottom: 20px;
             font-weight: 900;
             color: white;
+            position: relative;
+            z-index: 1;
         }
 
         .venue-tabs {
@@ -1725,6 +1758,8 @@
             gap: 15px;
             margin-top: 40px;
             flex-wrap: wrap;
+            position: relative;
+            z-index: 1;
         }
 
         .venue-tab {
@@ -1756,6 +1791,8 @@
             margin-top: 40px;
             text-align: center;
             min-height: 200px;
+            position: relative;
+            z-index: 1;
         }
 
         .venue-content-item {
