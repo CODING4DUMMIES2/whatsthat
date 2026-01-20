@@ -2859,6 +2859,16 @@
             switchSetupSection(thirdSection, fourthSection);
         }
 
+        // Download Setup Guide PDF
+        function downloadSetupGuide() {
+            const link = document.createElement('a');
+            link.href = '/static/Setup And Use Guide.pdf';
+            link.download = 'Setup And Use Guide.pdf';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
         // FAQ Toggle Function
         function toggleFaq(header) {
             const faqItem = header.closest('.faq-item');
