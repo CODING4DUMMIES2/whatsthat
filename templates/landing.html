@@ -2759,6 +2759,27 @@
             }
         }
 
+        // Switch to Setup Section 4 (Section 3 -> Section 4)
+        function scrollToSetupSection4() {
+            const thirdSection = document.getElementById('setupSection3');
+            const fourthSection = document.getElementById('setupSection4');
+            
+            if (thirdSection && fourthSection) {
+                // Hide third section
+                thirdSection.style.display = 'none';
+                thirdSection.classList.remove('active');
+                
+                // Show fourth section
+                fourthSection.style.display = 'block';
+                fourthSection.classList.add('active');
+                
+                // Smooth scroll to fourth section
+                setTimeout(() => {
+                    fourthSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 50);
+            }
+        }
+
         // FAQ Toggle Function
         function toggleFaq(header) {
             const faqItem = header.closest('.faq-item');
