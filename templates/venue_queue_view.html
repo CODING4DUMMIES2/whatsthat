@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Queue - whatsthat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2d1b4e 0%, #1a0d2e 50%, #0d0518 100%);
+            min-height: 100vh;
+            padding: 20px;
+            color: white;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 30%, rgba(102, 126, 234, 0.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 70%, rgba(118, 75, 162, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 30px 20px;
+            background: rgba(45, 27, 78, 0.4);
+            border-radius: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .header h1 {
+            font-size: 32px;
+            margin-bottom: 10px;
+            color: white;
+            font-weight: 700;
+        }
+
+        .header p {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 14px;
+            font-weight: 400;
+        }
+
+        .queue-section {
+            background: rgba(45, 27, 78, 0.4);
+            border-radius: 15px;
+            padding: 25px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .queue-section h2 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .queue-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .queue-item {
+            background: rgba(45, 27, 78, 0.3);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: all 0.2s;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .queue-item:hover {
+            background: rgba(45, 27, 78, 0.5);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .queue-item-info {
+            flex: 1;
+        }
+
+        .queue-item-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            font-size: 18px;
+        }
+
+        .queue-item-time {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.6);
+        }
+
+        .queue-item-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: rgba(255, 255, 255, 0.7);
+            margin-right: 15px;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .empty-queue {
+            text-align: center;
+            padding: 40px;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 18px;
+        }
+
+        .queue-count {
+            background: rgba(255, 20, 147, 0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: inline-block;
+            margin-left: 10px;
+            border: 1px solid rgba(255, 20, 147, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Live Queue <span class="queue-count" id="queueCount">0 songs</span></h1>
+            <p>{{ venue_name }}</p>
+        </div>
+
+        <div class="queue-section">
+            <h2>Upcoming Songs</h2>
+            <div class="queue-list" id="queueList">
+                <div class="empty-queue">Loading queue...</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const venueId = '{{ venue_id }}';
+        let queueCheckInterval = null;
+        let lastQueueTaskIds = new Set();
+        let lastQueueLength = 0;
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        async function checkQueue() {
+            try {
+                const response = await fetch(`/venue/${venueId}/queue`);
+                const data = await response.json();
+                
+                const currentQueue = data.queue || [];
+                const currentTaskIds = new Set(currentQueue.map(song => song.task_id));
+                
+                // Update display
+                updateQueueDisplay(currentQueue);
+                
+                // Update tracking
+                lastQueueLength = currentQueue.length;
+                lastQueueTaskIds = currentTaskIds;
+            } catch (error) {
+                console.error('Error checking queue:', error);
+            }
+        }
+
+        function updateQueueDisplay(queue) {
+            const queueList = document.getElementById('queueList');
+            const queueCount = document.getElementById('queueCount');
+            
+            queueCount.textContent = `${queue.length} song${queue.length !== 1 ? 's' : ''}`;
+            
+            if (queue.length === 0) {
+                queueList.innerHTML = '<div class="empty-queue">No songs in queue</div>';
+                return;
+            }
+
+            queueList.innerHTML = queue.map((song, index) => {
+                return `
+                    <div class="queue-item">
+                        <div class="queue-item-number">${index + 1}</div>
+                        <div class="queue-item-info">
+                            <div class="queue-item-title">${escapeHtml(song.title)}</div>
+                            <div class="queue-item-time">Added at ${song.added_at || 'Unknown'}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Start polling immediately when page loads
+        window.addEventListener('DOMContentLoaded', function() {
+            // Initial check
+            checkQueue();
+            
+            // Check for new songs every 1.5 seconds (same as stream page)
+            queueCheckInterval = setInterval(checkQueue, 1500);
+        });
+    </script>
+</body>
+</html>
+

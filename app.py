@@ -542,6 +542,17 @@ def venue_stream(venue_id):
     return render_template('venue_stream.html', venue_id=venue_id)
 
 
+@app.route('/venue/<venue_id>/queue-view')
+def venue_queue_view(venue_id):
+    """Public queue-only view for displaying on TVs/devices"""
+    load_data()
+    
+    # Get venue name from metadata
+    venue_name = venue_metadata.get(venue_id, {}).get('name', f'Venue {venue_id}')
+    
+    return render_template('venue_queue_view.html', venue_id=venue_id, venue_name=venue_name)
+
+
 @app.route('/demo/generate', methods=['POST'])
 def generate_demo():
     """Generate a demo venue for the landing page"""
