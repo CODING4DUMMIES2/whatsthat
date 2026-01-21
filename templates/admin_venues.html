@@ -2273,14 +2273,18 @@
                 }
                 
                 if (tablesContainer) {
-                    tablesContainer.innerHTML = venueData.tables.map(table => `
+                    tablesContainer.innerHTML = venueData.tables.map((table, idx) => `
                         <div class="table-item">
-                            <div class="table-item-header">
-                                <div class="table-item-name">${table.name}</div>
+                            <div class="table-item-header" style="display:flex; justify-content:space-between; align-items:center;">
+                                <div class="table-item-name">Table ${idx + 1}: ${table.name}</div>
                             </div>
-                            <div class="table-qr">
-                                <img src="${table.qr_code}" alt="Table QR">
-                                <code>${table.submit_url}</code>
+                            <div class="table-qr" style="margin-top:10px; display:flex; flex-direction:column; gap:8px; align-items:flex-start;">
+                                <img src="${table.qr_code}" alt="Table QR" style="width:120px; height:120px; border-radius:10px; background:#020617;">
+                                <code style="display:block; word-break:break-all; font-size:11px; color:rgba(255,255,255,0.7);">${table.submit_url}</code>
+                                <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;">
+                                    <button type="button" onclick="onbPrintQr('${table.qr_code}')" style="border-radius:999px; padding:6px 12px; font-size:12px; border:1px solid transparent; background:linear-gradient(135deg,#FF1493,#8B2BE2); color:#f9fafb; cursor:pointer;">Print</button>
+                                    <button type="button" onclick="onbDownloadQr('${table.qr_code}')" style="border-radius:999px; padding:6px 12px; font-size:12px; border:1px solid rgba(148,163,184,0.7); background:transparent; color:rgba(226,232,240,0.95); cursor:pointer;">Download</button>
+                                </div>
                             </div>
                         </div>
                     `).join('');
@@ -2482,14 +2486,18 @@
                     if (data.tables.length === 0) {
                         tablesContainer.innerHTML = '<p style="color: rgba(255,255,255,0.5); padding: 20px; text-align: center;">No tables yet. Add one above.</p>';
                     } else {
-                        tablesContainer.innerHTML = data.tables.map(table => `
+                        tablesContainer.innerHTML = data.tables.map((table, idx) => `
                             <div class="table-item">
-                                <div class="table-item-header">
-                                    <div class="table-item-name">${table.name}</div>
+                                <div class="table-item-header" style="display:flex; justify-content:space-between; align-items:center;">
+                                    <div class="table-item-name">Table ${idx + 1}: ${table.name}</div>
                                 </div>
-                                <div class="table-qr">
-                                    <img src="${table.qr_code}" alt="Table QR">
-                                    <code>${table.submit_url}</code>
+                                <div class="table-qr" style="margin-top:10px; display:flex; flex-direction:column; gap:8px; align-items:flex-start;">
+                                    <img src="${table.qr_code}" alt="Table QR" style="width:120px; height:120px; border-radius:10px; background:#020617;">
+                                    <code style="display:block; word-break:break-all; font-size:11px; color:rgba(255,255,255,0.7);">${table.submit_url}</code>
+                                    <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;">
+                                        <button type="button" onclick="onbPrintQr('${table.qr_code}')" style="border-radius:999px; padding:6px 12px; font-size:12px; border:1px solid transparent; background:linear-gradient(135deg,#FF1493,#8B2BE2); color:#f9fafb; cursor:pointer;">Print</button>
+                                        <button type="button" onclick="onbDownloadQr('${table.qr_code}')" style="border-radius:999px; padding:6px 12px; font-size:12px; border:1px solid rgba(148,163,184,0.7); background:transparent; color:rgba(226,232,240,0.95); cursor:pointer;">Download</button>
+                                    </div>
                                 </div>
                             </div>
                         `).join('');
