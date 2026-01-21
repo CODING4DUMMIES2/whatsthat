@@ -1348,13 +1348,15 @@
             transform: translateX(-3px) scale(1.02);
         }
 
-        /* Setup Sections – simple show/hide */
+        /* Setup Sections – wizard style (only active one is visible) */
+        .setup-section-1,
         .setup-section-2,
         .setup-section-3,
         .setup-section-4 {
             display: none;
         }
 
+        .setup-section-1.active,
         .setup-section-2.active,
         .setup-section-3.active,
         .setup-section-4.active {
@@ -2641,7 +2643,7 @@
         <!-- Setup Sections Container -->
         <div class="setup-sections-container">
         <!-- Create Your Venue Section -->
-        <div class="keepsake-section" id="setupSection1">
+        <div class="keepsake-section setup-section-1 active" id="setupSection1">
             <div class="setup-content-wrapper">
                 <div class="setup-image-container">
                     <img src="/img/setup-screenshot.png" alt="Setup Screenshot" style="width: 100%; height: auto; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);">
@@ -3237,14 +3239,12 @@
 
         function switchSetupSection(hideSection, showSection) {
             if (hideSection && showSection) {
-                // Hide current section
-                hideSection.style.display = 'none';
+                // Hide current section (by class only)
                 hideSection.classList.remove('active');
                 
                 // Show new section
-                showSection.style.display = 'block';
                 showSection.classList.add('active');
-                // Do NOT scroll – keep the viewport exactly where it is
+                // No scrolling, no inline display changes
             }
         }
 
