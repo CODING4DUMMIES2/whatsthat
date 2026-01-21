@@ -2986,8 +2986,21 @@
             const businessEmail = document.getElementById('businessEmailInput').value.trim();
             const city = document.getElementById('cityInput').value.trim();
             
+            const formErrorId = 'demoFormError';
+            let formError = document.getElementById(formErrorId);
+            if (!formError) {
+                formError = document.createElement('div');
+                formError.id = formErrorId;
+                formError.style.marginTop = '10px';
+                formError.style.color = '#fecaca';
+                formError.style.fontSize = '13px';
+                const formEl = document.getElementById('demoForm');
+                formEl.parentNode.insertBefore(formError, formEl.nextSibling);
+            }
+            formError.textContent = '';
+
             if (!venueName || !businessEmail || !city) {
-                alert('Please fill in all required fields');
+                formError.textContent = 'Please fill in venue name, city, and business email.';
                 return;
             }
 
@@ -3025,13 +3038,13 @@
                     // Start polling queue
                     startQueuePolling();
                 } else {
-                    alert('Error: ' + (data.error || 'Failed to generate demo'));
+                    formError.textContent = data.error || 'Failed to generate demo.';
                     submitBtn.disabled = false;
                     submitBtn.textContent = originalText;
                 }
             } catch (error) {
                 console.error('Error:', error);
-                alert('Error generating demo: ' + error.message);
+                formError.textContent = 'Error generating demo: ' + error.message;
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
             }
@@ -3099,12 +3112,12 @@
             const message = document.getElementById('demoSongInput').value.trim();
             
             if (!message) {
-                alert('Please enter a song description');
-                    return;
-                }
+                document.getElementById('demoQueueStatus').textContent = 'Please enter what the song should be about.';
+                return;
+            }
 
             if (!currentDemoId) {
-                alert('Demo not initialized');
+                document.getElementById('demoQueueStatus').textContent = 'Demo not initialized. Please generate a venue demo first.';
                 return;
             }
             
@@ -3149,11 +3162,11 @@
                         table_id: 'demo-table-1'
                     });
                     } else {
-                    alert('Error: ' + (data.error || 'Failed to create song'));
+                    document.getElementById('demoQueueStatus').textContent = data.error || 'Failed to create song.';
                     }
                 } catch (error) {
                 console.error('Error:', error);
-                alert('Error creating song: ' + error.message);
+                document.getElementById('demoQueueStatus').textContent = 'Error creating song: ' + error.message;
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
@@ -3291,7 +3304,7 @@
             // Redirect to signup with fields pre-filled from the demo form
             const venueName = encodeURIComponent(currentVenueName || document.getElementById('venueNameInput').value.trim());
             const email = encodeURIComponent(document.getElementById('businessEmailInput').value.trim());
-            const name = ''; // we could add a separate name field later
+            const name = encodeURIComponent(''); // placeholder; no separate name field yet
             const query = `?venue_name=${venueName}&email=${email}&name=${name}`;
             window.location.href = '/signup' + query;
         }

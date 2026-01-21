@@ -635,10 +635,10 @@
                     
                     document.getElementById('genreModalOverlay').classList.add('active');
                 } else {
-                    alert('Error loading genres: ' + (data.error || 'Unknown error'));
+                    console.error('Error loading genres:', data.error || 'Unknown error');
                 }
             } catch (error) {
-                alert('Error: ' + error.message);
+                console.error('Error loading genres:', error);
             }
         }
 
@@ -695,10 +695,10 @@
                     // Reload page to show updated status
                     location.reload();
                 } else {
-                    alert('Error saving genres: ' + (data.error || 'Unknown error'));
+                    console.error('Error saving genres:', data.error || 'Unknown error');
                 }
             } catch (error) {
-                alert('Error: ' + error.message);
+                console.error('Error saving genres:', error);
             }
         }
 

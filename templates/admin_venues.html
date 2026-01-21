@@ -1864,7 +1864,10 @@
 
         function onbNext() {
             if (onbStep === 2 && !onbQrMode) {
-                alert('Please choose how you want QR codes to work before continuing.');
+                const ind = document.getElementById('onb-indicator');
+                if (ind) {
+                    ind.textContent = 'Step 2 of 3 · Choose how you want QR codes to work before continuing.';
+                }
                 return;
             }
             if (onbStep < 3) {
@@ -2396,13 +2399,10 @@
                 });
 
                 const data = await response.json();
-                if (data.success) {
-                    alert('Venue name updated!');
-                } else {
-                    alert('Error: ' + (data.error || 'Failed to update'));
-                }
+                const message = data.success ? 'Venue name updated.' : ('Error: ' + (data.error || 'Failed to update'));
+                console.log(message);
             } catch (error) {
-                alert('Error: ' + error.message);
+                console.error('Error updating venue name:', error);
             }
         }
 
@@ -2411,7 +2411,7 @@
             const name = nameInput.value.trim();
             
             if (!name) {
-                alert('Please enter a table name');
+                console.warn('Table name is required');
                 return;
             }
             
@@ -2429,10 +2429,10 @@
                     nameInput.value = '';
                     loadTables(venueId);
                 } else {
-                    alert('Error: ' + (data.error || 'Failed to create table'));
+                    console.error('Error creating table:', data.error || 'Failed to create table');
                 }
             } catch (error) {
-                alert('Error: ' + error.message);
+                console.error('Error creating table:', error);
             }
         }
 

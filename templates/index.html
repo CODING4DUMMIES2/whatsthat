@@ -483,10 +483,10 @@
                         }, 100);
                     }
                 } else {
-                    alert('Error: ' + (data.error || 'Failed to send message'));
+                    console.error('Error sending message:', data.error || 'Failed to send message');
                 }
             } catch (error) {
-                alert('Error: ' + error.message);
+                console.error('Error sending message:', error);
             }
         }
 

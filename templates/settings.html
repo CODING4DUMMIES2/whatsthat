@@ -736,16 +736,35 @@
 
                 const data = await response.json();
 
+                const statusId = 'settingsStatus';
+                let statusEl = document.getElementById(statusId);
+                if (!statusEl) {
+                    statusEl = document.createElement('div');
+                    statusEl.id = statusId;
+                    statusEl.style.marginTop = '10px';
+                    statusEl.style.fontSize = '13px';
+                    const container = document.querySelector('.settings-section:last-of-type');
+                    if (container) {
+                        container.appendChild(statusEl);
+                    }
+                }
+
                 if (data.success) {
-                    alert('✅ Settings saved successfully!');
+                    statusEl.style.color = '#bbf7d0';
+                    statusEl.textContent = 'Settings saved successfully.';
                     location.reload();
                 } else {
-                    alert('❌ Error saving settings: ' + (data.error || 'Unknown error'));
+                    statusEl.style.color = '#fecaca';
+                    statusEl.textContent = 'Error saving settings: ' + (data.error || 'Unknown error');
                     saveBtn.disabled = false;
                     saveBtn.textContent = '💾 Save Settings';
                 }
             } catch (error) {
-                alert('❌ Error: ' + error.message);
+                let statusEl = document.getElementById('settingsStatus');
+                if (statusEl) {
+                    statusEl.style.color = '#fecaca';
+                    statusEl.textContent = 'Error: ' + error.message;
+                }
                 saveBtn.disabled = false;
                 saveBtn.textContent = '💾 Save Settings';
             }
