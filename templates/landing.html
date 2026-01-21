@@ -2088,7 +2088,7 @@
             border: 2px solid transparent;
             border-radius: 16px;
             position: relative;
-            overflow: hidden;
+            overflow: visible;
             cursor: pointer;
             transition: all 0.3s;
         }
@@ -2122,6 +2122,8 @@
             justify-content: space-between;
             padding: 25px;
             cursor: pointer;
+            position: relative;
+            z-index: 1;
         }
 
         .faq-item h4 {
@@ -2159,6 +2161,8 @@
             overflow: hidden;
             transition: max-height 0.3s ease-out, padding 0.3s ease-out;
             padding: 0 25px;
+            position: relative;
+            z-index: 1;
         }
 
         .faq-item.active .faq-answer {
