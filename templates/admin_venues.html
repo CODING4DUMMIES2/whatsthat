@@ -2546,6 +2546,7 @@
                     }
                     // Start tutorial after a short delay
                     setTimeout(() => {
+                        console.log('About to start tutorial from hideDashboardExplanation');
                         startTutorial();
                     }, 800);
                 }, 600);
@@ -2713,8 +2714,11 @@
                 tutorialNextBtn.textContent = 'Next';
             }
 
-            // Show overlay
+            // Show overlay - make absolutely sure it's visible
             tutorialOverlay.style.display = 'block';
+            tutorialOverlay.style.visibility = 'visible';
+            tutorialOverlay.style.opacity = '1';
+            tutorialOverlay.style.zIndex = '4000';
 
             // Get element position
             const rect = element.getBoundingClientRect();
