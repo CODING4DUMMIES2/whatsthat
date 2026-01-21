@@ -1348,9 +1348,16 @@
             transform: translateX(-3px) scale(1.02);
         }
 
-        /* Setup Sections – stacked vertically (no hiding) */
+        /* Setup Sections – single static card, other markup hidden */
         .setup-sections-container {
             position: relative;
+        }
+
+        /* Hide legacy duplicate sections (used only as visual reference) */
+        #setupSection2,
+        #setupSection3,
+        #setupSection4 {
+            display: none;
         }
 
         .keepsake-item {
@@ -3222,45 +3229,117 @@
 
         // Old generateSong function removed - no longer needed in demo mode
 
-        // Switch to Next Setup Section (Section 1 -> Section 2)
+        // --- Setup Card Slider: single static card, content swaps ---
+        const setupSlides = [
+            {
+                image: '/img/setup-screenshot.png',
+                alt: 'Setup Screenshot',
+                title: 'Create Your Venue',
+                description: 'Set up your venue, define your tables, and generate QR codes guests will use to request songs.',
+                steps: [
+                    'Enter your venue name',
+                    'Set how many tables you need',
+                    'Generate printable QR codes'
+                ]
+            },
+            {
+                image: '/img/settings-screenshot.png',
+                alt: 'Settings Screenshot',
+                title: 'Set Your Music Rules',
+                description: 'Choose which genres guests can request and control whether lyrics stay clean or explicit.',
+                steps: [
+                    'Select allowed music genres',
+                    'Set explicit or non-explicit lyrics',
+                    'Save your venue settings'
+                ]
+            },
+            {
+                image: '/img/guest-request-screenshot.png',
+                alt: 'Guest Request Screenshot',
+                title: 'Guests Request a Song',
+                description: 'Guests describe the song they want to hear, and a custom, original track is created for your venue.',
+                steps: [
+                    'Describe the song idea or moment',
+                    'Optionally select a genre (if enabled)',
+                    'Submit the request to the live queue'
+                ]
+            },
+            {
+                image: '/img/live-queue-screenshot.png',
+                alt: 'Live Queue Screenshot',
+                title: 'Live Song Queue',
+                description: 'Songs play automatically in the order they\'re requested, creating a smooth, hands-off music flow.',
+                steps: [
+                    'Songs generate and enter the queue',
+                    'Playback starts when each song reaches its turn',
+                    'Staff can monitor or manage the queue live'
+                ]
+            }
+        ];
+
+        let currentSetupSlide = 0;
+
+        function renderSetupSlide() {
+            const slide = setupSlides[currentSetupSlide];
+            const section = document.getElementById('setupSection1');
+            if (!section || !slide) return;
+
+            const imgEl = section.querySelector('.setup-image-container img');
+            const titleEl = section.querySelector('.setup-content-container h2');
+            const descEl = section.querySelector('.setup-content-container p');
+            const checklistContainer = section.querySelector('.setup-checklist');
+
+            if (imgEl) {
+                imgEl.src = slide.image;
+                imgEl.alt = slide.alt;
+            }
+            if (titleEl) {
+                titleEl.textContent = slide.title;
+            }
+            if (descEl) {
+                descEl.textContent = slide.description;
+            }
+            if (checklistContainer) {
+                checklistContainer.innerHTML = '';
+                slide.steps.forEach((text, idx) => {
+                    const item = document.createElement('div');
+                    item.className = 'checklist-item';
+                    item.innerHTML = `
+                        <div class="checklist-number">${idx + 1}</div>
+                        <div class="checklist-text">${text}</div>
+                    `;
+                    checklistContainer.appendChild(item);
+                });
+            }
+        }
+
         function scrollToNextSetup() {
-            const secondSection = document.getElementById('setupSection2');
-            if (secondSection) {
-                secondSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+            currentSetupSlide = (currentSetupSlide + 1) % setupSlides.length;
+            renderSetupSlide();
         }
 
-        // Switch to Setup Section 1 (Section 2 -> Section 1)
         function scrollToSetupSection1() {
-            const firstSection = document.getElementById('setupSection1');
-            if (firstSection) {
-                firstSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+            currentSetupSlide = 0;
+            renderSetupSlide();
         }
-                
-        // Switch to Setup Section 3 (Section 2 -> Section 3 or Section 4 -> Section 3)
+
         function scrollToSetupSection3() {
-            const thirdSection = document.getElementById('setupSection3');
-            if (thirdSection) {
-                thirdSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+            currentSetupSlide = 2;
+            renderSetupSlide();
         }
 
-        // Switch to Setup Section 2 (Section 3 -> Section 2)
         function scrollToSetupSection2() {
-            const secondSection = document.getElementById('setupSection2');
-            if (secondSection) {
-                secondSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+            currentSetupSlide = 1;
+            renderSetupSlide();
         }
 
-        // Switch to Setup Section 4 (Section 3 -> Section 4)
         function scrollToSetupSection4() {
-            const fourthSection = document.getElementById('setupSection4');
-            if (fourthSection) {
-                fourthSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
+            currentSetupSlide = 3;
+            renderSetupSlide();
         }
+
+        // Initialize the first slide on load (in case HTML changes later)
+        document.addEventListener('DOMContentLoaded', renderSetupSlide);
 
         // Download Setup Guide PDF
         function downloadSetupGuide() {
