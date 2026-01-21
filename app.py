@@ -881,37 +881,19 @@ def check_and_process_pending_tasks(venue_id=None):
                                 }
                                 queue.append(existing)
 
-                            # Attach stream URL as soon as available
+                            # Attach stream URL as soon as available and mark ready for streaming
                             if stream_url:
                                 existing['stream_url'] = stream_url
-                                if not audio_url:
-                                    existing['status'] = 'stream_ready'
+                                existing['status'] = 'ready'
 
-                            # If we have an audio URL, treat as complete and download
-                            if audio_url:
-                                print(f"📥 Found completed song for task {task_id}, downloading...")
-                                if song_title:
-                                    song_titles[task_id] = song_title
-                                    print(f"   Song title: {song_title}")
-
-                                filename = download_audio_file(audio_url, prefix=task_id)
-                                if filename:
-                                    task_audio_map[task_id] = filename
-                                    existing['filename'] = filename
-                                    existing['status'] = 'ready'
-
-                                    print(f"✅ Updated queue entry for task {task_id} with downloaded filename")
-                                    print(f"   Venue {v_id} now has {len(venue_queues[v_id])} song(s) in queue")
-
-                                    # Clean up tracking
-                                    if task_id in task_to_venue:
-                                        del task_to_venue[task_id]
-                                    save_data()
-                                    print(f"✅ Saved queue data to disk (polling)")
-                                else:
-                                    print(f"❌ Failed to download audio for task {task_id}")
+                            # For streaming-only mode we do NOT download audio files.
+                            # Once we have either a stream URL or a final audio URL, stop polling this task.
+                            if (stream_url or audio_url) and task_id in task_to_venue:
+                                print(f"✅ Polling complete for task {task_id}, stopping tracking (stream_url={bool(stream_url)}, audio_url={bool(audio_url)})")
+                                del task_to_venue[task_id]
+                                save_data()
                             else:
-                                print(f"⏳ Task {task_id} still processing (no audio URL yet, stream_url={bool(stream_url)})")
+                                print(f"⏳ Task {task_id} still processing (no usable URLs yet, stream_url={bool(stream_url)}, audio_url={bool(audio_url)})")
                         else:
                             print(f"⏳ Task {task_id} still processing (no tracks yet)")
                     else:
@@ -1178,7 +1160,8 @@ def music_callback():
                 del task_to_venue[task_id]
             return jsonify({'success': False, 'error': f'Suno API error: {error_msg}'}), 200
 
-        # When we get 'first' or 'complete', we may have streaming and/or download URLs
+        # When we get 'first' or 'complete', we may have streaming and/or download URLs.
+        # For the venue streamer we ONLY care about the streaming URL; we do not download files here.
         if callback_type in ("first", "complete") and tracks:
             first_track = tracks[0]
             audio_url = first_track.get("audio_url") or first_track.get("audioUrl")
@@ -1204,34 +1187,23 @@ def music_callback():
                 if not existing:
                     existing = {
                         'task_id': task_id,
-                        'title': song_title or existing.get('title') if existing else 'Custom Song',
+                        'title': song_titles.get(task_id) or song_title or 'Custom Song',
                         'timestamp': datetime.now().isoformat(),
                         'added_at': datetime.now().strftime("%H:%M:%S"),
                         'status': 'generating'
                     }
                     queue.append(existing)
 
-                # Attach streaming URL as soon as we have it
+                # Attach streaming URL as soon as we have it and mark as ready to stream
                 if stream_url:
                     existing['stream_url'] = stream_url
-                    if not audio_url:
-                        existing['status'] = 'stream_ready'
+                    existing['status'] = 'ready'
 
-                # If we have a downloadable audio URL, fetch it and mark as fully ready
-                if audio_url and task_id:
-                    print(f"Downloading audio for task {task_id} from {audio_url}")
-                    filename = download_audio_file(audio_url, prefix=task_id)
-                    if filename:
-                        existing['filename'] = filename
-                        existing['status'] = 'ready'
-
-                        # Store mapping so /status endpoint can return it immediately
-                        task_audio_map[task_id] = filename
-
-                        # Clean up tracking for this task (no more polling needed)
-                        del task_to_venue[task_id]
-                    else:
-                        print(f"ERROR: download_audio_file returned empty string for task {task_id}")
+                # We don't download full audio files here; this is a pure streaming player.
+                # Once we have either a stream URL or a final audio URL, stop polling this task.
+                if (stream_url or audio_url) and task_id in task_to_venue:
+                    print(f\"✅ Callback complete for task {task_id}, stopping polling (stream_url={bool(stream_url)}, audio_url={bool(audio_url)})\")
+                    del task_to_venue[task_id]
 
                 save_data()
 
