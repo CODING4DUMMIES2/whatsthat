@@ -1520,7 +1520,7 @@
                                             <button type="button" onclick="onbDownloadQr(onbQrUrl)" style="display:block; width:100%; border-radius:999px; padding:8px 14px; font-size:13px; border:1px solid rgba(148,163,184,0.7); background:transparent; color:rgba(226,232,240,0.95); cursor:pointer;">Download PNG</button>
                                         </div>
                                     </div>
-                                    <div id="onb-qr-tables-preview" style="display:none; margin-top:6px;">
+                                    <div id="onb-qr-tables-preview" style="display:none; margin-top:6px; max-height:220px; overflow-y:auto; padding-right:4px;">
                                         <label for="onb-table-count" style="display:block; font-size:12px; margin-bottom:6px; color:rgba(226,232,240,0.9);">How many tables do you want QR codes for?</label>
                                         <input id="onb-table-count" type="number" min="1" max="30" value="4" style="width:80px; padding:6px 8px; border-radius:8px; border:1px solid rgba(148,163,184,0.7); background:rgba(15,23,42,0.9); color:#E5E7EB; font-size:13px; margin-bottom:10px;">
                                         <div id="onb-qr-table-list" style="display:grid; gap:8px;"></div>
@@ -1793,7 +1793,7 @@
                 const singleBox = document.getElementById('onb-qr-single-preview');
                 const tablesBox = document.getElementById('onb-qr-tables-preview');
 
-                if (onbQrMode === 'tables' && data.tables && data.tables.length > 0) {
+                        if (onbQrMode === 'tables' && data.tables && data.tables.length > 0) {
                     if (singleBox) singleBox.style.display = 'none';
                     if (tablesBox) tablesBox.style.display = 'block';
                     const list = document.getElementById('onb-qr-table-list');
@@ -1802,6 +1802,7 @@
                             const safeName = t.name || `Table ${idx + 1}`;
                             return `
                                 <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; border-radius:10px; border:1px solid rgba(148,163,184,0.6); padding:8px 10px; background:rgba(15,23,42,0.9);">
+                                    <img src="${t.qr_code}" alt="Table QR" style="width:72px; height:72px; border-radius:8px; background:#020617;">
                                     <span style="font-size:13px; color:rgba(226,232,240,0.9); min-width:64px;">Table ${idx + 1}</span>
                                     <input type="text" value="${safeName}" style="flex:1; min-width:140px; padding:6px 8px; border-radius:8px; border:1px solid rgba(148,163,184,0.7); background:rgba(15,23,42,0.95); color:#E5E7EB; font-size:13px;">
                                     <div style="display:flex; gap:6px; flex-wrap:wrap;">
@@ -1827,7 +1828,23 @@
         function onbPrintQr(url) {
             const target = url || onbQrUrl;
             if (!target) return;
-            window.open(target, '_blank');
+            const printWindow = window.open('', '_blank');
+            if (!printWindow) return;
+            printWindow.document.write(`
+                <html>
+                    <head>
+                        <title>Print QR</title>
+                        <style>
+                            body { margin:0; display:flex; align-items:center; justify-content:center; }
+                            img { max-width:90%; max-height:90%; }
+                        </style>
+                    </head>
+                    <body>
+                        <img src="${target}" alt="QR Code" onload="window.focus(); window.print();">
+                    </body>
+                </html>
+            `);
+            printWindow.document.close();
         }
 
         function onbDownloadQr(url) {
