@@ -1332,7 +1332,10 @@
                     <div class="section-header" onclick="toggleStreamSection()">
                         <h2 style="margin: 0; display: flex; align-items: center; gap: 12px;">
                             <span><img src="/img/songs.png" alt="Stream" style="width: 32px; height: 32px; object-fit: contain;"></span>
-                            <span>Live Music Stream</span>
+                            <span>
+                                Live Music Stream
+                                <span class="help-icon" onclick="showHelp(event, 'section-live-stream')">?</span>
+                            </span>
                         </h2>
                         <span class="section-toggle" id="streamToggle">▼</span>
                     </div>
@@ -1342,10 +1345,14 @@
                                 <span class="status-indicator-stream waiting" id="statusIndicatorStream"></span>
                                 <span id="statusTextStream">Waiting for songs...</span>
                             </div>
-                            <div class="song-title-stream" id="currentSongTitleStream">No song playing</div>
+                            <div class="song-title-stream" id="currentSongTitleStream">
+                                No song playing
+                                <span class="help-icon" onclick="showHelp(event, 'now-playing-title')">?</span>
+                            </div>
                             <div id="startButtonContainerStream" style="text-align: center; margin-top: 20px;">
                                 <button id="startQueueBtnStream" style="padding: 12px 24px; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); color: white; border: none; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 20, 147, 0.4); transition: all 0.2s;">
                                     ▶️ Start Queue
+                                    <span class="help-icon" onclick="showHelp(event, 'button-start-queue')">?</span>
                                 </button>
                             </div>
                             <div class="player-controls" id="playerControlsStream" style="display: none; justify-content: center; align-items: center; gap: 15px; margin: 20px 0;">
@@ -1359,7 +1366,10 @@
                         </div>
                         <div class="queue-section-stream" style="margin-top: 20px;">
                             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                                <h3 style="margin: 0; font-size: 16px;">Queue</h3>
+                                <h3 style="margin: 0; font-size: 16px;">
+                                    Queue
+                                    <span class="help-icon" onclick="showHelp(event, 'stream-queue')">?</span>
+                                </h3>
                                 <span class="queue-count-stream" id="queueCountStream">0 songs</span>
                             </div>
                             <div class="queue-list-stream" id="queueListStream" style="max-height: 200px; overflow-y: auto;">
@@ -1371,21 +1381,33 @@
 
                 <div class="create-venue frosted-glass" style="margin-bottom: 40px;" id="createVenueSection">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                <h2 style="margin: 0;">Create New Venue</h2>
+                <h2 style="margin: 0;">
+                    Create New Venue
+                    <span class="help-icon" onclick="showHelp(event, 'create-venue-title')">?</span>
+                </h2>
                 <div style="font-size: 14px; color: rgba(255,255,255,0.6);">
                     Total Venues: <strong id="venue-count" style="color: white;">0</strong>
                 </div>
             </div>
             <div style="display: flex; gap: 12px; align-items: flex-end; flex-wrap: wrap;">
                 <div class="form-group" style="flex: 1; min-width: 200px; margin: 0;">
-                    <label for="venueName">Venue Name (optional)</label>
+                    <label for="venueName">
+                        Venue Name (optional)
+                        <span class="help-icon" onclick="showHelp(event, 'label-venue-name')">?</span>
+                    </label>
                     <input type="text" id="venueName" placeholder="e.g., Main Stage, Bar Area, etc.">
                 </div>
                 <div class="form-group" style="flex: 1; min-width: 200px; margin: 0;">
-                    <label for="numTables">Number of Tables</label>
+                    <label for="numTables">
+                        Number of Tables
+                        <span class="help-icon" onclick="showHelp(event, 'label-num-tables')">?</span>
+                    </label>
                     <input type="number" id="numTables" placeholder="e.g., 5" min="0" value="0" style="width: 100%;">
                 </div>
-                <button onclick="createVenue()" style="margin-bottom: 0; white-space: nowrap;">+ Create Venue</button>
+                <button onclick="createVenue()" style="margin-bottom: 0; white-space: nowrap;">
+                    + Create Venue
+                    <span class="help-icon" onclick="showHelp(event, 'button-create-venue')">?</span>
+                </button>
             </div>
         </div>
 
@@ -1469,6 +1491,38 @@
             'section-qr-codes': {
                 title: 'QR Codes',
                 body: 'Shows ready-to-use QR codes and direct links for guests to submit song requests and for staff to open the live stream.'
+            },
+            'create-venue-title': {
+                title: 'Create New Venue',
+                body: 'Use this section to add a brand-new venue (room, bar, patio, etc.) to your account so it can have its own QR codes and stream.'
+            },
+            'label-venue-name': {
+                title: 'Venue Name',
+                body: 'Optional display name for this venue, shown in your dashboard and on some QR views so staff can tell venues apart.'
+            },
+            'label-num-tables': {
+                title: 'Number of Tables',
+                body: 'How many tables/areas you want to pre-create for this venue. You can always add or rename tables later.'
+            },
+            'button-create-venue': {
+                title: 'Create Venue Button',
+                body: 'Creates the venue with the name and table count you entered and adds it to your Venues list.'
+            },
+            'section-live-stream': {
+                title: 'Live Music Stream',
+                body: 'This is the player used to stream AI-generated music for the currently selected venue.'
+            },
+            'now-playing-title': {
+                title: 'Now Playing Title',
+                body: 'Shows the name of the song that is currently playing in the live stream.'
+            },
+            'button-start-queue': {
+                title: 'Start Queue',
+                body: 'Turns on auto-play for the live stream so songs from the venue queue start playing automatically as they become ready.'
+            },
+            'stream-queue': {
+                title: 'Stream Queue',
+                body: 'Shows the list of upcoming, generating, and played songs for the live stream in this venue.'
             }
         };
 

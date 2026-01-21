@@ -381,6 +381,46 @@
             transform: none;
         }
 
+        .help-icon {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 18px;
+            height: 18px;
+            margin-left: 6px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .help-icon:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .help-popover {
+            position: absolute;
+            max-width: 260px;
+            background: rgba(10, 10, 20, 0.98);
+            color: #fff;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 12px;
+            line-height: 1.4;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .help-popover strong {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
         .select-all-buttons {
             display: flex;
             gap: 12px;
@@ -478,12 +518,21 @@
 
             <div class="frosted-glass">
                 <div class="settings-section">
-                    <h2>🎵 Allowed Genres</h2>
+                    <h2>
+                        🎵 Allowed Genres
+                        <span class="help-icon" onclick="showHelp(event, 'settings-allowed-genres')">?</span>
+                    </h2>
                     <p>Select which genres users can choose from when requesting songs. Only selected genres will be available.</p>
                     
                     <div class="select-all-buttons">
-                        <button onclick="selectAllGenres()">Select All</button>
-                        <button onclick="deselectAllGenres()">Deselect All</button>
+                        <button onclick="selectAllGenres()">
+                            Select All
+                            <span class="help-icon" onclick="showHelp(event, 'settings-select-all')">?</span>
+                        </button>
+                        <button onclick="deselectAllGenres()">
+                            Deselect All
+                            <span class="help-icon" onclick="showHelp(event, 'settings-deselect-all')">?</span>
+                        </button>
                     </div>
 
                     <div class="genre-checkboxes" id="genreCheckboxes">
@@ -497,7 +546,10 @@
                 </div>
 
                 <div class="settings-section">
-                    <h2>🔞 Content Settings</h2>
+                    <h2>
+                        🔞 Content Settings
+                        <span class="help-icon" onclick="showHelp(event, 'settings-content')">?</span>
+                    </h2>
                     <p>Choose whether to allow explicit or non-explicit lyrics. If neither is selected, no content restriction will be applied.</p>
                     
                     <div class="explicit-toggle">
@@ -520,7 +572,10 @@
                 </div>
 
                 <div class="settings-section">
-                    <h2>📝 Custom Stream Instructions</h2>
+                    <h2>
+                        📝 Custom Stream Instructions
+                        <span class="help-icon" onclick="showHelp(event, 'settings-custom-instructions')">?</span>
+                    </h2>
                     <p>Set custom rules for song requests. These instructions will be used by AI to filter and modify requests before they reach the music generator.</p>
                     <p style="margin-bottom: 12px; font-size: 13px; color: rgba(255,255,255,0.6);">
                         Examples: "No more songs about jeff or divorce", "Only country music", "No songs about breakups", etc.
@@ -534,6 +589,7 @@
 
                 <button class="save-button" onclick="saveSettings()" id="saveBtn">
                     💾 Save Settings
+                    <span class="help-icon" onclick="showHelp(event, 'settings-save')">?</span>
                 </button>
             </div>
         </div>
@@ -544,6 +600,68 @@
         const venueId = '{{ venue_id }}';
         let currentExplicitContent = {% if explicit_content == None %}null{% else %}{{ explicit_content|lower }}{% endif %};
         const allGenres = {{ all_genres|tojson }};
+
+        // Help text registry for settings page
+        const helpTexts = {
+            'settings-allowed-genres': {
+                title: 'Allowed Genres',
+                body: 'Choose which genres guests are allowed to request. Only checked genres will show up in their request options.'
+            },
+            'settings-select-all': {
+                title: 'Select All Genres',
+                body: 'Quickly check every genre so guests can request songs from any style.'
+            },
+            'settings-deselect-all': {
+                title: 'Deselect All Genres',
+                body: 'Uncheck all genres so you can start from a clean slate and pick only the ones you want.'
+            },
+            'settings-content': {
+                title: 'Content Settings',
+                body: 'Control whether explicit lyrics, non-explicit lyrics, or both are allowed in your venue.'
+            },
+            'settings-custom-instructions': {
+                title: 'Custom Stream Instructions',
+                body: 'Write rules for what is allowed or not allowed in song requests. The AI uses this text to filter and rewrite requests.'
+            },
+            'settings-save': {
+                title: 'Save Settings',
+                body: 'Save your genre, content, and instruction changes so they apply to your venue\'s requests and stream.'
+            }
+        };
+
+        function showHelp(event, key) {
+            event.stopPropagation();
+            const config = helpTexts[key];
+            if (!config) return;
+
+            document.querySelectorAll('.help-popover').forEach(p => p.remove());
+
+            const rect = event.currentTarget.getBoundingClientRect();
+            const pop = document.createElement('div');
+            pop.className = 'help-popover';
+            pop.innerHTML = `<strong>${config.title}</strong>${config.body}`;
+
+            document.body.appendChild(pop);
+
+            const top = rect.bottom + window.scrollY + 6;
+            let left = rect.left + window.scrollX;
+            const maxRight = left + pop.offsetWidth;
+            const viewportRight = window.scrollX + window.innerWidth - 12;
+            if (maxRight > viewportRight) {
+                left = viewportRight - pop.offsetWidth;
+            }
+
+            pop.style.top = `${top}px`;
+            pop.style.left = `${left}px`;
+
+            const close = () => {
+                pop.remove();
+                document.removeEventListener('click', close);
+            };
+            setTimeout(() => {
+                document.addEventListener('click', close, { once: true });
+            }, 0);
+        }
 
         function selectAllGenres() {
             allGenres.forEach(genre => {
