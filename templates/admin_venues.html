@@ -279,6 +279,25 @@
             text-align: center;
         }
 
+        .venue-dropdown-arrow {
+            width: 26px;
+            height: 26px;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-left: 6px;
+            background: radial-gradient(circle at 30% 20%, #f97316, #ec4899 45%, #6366f1 100%);
+            color: white;
+            font-size: 14px;
+            flex-shrink: 0;
+            transition: transform 0.2s ease;
+        }
+
+        .venue-dropdown-arrow.open {
+            transform: rotate(180deg);
+        }
+
         .venue-dropdown {
             margin-top: 10px;
             background: rgba(15, 23, 42, 0.95);
@@ -1279,13 +1298,14 @@
                 </div>
                 <div class="sidebar-section">
                     <div class="sidebar-section-title">Navigation</div>
-                    <button class="sidebar-button active" onclick="showVenuesSection()" id="venuesToggleBtn">
+                    <button class="sidebar-button active" onclick="showVenuesSection(); toggleVenueDropdown();" id="venuesToggleBtn">
                         <span class="sidebar-button-icon"><img src="/img/venues.png" alt="Venues" style="width: 40px; height: 40px; object-fit: contain;"></span>
                         <span class="sidebar-button-text">
                             Venues
                             <span class="help-icon" onclick="showHelp(event, 'sidebar-venues')">?</span>
                         </span>
                         <span class="sidebar-button-badge" id="venue-count-badge">0</span>
+                        <span class="venue-dropdown-arrow" id="venueDropdownArrow">▼</span>
                     </button>
                     <div class="venue-dropdown" id="venueDropdown" style="display:none;">
                         <div class="venue-dropdown-header">Your Venues</div>
@@ -1649,6 +1669,7 @@
         const isAdmin = {{ 'true' if is_admin else 'false' }};
         const userVenueIds = {{ user_venue_ids|tojson if user_venue_ids else '[]' }};
         const currentVenueId = userVenueIds.length > 0 ? userVenueIds[0] : null;
+        let venueDropdownOpen = false;
         const showOnboarding = {{ 'true' if show_onboarding else 'false' if show_onboarding is not none else 'false' }};
         let onbStep = 1;
         let onbQrMode = null;
@@ -2201,7 +2222,7 @@
             }
 
             const card = document.createElement('div');
-            card.className = 'venue-card expanded';
+            card.className = 'venue-card';
             card.id = `venue-${venueData.venue_id}`;
             card.innerHTML = `
                 <div class="venue-name-compact">
@@ -2430,23 +2451,12 @@
             attachVenueCardHandlers();
             setTimeout(updateVenueQuickLinks, 500);
             
-            // For normal users, load their venue
+            // For normal users, load their venues
             if (!isAdmin && userVenueIds.length > 0) {
                 loadUserVenues();
-            }
-
-            // Build venue dropdown for multi-venue users
-            try {
-                const venueCards = document.querySelectorAll('.venue-card');
-                const venues = Array.from(venueCards).map(card => ({
-                    id: card.id.replace('venue-', ''),
-                    name: card.querySelector('.venue-name') ? card.querySelector('.venue-name').textContent.trim() : card.id
-                }));
-                if (venues.length > 0) {
-                    populateVenueDropdown(venues);
-                }
-            } catch (e) {
-                console.error('Error populating venue dropdown:', e);
+            } else {
+                // Admins may have venues pre-rendered; build dropdown from cards
+                buildVenueDropdownFromCards();
             }
         });
         
@@ -2475,6 +2485,8 @@
                         }
                     }
                 }
+                // After all cards are added, populate sidebar dropdown
+                buildVenueDropdownFromCards();
             } catch (error) {
                 console.error('Error loading user venues:', error);
                 const loadingEl = document.getElementById('loadingVenue');
@@ -2640,6 +2652,33 @@
             }
         }
 
+        function toggleVenueDropdown() {
+            const dropdown = document.getElementById('venueDropdown');
+            const arrow = document.getElementById('venueDropdownArrow');
+            if (!dropdown || !arrow) return;
+
+            venueDropdownOpen = !venueDropdownOpen;
+            dropdown.style.display = venueDropdownOpen ? 'block' : 'none';
+            arrow.classList.toggle('open', venueDropdownOpen);
+        }
+
+        function buildVenueDropdownFromCards() {
+            try {
+                const venueCards = document.querySelectorAll('.venue-card');
+                const venues = Array.from(venueCards).map(card => {
+                    const id = card.id.replace('venue-', '');
+                    const nameInput = card.querySelector('.venue-name-input');
+                    const name = nameInput ? nameInput.value.trim() : card.id;
+                    return { id, name };
+                });
+                if (venues.length > 0) {
+                    populateVenueDropdown(venues);
+                }
+            } catch (e) {
+                console.error('Error building venue dropdown from cards:', e);
+            }
+        }
+
         function populateVenueDropdown(venues) {
             const dropdown = document.getElementById('venueDropdown');
             const list = document.getElementById('venueDropdownList');
@@ -2650,7 +2689,7 @@
                 return;
             }
 
-            dropdown.style.display = 'block';
+            // Do not force open; controlled by button toggle
             list.innerHTML = '';
 
             venues.forEach(v => {
