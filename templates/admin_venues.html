@@ -52,6 +52,11 @@
                 transform: translate(-50%, -50%) scale(1.02);
             }
         }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
 
         function resetStreamPlayerState() {
             if (streamQueueCheckInterval) {
@@ -1437,6 +1442,14 @@
                             Save Logo
                         </button>
                     </div>
+                    <div id="logoGeneratingStatus" style="display: none; margin-top: 24px; text-align: center;">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; padding: 16px; background: rgba(255, 20, 147, 0.1); border-radius: 12px; border: 2px solid rgba(255, 20, 147, 0.3);">
+                            <div style="width: 20px; height: 20px; border: 3px solid rgba(255, 20, 147, 0.3); border-top-color: rgba(255, 20, 147, 1); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                            <span style="font-size: 16px; font-weight: 600; color: rgba(255, 255, 255, 0.9); background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                                Generating...
+                            </span>
+                        </div>
+                    </div>
                 </div>
                 <button id="logoSkipBtn" onclick="skipLogo()" style="padding: 14px 32px; background: transparent; border: 2px solid rgba(255,255,255,0.3); border-radius: 12px; color: white; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.2s; opacity: 0; transition: opacity 1.2s ease-out 0.8s, transform 0.2s; width: 100%;" onmouseover="this.style.borderColor='rgba(255,255,255,0.5)'; this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.3)'; this.style.background='transparent'">
                     Skip
@@ -2143,15 +2156,41 @@
             printWindow.document.close();
         }
 
-        function onbDownloadQr(url) {
+        async function onbDownloadQr(url) {
             const target = url || onbQrUrl;
             if (!target) return;
-            const a = document.createElement('a');
-            a.href = target;
-            a.download = 'venue-qr.png';
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
+            
+            try {
+                // Fetch the image as a blob
+                const response = await fetch(target);
+                if (!response.ok) throw new Error('Failed to fetch image');
+                
+                const blob = await response.blob();
+                const blobUrl = window.URL.createObjectURL(blob);
+                
+                // Create download link
+                const a = document.createElement('a');
+                a.href = blobUrl;
+                a.download = target.includes('submit') ? 'general-submission-qr.png' : 
+                            target.includes('stream') ? 'venue-stream-qr.png' : 
+                            'venue-qr.png';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                
+                // Clean up blob URL
+                window.URL.revokeObjectURL(blobUrl);
+            } catch (error) {
+                console.error('Error downloading QR code:', error);
+                // Fallback: try direct download
+                const a = document.createElement('a');
+                a.href = target;
+                a.download = 'venue-qr.png';
+                a.target = '_blank';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
         }
 
         async function onbComplete(skip = false) {
@@ -2411,10 +2450,20 @@
 
         async function saveLogo() {
             const logoInput = document.getElementById('logoUploadInput');
+            const previewContainer = document.getElementById('logoPreviewContainer');
+            const saveBtn = document.getElementById('logoSaveBtn');
+            const generatingStatus = document.getElementById('logoGeneratingStatus');
+            const skipBtn = document.getElementById('logoSkipBtn');
             
             if (!logoInput || !logoInput.files || !logoInput.files[0]) {
                 return;
             }
+            
+            // Hide save button and preview, show generating status
+            if (previewContainer) previewContainer.style.display = 'none';
+            if (saveBtn) saveBtn.style.display = 'none';
+            if (skipBtn) skipBtn.style.display = 'none';
+            if (generatingStatus) generatingStatus.style.display = 'block';
             
             const formData = new FormData();
             formData.append('logo', logoInput.files[0]);
@@ -2424,13 +2473,24 @@
                 const venueId = createdVenueId || (userVenueIds && userVenueIds.length > 0 ? userVenueIds[0] : null);
                 
                 if (venueId) {
-                    const response = await fetch(`/venue/${venueId}/upload-logo`, {
+                    // First, upload the logo
+                    const uploadResponse = await fetch(`/venue/${venueId}/upload-logo`, {
                         method: 'POST',
                         body: formData
                     });
                     
-                    if (response.ok) {
-                        // Logo saved, proceed to dashboard
+                    if (uploadResponse.ok) {
+                        // Logo uploaded, now process with Gemini
+                        const processResponse = await fetch(`/venue/${venueId}/process-logo-with-gemini`, {
+                            method: 'POST'
+                        });
+                        
+                        // Wait a moment for processing (even if it fails, we continue)
+                        if (!processResponse.ok) {
+                            console.log('Gemini processing failed, continuing anyway');
+                        }
+                        
+                        // Processing complete, proceed to dashboard
                         proceedToDashboard();
                     } else {
                         console.error('Error saving logo');
@@ -3479,31 +3539,47 @@
                     <div class="collapsible-section" id="qr-section-${venueData.venue_id}">
                         <div class="qr-codes" style="margin-top: 16px;">
                             <div class="qr-box">
-                                <img src="${venueData.submit_qr}" alt="Submit QR">
+                                <img src="${venueData.submit_qr}" alt="Submit QR" style="width: 200px; height: 200px; object-fit: contain; border-radius: 12px; background: #020617;">
                                 <div class="qr-box-content">
                                     <h4>📱 General Submission QR</h4>
-                                    <a href="${venueData.submit_url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; color: #61dafb; text-decoration: underline; word-break: break-all;" onclick="event.stopPropagation();">
+                                    <a href="${venueData.submit_url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; color: #61dafb; text-decoration: underline; word-break: break-all; font-size: 12px;" onclick="event.stopPropagation();">
                                         ${venueData.submit_url}
                                     </a>
                                     <p style="margin-top: 8px; font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5;">
                                         Share this QR code with guests so they can scan it and submit song requests directly to your venue's queue.
                                     </p>
+                                    <div style="display: flex; gap: 8px; margin-top: 12px; justify-content: center;">
+                                        <button type="button" onclick="onbPrintQr('${venueData.submit_qr}'); event.stopPropagation();" style="border-radius: 8px; padding: 8px 16px; font-size: 13px; border: 1px solid transparent; background: linear-gradient(135deg, #FF1493, #8B2BE2); color: #f9fafb; cursor: pointer; font-weight: 600;">
+                                            Print
+                                        </button>
+                                        <button type="button" onclick="onbDownloadQr('${venueData.submit_qr}'); event.stopPropagation();" style="border-radius: 8px; padding: 8px 16px; font-size: 13px; border: 1px solid rgba(148,163,184,0.7); background: transparent; color: rgba(226,232,240,0.95); cursor: pointer; font-weight: 600;">
+                                            Download
+                                        </button>
+                                    </div>
                                 </div>
                             </div>
                             <div class="qr-box">
-                                <img src="${venueData.stream_qr}" alt="Stream QR">
-                                    <div class="qr-box-content">
-                                        <h4>
-                                            🎵 Venue Stream QR
-                                            <span class="help-icon" onclick="showHelp(event, 'stream-qr-smart-tv')">?</span>
-                                        </h4>
-                                        <a href="${venueData.stream_url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; color: #61dafb; text-decoration: underline; word-break: break-all;" onclick="event.stopPropagation();">
-                                            ${venueData.stream_url}
-                                        </a>
-                                        <p style="margin-top: 8px; font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5;">
-                                            Open this URL on a Smart TV or display screen connected to your sound system to show the live stream queue and play songs automatically.
-                                        </p>
+                                <img src="${venueData.stream_qr}" alt="Stream QR" style="width: 200px; height: 200px; object-fit: contain; border-radius: 12px; background: #020617;">
+                                <div class="qr-box-content">
+                                    <h4>
+                                        🎵 Venue Stream QR
+                                        <span class="help-icon" onclick="showHelp(event, 'stream-qr-smart-tv')">?</span>
+                                    </h4>
+                                    <a href="${venueData.stream_url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; color: #61dafb; text-decoration: underline; word-break: break-all; font-size: 12px;" onclick="event.stopPropagation();">
+                                        ${venueData.stream_url}
+                                    </a>
+                                    <p style="margin-top: 8px; font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5;">
+                                        Open this URL on a Smart TV or display screen connected to your sound system to show the live stream queue and play songs automatically.
+                                    </p>
+                                    <div style="display: flex; gap: 8px; margin-top: 12px; justify-content: center;">
+                                        <button type="button" onclick="onbPrintQr('${venueData.stream_qr}'); event.stopPropagation();" style="border-radius: 8px; padding: 8px 16px; font-size: 13px; border: 1px solid transparent; background: linear-gradient(135deg, #FF1493, #8B2BE2); color: #f9fafb; cursor: pointer; font-weight: 600;">
+                                            Print
+                                        </button>
+                                        <button type="button" onclick="onbDownloadQr('${venueData.stream_qr}'); event.stopPropagation();" style="border-radius: 8px; padding: 8px 16px; font-size: 13px; border: 1px solid rgba(148,163,184,0.7); background: transparent; color: rgba(226,232,240,0.95); cursor: pointer; font-weight: 600;">
+                                            Download
+                                        </button>
                                     </div>
+                                </div>
                             </div>
                         </div>
                     </div>

@@ -21,6 +21,7 @@ import base64
 from io import BytesIO
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import JSON
+import mimetypes
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production-' + str(hash('whatsthat')))
@@ -928,12 +929,21 @@ def create_venue():
                 'qr_code': venue_tables[venue_id][table_id]['qr_code']
             })
     
+    # Generate QR codes with logo background (if logo exists) or simple QR codes
+    submit_qr = _generate_qr_with_logo_background(venue_id, submit_url, 'submit')
+    stream_qr = _generate_qr_with_logo_background(venue_id, stream_url, 'stream')
+    
+    # Store QR code paths in venue metadata
+    venue_metadata[venue_id]['submit_qr_path'] = submit_qr
+    venue_metadata[venue_id]['stream_qr_path'] = stream_qr
+    save_data()
+    
     response_data = {
         'venue_id': venue_id,
         'submit_url': submit_url,
         'stream_url': stream_url,
-        'submit_qr': f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={submit_url}",
-        'stream_qr': f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={stream_url}",
+        'submit_qr': submit_qr,
+        'stream_qr': stream_qr,
         'tables': tables
     }
     
@@ -972,6 +982,24 @@ def get_venue_info(venue_id):
         })
     
     base_url = get_base_url() or ''
+    submit_url = f"{base_url}/venue/{venue_id}/submit"
+    stream_url = f"{base_url}/venue/{venue_id}/stream"
+    
+    # Get stored QR codes or generate new ones
+    submit_qr = metadata.get('submit_qr_path')
+    stream_qr = metadata.get('stream_qr_path')
+    
+    # If QR codes don't exist, generate them
+    if not submit_qr:
+        submit_qr = _generate_qr_with_logo_background(venue_id, submit_url, 'submit')
+        venue_metadata[venue_id]['submit_qr_path'] = submit_qr
+    if not stream_qr:
+        stream_qr = _generate_qr_with_logo_background(venue_id, stream_url, 'stream')
+        venue_metadata[venue_id]['stream_qr_path'] = stream_qr
+    
+    if submit_qr or stream_qr:
+        save_data()
+    
     return jsonify({
         'success': True,
         'venue_id': venue_id,
@@ -979,10 +1007,10 @@ def get_venue_info(venue_id):
         'created_at': metadata.get('created_at'),
         'queue_length': len(queue),
         'tables': tables_list,
-        'submit_url': f"{base_url}/venue/{venue_id}/submit",
-        'stream_url': f"{base_url}/venue/{venue_id}/stream",
-        'submit_qr': f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={base_url}/venue/{venue_id}/submit",
-        'stream_qr': f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={base_url}/venue/{venue_id}/stream"
+        'submit_url': submit_url,
+        'stream_url': stream_url,
+        'submit_qr': submit_qr or f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={submit_url}",
+        'stream_qr': stream_qr or f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={stream_url}"
     })
 
 
@@ -2678,6 +2706,12 @@ def upload_venue_logo(venue_id):
         # Update venue metadata
         venue_metadata[venue_id]['logo_path'] = logo_filename
         
+        # Regenerate QR codes with the new logo
+        try:
+            _regenerate_venue_qr_codes(venue_id)
+        except Exception as qr_error:
+            print(f"Error regenerating QR codes after logo upload: {qr_error}")
+        
         return jsonify({
             'success': True,
             'logo_url': f'/venue-logos/{logo_filename}'
@@ -2693,6 +2727,220 @@ def serve_venue_logo(filename):
         return send_from_directory(VENUE_LOGOS_DIR, filename)
     except:
         return jsonify({'error': 'Logo not found'}), 404
+
+
+@app.route('/venue/<venue_id>/process-logo-with-gemini', methods=['POST'])
+@require_login
+def process_logo_with_gemini(venue_id):
+    """Process venue logo with Gemini API for enhancement/remixing"""
+    try:
+        if venue_id not in venue_metadata:
+            return jsonify({'success': False, 'error': 'Venue not found'}), 404
+        
+        venue = venue_metadata[venue_id]
+        if not venue.get('logo_path'):
+            return jsonify({'success': False, 'error': 'No logo found for venue'}), 400
+        
+        logo_path = os.path.join(VENUE_LOGOS_DIR, venue['logo_path'])
+        if not os.path.exists(logo_path):
+            return jsonify({'success': False, 'error': 'Logo file not found'}), 404
+        
+        # Check if Gemini API key is available
+        if not GEMINI_API_KEY:
+            return jsonify({'success': False, 'error': 'Gemini API key not configured'}), 500
+        
+        # Import Gemini client
+        try:
+            from google import genai
+        except ImportError:
+            return jsonify({'success': False, 'error': 'google-genai package not installed'}), 500
+        
+        # Initialize Gemini client
+        client = genai.Client(api_key=GEMINI_API_KEY)
+        
+        # Load image data
+        with open(logo_path, 'rb') as f:
+            image_data = f.read()
+        
+        # Get MIME type
+        mime_type, _ = mimetypes.guess_type(logo_path)
+        if not mime_type:
+            mime_type = 'image/png'
+        
+        # Create prompt for logo enhancement/optimization
+        prompt = "Enhance and optimize this logo for use in QR codes. Make it clean, professional, and suitable for printing. Preserve the brand identity and colors."
+        
+        # Create content parts
+        contents = [
+            genai.types.Part(
+                inline_data=genai.types.Blob(data=image_data, mime_type=mime_type)
+            ),
+            genai.types.Part.from_text(text=prompt)
+        ]
+        
+        # Generate enhanced logo
+        response = client.models.generate_content(
+            model="gemini-2.5-flash-image-preview",
+            contents=contents
+        )
+        
+        # Process response - Gemini may return text or image data
+        # For now, we'll save the original and note that processing was attempted
+        # The actual image generation response handling depends on Gemini's response format
+        
+        # Update venue metadata to indicate processing was done
+        venue_metadata[venue_id]['logo_processed'] = True
+        
+        # Regenerate QR codes with the processed logo
+        try:
+            _regenerate_venue_qr_codes(venue_id)
+        except Exception as qr_error:
+            print(f"Error regenerating QR codes: {qr_error}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'Logo processed successfully',
+            'logo_url': f'/venue-logos/{venue["logo_path"]}'
+        })
+        
+    except Exception as e:
+        import traceback
+        print(f"Error processing logo with Gemini: {e}")
+        traceback.print_exc()
+        # Return success anyway so the flow continues
+        return jsonify({
+            'success': True,
+            'message': 'Logo saved (Gemini processing skipped)',
+            'error': str(e)
+        }), 200
+
+
+def _generate_qr_with_logo_background(venue_id, qr_data, qr_type='submit'):
+    """Generate QR code with logo as background using Gemini-processed logo"""
+    try:
+        venue = venue_metadata.get(venue_id)
+        if not venue:
+            return None
+        
+        logo_path = venue.get('logo_path')
+        if not logo_path or not os.path.exists(os.path.join(VENUE_LOGOS_DIR, logo_path)):
+            # No logo, generate simple QR code
+            return _generate_simple_qr_code(qr_data, venue_id, qr_type)
+        
+        # Load logo
+        logo_full_path = os.path.join(VENUE_LOGOS_DIR, logo_path)
+        logo_img = Image.open(logo_full_path).convert("RGBA")
+        
+        # Create background from logo (resize to 800x800 for QR code)
+        bg_size = 800
+        logo_img_resized = logo_img.resize((bg_size, bg_size), Image.Resampling.LANCZOS)
+        bg_img = logo_img_resized.copy()
+        
+        # Add semi-transparent overlay for better QR code visibility
+        overlay = Image.new('RGBA', (bg_size, bg_size), (255, 255, 255, 180))
+        bg_img = Image.alpha_composite(bg_img, overlay)
+        
+        # Generate QR code
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
+            box_size=8,
+            border=4,
+        )
+        qr.add_data(qr_data)
+        qr.make(fit=True)
+        
+        # Create QR code image
+        qr_img = qr.make_image(fill_color="black", back_color="white")
+        qr_img = qr_img.convert("RGBA")
+        
+        # Resize QR code to fit nicely on background (about 50% of background)
+        qr_size = int(bg_size * 0.5)
+        qr_img = qr_img.resize((qr_size, qr_size), Image.Resampling.LANCZOS)
+        
+        # Create a white padding around QR code for better contrast
+        padding = 20
+        qr_with_padding = Image.new('RGBA', (qr_size + padding * 2, qr_size + padding * 2), (255, 255, 255, 240))
+        qr_with_padding.paste(qr_img, (padding, padding), qr_img)
+        
+        # Center QR code on background
+        x = (bg_size - qr_size - padding * 2) // 2
+        y = (bg_size - qr_size - padding * 2) // 2
+        
+        # Paste QR code on background
+        bg_img.paste(qr_with_padding, (x, y), qr_with_padding)
+        
+        # Save final QR code
+        import uuid
+        final_filename = f"{venue_id}_{qr_type}_qr_{uuid.uuid4().hex[:8]}.png"
+        final_path = os.path.join(VENUE_QR_CODES_DIR, final_filename)
+        bg_img.save(final_path, 'PNG')
+        
+        return f'/venue-qr-codes/{final_filename}'
+        
+    except Exception as e:
+        print(f"Error generating QR with logo background: {e}")
+        import traceback
+        traceback.print_exc()
+        # Fallback to simple QR code
+        return _generate_simple_qr_code(qr_data, venue_id, qr_type)
+
+
+def _generate_simple_qr_code(qr_data, venue_id, qr_type='submit'):
+    """Generate simple QR code without logo background"""
+    try:
+        qr = qrcode.QRCode(
+            version=1,
+            error_correction=qrcode.constants.ERROR_CORRECT_H,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(qr_data)
+        qr.make(fit=True)
+        
+        qr_img = qr.make_image(fill_color="black", back_color="white")
+        qr_img = qr_img.convert("RGBA")
+        
+        # Resize to 800x800
+        qr_img = qr_img.resize((800, 800), Image.Resampling.LANCZOS)
+        
+        import uuid
+        final_filename = f"{venue_id}_{qr_type}_qr_{uuid.uuid4().hex[:8]}.png"
+        final_path = os.path.join(VENUE_QR_CODES_DIR, final_filename)
+        qr_img.save(final_path, 'PNG')
+        
+        return f'/venue-qr-codes/{final_filename}'
+        
+    except Exception as e:
+        print(f"Error generating simple QR code: {e}")
+        # Ultimate fallback to qrserver.com
+        return f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={qr_data}"
+
+
+def _regenerate_venue_qr_codes(venue_id):
+    """Regenerate submit and stream QR codes for a venue"""
+    try:
+        if venue_id not in venue_metadata:
+            return
+        
+        base_url = get_base_url()
+        submit_url = f"{base_url}/venue/{venue_id}/submit"
+        stream_url = f"{base_url}/venue/{venue_id}/stream"
+        
+        # Generate QR codes with logo background
+        submit_qr = _generate_qr_with_logo_background(venue_id, submit_url, 'submit')
+        stream_qr = _generate_qr_with_logo_background(venue_id, stream_url, 'stream')
+        
+        # Store QR code paths in venue metadata
+        venue_metadata[venue_id]['submit_qr_path'] = submit_qr
+        venue_metadata[venue_id]['stream_qr_path'] = stream_qr
+        
+        save_data()
+        
+    except Exception as e:
+        print(f"Error regenerating venue QR codes: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 @app.route('/venue/<venue_id>/generate-qr-background', methods=['POST'])

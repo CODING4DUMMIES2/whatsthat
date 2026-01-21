@@ -22,6 +22,8 @@ pip install -r requirements.txt
 2. Set environment variables:
 - `SUNO_API_KEY` - Your Suno API key
 - `OPENAI_API_KEY` - Your OpenAI API key (for DALL-E if needed)
+- `GEMINI_API_KEY` - Your Google Gemini Studio API key (for future AI features)
+- `GOOGLE_PLACES_API_KEY` - Your Google Places API key (optional, for demo venue profiling)
 - `SECRET_KEY` - Flask secret key for sessions
 
 3. Run the application:
@@ -36,6 +38,8 @@ python app.py
 3. Set the following environment variables in Railway:
    - `SUNO_API_KEY`
    - `OPENAI_API_KEY`
+   - `GEMINI_API_KEY` (for future AI features)
+   - `GOOGLE_PLACES_API_KEY` (optional, for demo venue profiling)
    - `SECRET_KEY` (generate a secure random string)
 4. Railway will automatically deploy and assign a domain
 
