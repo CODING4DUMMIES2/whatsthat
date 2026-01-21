@@ -1363,7 +1363,21 @@
         <img src="/img/background.gif" alt="Background animation">
     </div>
 
-    <div class="main-layout">
+    <!-- Welcome Screen (First Login) -->
+    <div id="welcomeScreen" style="position: fixed; inset: 0; z-index: 3000; display: none; align-items: center; justify-content: center;">
+        <div id="welcomeSquare" style="background: rgba(15, 23, 42, 0.95); border-radius: 24px; padding: 48px 56px; max-width: 600px; width: 90%; box-shadow: 0 40px 110px rgba(0,0,0,0.85); border: 1px solid rgba(167,139,250,0.3); position: relative; opacity: 0; transform: scale(0.9); transition: opacity 0.8s ease-out, transform 0.8s ease-out;">
+            <div style="position: absolute; top: 24px; left: 24px;">
+                <img src="/img/logo.png" alt="whatsthat logo" style="width: 48px; height: 48px; object-fit: contain;">
+            </div>
+            <div id="welcomeText" style="margin-top: 60px; text-align: center; opacity: 0; transition: opacity 1.2s ease-out 0.4s;">
+                <h1 style="font-size: 36px; font-weight: 800; margin: 0; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    Welcome<span id="welcomeName"></span>, let's get started
+                </h1>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-layout" id="mainLayout">
         <!-- Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-menu">
@@ -2070,6 +2084,63 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
+            // Show welcome screen on first login
+            if (showOnboarding) {
+                const welcomeScreen = document.getElementById('welcomeScreen');
+                const welcomeSquare = document.getElementById('welcomeSquare');
+                const welcomeText = document.getElementById('welcomeText');
+                const welcomeName = document.getElementById('welcomeName');
+                const mainLayout = document.getElementById('mainLayout');
+                
+                if (welcomeScreen && welcomeSquare && welcomeText) {
+                    // Hide main layout and navbar
+                    if (mainLayout) {
+                        mainLayout.style.display = 'none';
+                    }
+                    const navbar = document.querySelector('nav');
+                    if (navbar) {
+                        navbar.style.display = 'none';
+                    }
+                    
+                    // Get user name or venue name
+                    const userName = '{{ user_name }}' || '{{ initial_venue_name }}' || '';
+                    if (userName) {
+                        welcomeName.textContent = ' ' + userName;
+                    }
+                    
+                    // Show welcome screen
+                    welcomeScreen.style.display = 'flex';
+                    
+                    // Animate square easing in
+                    setTimeout(() => {
+                        welcomeSquare.style.opacity = '1';
+                        welcomeSquare.style.transform = 'scale(1)';
+                    }, 100);
+                    
+                    // Animate text fading in
+                    setTimeout(() => {
+                        welcomeText.style.opacity = '1';
+                    }, 500);
+                    
+                    // Hide welcome screen after 3 seconds and show main layout
+                    setTimeout(() => {
+                        welcomeSquare.style.opacity = '0';
+                        welcomeSquare.style.transform = 'scale(0.95)';
+                        welcomeText.style.opacity = '0';
+                        
+                        setTimeout(() => {
+                            welcomeScreen.style.display = 'none';
+                            if (mainLayout) {
+                                mainLayout.style.display = 'flex';
+                            }
+                            if (navbar) {
+                                navbar.style.display = 'flex';
+                            }
+                        }, 600);
+                    }, 3000);
+                }
+            }
+            
             // Onboarding wizard disabled - keeping code for future restructuring
             // if (showOnboarding && document.getElementById('onboardingOverlay')) {
             //     document.getElementById('onboardingOverlay').style.display = 'flex';
