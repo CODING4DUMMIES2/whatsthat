@@ -2600,23 +2600,26 @@
         ];
 
         function startTutorial() {
-            // Check if tutorial was already completed (only skip if explicitly marked)
-            // Allow tutorial to run on first onboarding completion
+            // Only skip if tutorial was explicitly completed in this session
+            // After onboarding, always show tutorial
             const wasCompleted = sessionStorage.getItem('tutorialCompleted') === 'true';
-            const onboardingJustCompleted = sessionStorage.getItem('showDashboardExplanation') === null && !wasCompleted;
             
-            if (wasCompleted && !onboardingJustCompleted) {
-                console.log('Tutorial already completed, skipping');
+            if (wasCompleted) {
+                console.log('Tutorial already completed in this session, skipping');
                 return;
             }
             
-            console.log('Starting tutorial...', { wasCompleted, onboardingJustCompleted });
+            console.log('=== STARTING TUTORIAL ===');
+            console.log('Tutorial steps:', tutorialSteps.length);
             currentTutorialStep = 0;
             
-            // Small delay to ensure DOM is ready
+            // Ensure DOM is ready and elements are loaded
             setTimeout(() => {
+                console.log('Calling showTutorialStep(0)...');
+                const overlay = document.getElementById('tutorialOverlay');
+                console.log('Tutorial overlay element:', overlay);
                 showTutorialStep(0);
-            }, 300);
+            }, 500);
         }
 
         function showTutorialStep(stepIndex) {
@@ -2758,15 +2761,73 @@
 
             tutorialPopup.style.left = popupLeft + 'px';
             tutorialPopup.style.top = popupTop + 'px';
+            
+            // Make sure popup is visible (reset opacity)
+            tutorialPopup.style.opacity = '0';
+            tutorialPopup.style.transform = 'scale(0.9)';
 
             // Scroll element into view if needed
             element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-
-            // Animate popup in
+            
+            // Wait for scroll to complete, then show popup
             setTimeout(() => {
-                tutorialPopup.style.opacity = '1';
-                tutorialPopup.style.transform = 'scale(1)';
-            }, 100);
+                // Recalculate position after scroll
+                const newRect = element.getBoundingClientRect();
+                const newScrollX = window.scrollX || window.pageXOffset;
+                const newScrollY = window.scrollY || window.pageYOffset;
+                
+                // Recalculate popup position
+                let finalPopupLeft, finalPopupTop;
+                switch(step.position) {
+                    case 'top':
+                        finalPopupLeft = newRect.left + newScrollX + (newRect.width / 2) - (popupWidth / 2);
+                        finalPopupTop = newRect.top + newScrollY - popupHeight - spacing;
+                        break;
+                    case 'bottom':
+                        finalPopupLeft = newRect.left + newScrollX + (newRect.width / 2) - (popupWidth / 2);
+                        finalPopupTop = newRect.bottom + newScrollY + spacing;
+                        break;
+                    case 'left':
+                        finalPopupLeft = newRect.left + newScrollX - popupWidth - spacing;
+                        finalPopupTop = newRect.top + newScrollY + (newRect.height / 2) - (popupHeight / 2);
+                        break;
+                    case 'right':
+                        finalPopupLeft = newRect.right + newScrollX + spacing;
+                        finalPopupTop = newRect.top + newScrollY + (newRect.height / 2) - (popupHeight / 2);
+                        break;
+                    default:
+                        finalPopupLeft = newRect.left + newScrollX + (newRect.width / 2) - (popupWidth / 2);
+                        finalPopupTop = newRect.bottom + newScrollY + spacing;
+                }
+                
+                // Keep popup within viewport
+                finalPopupLeft = Math.max(20, Math.min(finalPopupLeft, window.innerWidth - popupWidth - 20));
+                finalPopupTop = Math.max(20, Math.min(finalPopupTop, window.innerHeight - popupHeight - 20));
+                
+                tutorialPopup.style.left = finalPopupLeft + 'px';
+                tutorialPopup.style.top = finalPopupTop + 'px';
+                
+                // Update highlight position
+                tutorialHighlight.style.left = (newRect.left + newScrollX - 8) + 'px';
+                tutorialHighlight.style.top = (newRect.top + newScrollY - 8) + 'px';
+                tutorialHighlight.style.width = (newRect.width + 16) + 'px';
+                tutorialHighlight.style.height = (newRect.height + 16) + 'px';
+                
+                // Make sure overlay is visible
+                tutorialOverlay.style.display = 'block';
+                
+                // Animate popup in
+                setTimeout(() => {
+                    tutorialPopup.style.opacity = '1';
+                    tutorialPopup.style.transform = 'scale(1)';
+                }, 50);
+                
+                console.log(`Tutorial step ${stepIndex + 1} displayed:`, { 
+                    title: step.title, 
+                    popupPosition: { left: finalPopupLeft, top: finalPopupTop },
+                    elementPosition: { left: newRect.left, top: newRect.top }
+                });
+            }, 600);
 
             // Highlight the element
             element.style.transition = 'all 0.3s ease';
