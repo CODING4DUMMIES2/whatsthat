@@ -1348,17 +1348,7 @@
             transform: translateX(-3px) scale(1.02);
         }
 
-        /* Setup Sections – simple slider: only one visible at a time */
-        #setupSection1 {
-            display: block;
-        }
-
-        #setupSection2,
-        #setupSection3,
-        #setupSection4 {
-            display: none;
-        }
-
+        /* Setup Sections – stacked vertically (no hiding) */
         .setup-sections-container {
             position: relative;
         }
@@ -3232,43 +3222,44 @@
 
         // Old generateSong function removed - no longer needed in demo mode
 
-        // Simple helper: show exactly one setup section by ID
-        function showSetupSection(targetId) {
-            const ids = ['setupSection1', 'setupSection2', 'setupSection3', 'setupSection4'];
-            ids.forEach(id => {
-                const el = document.getElementById(id);
-                if (!el) return;
-                if (id === targetId) {
-                    el.style.display = 'block';
-                } else {
-                    el.style.display = 'none';
-                }
-            });
-        }
-
         // Switch to Next Setup Section (Section 1 -> Section 2)
         function scrollToNextSetup() {
-            showSetupSection('setupSection2');
+            const secondSection = document.getElementById('setupSection2');
+            if (secondSection) {
+                secondSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
 
         // Switch to Setup Section 1 (Section 2 -> Section 1)
         function scrollToSetupSection1() {
-            showSetupSection('setupSection1');
+            const firstSection = document.getElementById('setupSection1');
+            if (firstSection) {
+                firstSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
                 
         // Switch to Setup Section 3 (Section 2 -> Section 3 or Section 4 -> Section 3)
         function scrollToSetupSection3() {
-            showSetupSection('setupSection3');
+            const thirdSection = document.getElementById('setupSection3');
+            if (thirdSection) {
+                thirdSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
 
         // Switch to Setup Section 2 (Section 3 -> Section 2)
         function scrollToSetupSection2() {
-            showSetupSection('setupSection2');
+            const secondSection = document.getElementById('setupSection2');
+            if (secondSection) {
+                secondSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
 
         // Switch to Setup Section 4 (Section 3 -> Section 4)
         function scrollToSetupSection4() {
-            showSetupSection('setupSection4');
+            const fourthSection = document.getElementById('setupSection4');
+            if (fourthSection) {
+                fourthSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
 
         // Download Setup Guide PDF
