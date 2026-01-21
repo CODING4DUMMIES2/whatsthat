@@ -1821,12 +1821,17 @@
         function showVenuesSection() {
             const streamSection = document.getElementById('streamSection');
             const venuesList = document.getElementById('venuesList');
+            const createVenueSection = document.getElementById('createVenueSection');
             const streamBtn = document.getElementById('streamToggleBtn');
             const venuesBtn = document.getElementById('venuesToggleBtn');
             
             // Show venues list
             if (venuesList) {
                 venuesList.style.display = 'block';
+            }
+            // Show create venue section
+            if (createVenueSection) {
+                createVenueSection.style.display = 'block';
             }
             // Hide stream section
             if (streamSection) {
@@ -1847,6 +1852,7 @@
             const toggle = document.getElementById('streamToggle');
             const btn = document.getElementById('streamToggleBtn');
             const venuesList = document.getElementById('venuesList');
+            const createVenueSection = document.getElementById('createVenueSection');
             const venuesBtn = document.getElementById('venuesToggleBtn');
             
             if (section.style.display === 'none' || !btn.classList.contains('active')) {
@@ -1858,6 +1864,10 @@
                 // Hide venues list
                 if (venuesList) {
                     venuesList.style.display = 'none';
+                }
+                // Hide create venue section
+                if (createVenueSection) {
+                    createVenueSection.style.display = 'none';
                 }
                 // Update venues button state
                 if (venuesBtn) {
@@ -1875,6 +1885,10 @@
                 // Show venues list
                 if (venuesList) {
                     venuesList.style.display = 'block';
+                }
+                // Show create venue section
+                if (createVenueSection) {
+                    createVenueSection.style.display = 'block';
                 }
                 // Update venues button state
                 if (venuesBtn) {
