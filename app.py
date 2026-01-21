@@ -734,14 +734,42 @@ def fetch_venue_profile_from_google(name: str, city: str):
             "rating": result.get("rating"),
             "user_ratings_total": result.get("user_ratings_total"),
             "editorial_summary": (result.get("editorial_summary") or {}).get("overview"),
-            "reviews": []
+            "reviews": [],
+            "review_highlights": []
         }
         for r in (result.get("reviews") or [])[:5]:
-            profile["reviews"].append({
+            text = r.get("text") or ""
+            snippet = text.strip()
+            if len(snippet) > 220:
+                snippet = snippet[:217].rsplit(" ", 1)[0] + "..."
+            review_obj = {
                 "author_name": r.get("author_name"),
                 "rating": r.get("rating"),
-                "text": r.get("text"),
-            })
+                "text": text,
+                "snippet": snippet,
+            }
+            profile["reviews"].append(review_obj)
+            profile["review_highlights"].append(snippet)
+
+        # Optional: scrape basic text from the venue website to give GPT more flavor (menu, vibe, etc.)
+        website = profile.get("website")
+        if website:
+            try:
+                w_resp = requests.get(website, timeout=8)
+                if w_resp.status_code == 200 and "text" in w_resp.headers.get("Content-Type", ""):
+                    html = w_resp.text
+                    # Very lightweight HTML to text: strip tags and collapse whitespace
+                    import re
+                    text = re.sub(r"<script[\\s\\S]*?</script>", " ", html, flags=re.IGNORECASE)
+                    text = re.sub(r"<style[\\s\\S]*?</style>", " ", text, flags=re.IGNORECASE)
+                    text = re.sub(r"<[^>]+>", " ", text)
+                    text = re.sub(r"\\s+", " ", text)
+                    text = text.strip()
+                    if text:
+                        profile["website_text"] = text[:1200]
+            except Exception as e:
+                print(f"⚠️ Error scraping venue website {website}: {e}")
+
         return profile
     except Exception as e:
         print(f"⚠️ Error fetching venue profile from Google: {e}")
@@ -761,11 +789,16 @@ def generate_demo_prompt_with_gpt(profile: dict, fallback_name: str):
         venue_name = profile.get("name") or fallback_name
         prompt_instructions = (
             "You are writing a short creative prompt for an AI music generator (Suno) for a bar/venue demo.\n"
-            "Write ONE energetic sentence that describes a fun song about this venue, its vibe, and guests.\n"
+            "Use the venue profile to make the prompt feel SPECIFIC:\n"
+            "- Mention the city or neighborhood.\n"
+            "- Mention the type of place (e.g. dive bar, rooftop cocktail bar, sports bar, live music venue).\n"
+            "- If you see food or drink items on the website text or in reviews (wings, tacos, margaritas, karaoke, etc.), weave ONE of them into the prompt.\n"
+            "- Optionally nod to something guests love from the reviews (friendly staff, great crowd, karaoke nights, etc.).\n"
+            "Write ONE energetic sentence that describes a fun song about this particular venue, its vibe, and its guests.\n"
             "Do NOT mention Suno, AI, or that this is a demo. Just a natural song idea.\n"
-            "Maximum 140 characters.\n\n"
+            "Maximum 180 characters.\n\n"
             f"Venue profile JSON:\n{json.dumps(profile, ensure_ascii=False)}\n\n"
-            f"Return ONLY the prompt text, no quotes, no extra explanation."
+            "Return ONLY the prompt text, no quotes, no extra explanation."
         )
         headers = {
             "Authorization": f"Bearer {OPENAI_API_KEY}",
