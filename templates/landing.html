@@ -1128,8 +1128,6 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             border-radius: 24px;
             position: relative;
-            min-height: 629px;
-            box-sizing: border-box;
         }
 
         .setup-content-wrapper::before {
@@ -2453,15 +2451,15 @@
                             placeholder="owner@venue.com"
                             style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none;"
                         />
-                        </div>
-                    
+                </div>
+                
                     <button type="submit" class="cta-button" style="width: 100%; padding: 16px; font-size: 18px;">
                         Generate My Venue Demo
                     </button>
                 </form>
-                    </div>
                 </div>
-                
+            </div>
+            
         <!-- Demo Experience Section -->
         <div id="demoExperience" style="display: none; margin-top: 80px; margin-bottom: 100px;">
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 40px; max-width: 1200px; margin: 0 auto; padding: 0 20px;">
@@ -2479,14 +2477,14 @@
                         />
                         <button onclick="submitDemoSong()" class="cta-button" style="width: 100%; padding: 14px; font-size: 16px;">
                             Create Song
-                    </button>
-                </div>
-                    
+                </button>
+            </div>
+            
                     <div id="demoQRCode" style="text-align: center; margin-top: 30px;">
                         <p style="color: rgba(255, 255, 255, 0.9); margin-bottom: 15px; font-weight: 600;">Song Requests at <span id="qrVenueName"></span></p>
                         <img id="qrCodeImage" src="" alt="QR Code" style="max-width: 200px; border-radius: 12px; background: white; padding: 10px;">
                         <p style="color: rgba(255, 255, 255, 0.8); margin-top: 15px; font-size: 14px; line-height: 1.5;">Customers Scan The Printable Qr Code To Make A Custom Song Request</p>
-                    </div>
+                </div>
             </div>
             
                 <!-- Venue View -->
@@ -2531,7 +2529,7 @@
                 <div class="flow-item active" data-step="0">
                     <div style="width: 100%; max-width: 1200px; height: 744px; display: flex; align-items: center; justify-content: center; margin-bottom: 0;">
                         <img src="/img/qr-on-table.png" alt="QR on Table" style="width: 100%; max-width: 1200px; max-height: 744px; height: auto; border-radius: 12px; object-fit: contain;">
-                    </div>
+                </div>
                     <h3 style="margin-top: 15px;">Scan QR</h3>
                     <p>Printable Unique QR Codes Are Generated Per Table</p>
                 </div>
@@ -2558,14 +2556,14 @@
                             <span class="flow-dot active" data-step="0"></span>
                             <span class="flow-dot" data-step="1"></span>
                             <span class="flow-dot" data-step="2"></span>
-                        </div>
+            </div>
                         <button type="button" class="flow-arrow-btn" onclick="nextHowItWorks()">
                             <span>Next</span> →
                         </button>
-                    </div>
-                </div>
-            </div>
         </div>
+                </div>
+                </div>
+                </div>
 
         <!-- Built for Venues Section -->
         <div class="moments-section animate-on-scroll" id="features">
@@ -2611,16 +2609,16 @@
                 </div>
                 <div class="control-mock-ui">
                     <img src="/img/queue-management.png" alt="Queue Management" style="width: 100%; height: auto; border-radius: 12px; object-fit: contain;">
-                </div>
-            </div>
-        </div>
+                    </div>
+                    </div>
+                    </div>
 
         <!-- Create Your Venue Section -->
         <div class="keepsake-section" id="setupSection1">
             <div class="setup-content-wrapper">
                 <div class="setup-image-container">
                     <img src="/img/setup-screenshot.png" alt="Setup Screenshot" style="width: 100%; height: auto; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);">
-                </div>
+                    </div>
                 <div class="setup-content-container">
                     <h2 style="color: white; font-size: 48px; margin-bottom: 20px; font-weight: 900;">Create Your Venue</h2>
                     <p style="color: rgba(255, 255, 255, 0.8); font-size: 20px; line-height: 1.5; margin-bottom: 30px;">
@@ -2630,37 +2628,37 @@
                         <div class="checklist-item">
                             <div class="checklist-number">1</div>
                             <div class="checklist-text">Enter your venue name</div>
-                        </div>
+                </div>
                         <div class="checklist-item">
                             <div class="checklist-number">2</div>
                             <div class="checklist-text">Set how many tables you need</div>
-                        </div>
+            </div>
                         <div class="checklist-item">
                             <div class="checklist-number">3</div>
                             <div class="checklist-text">Generate printable QR codes</div>
-                        </div>
+        </div>
+                    </div>
                     </div>
                 </div>
-            </div>
             <div class="setup-navigation-wrapper">
                 <div class="setup-navigation">
                     <div class="setup-next-button">
                         <button onclick="scrollToNextSetup()" aria-label="Next step">Next →</button>
-                    </div>
+                        </div>
                     <div class="setup-download-button">
                         <button onclick="downloadSetupGuide()" aria-label="Download Setup Guide">Download Setup Guide</button>
                     </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-        </div>
+                    </div>
+                        </div>
 
         <!-- Set Your Music Rules Section -->
         <div class="keepsake-section setup-section-2" id="setupSection2">
             <div class="setup-content-wrapper">
                 <div class="setup-image-container">
                     <img src="/img/settings-screenshot.png" alt="Settings Screenshot" style="width: 100%; height: auto; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);">
-                </div>
+                        </div>
                 <div class="setup-content-container">
                     <h2 style="color: white; font-size: 48px; margin-bottom: 20px; font-weight: 900;">Set Your Music Rules</h2>
                     <p style="color: rgba(255, 255, 255, 0.8); font-size: 20px; line-height: 1.5; margin-bottom: 30px;">
@@ -2674,14 +2672,14 @@
                         <div class="checklist-item">
                             <div class="checklist-number">2</div>
                             <div class="checklist-text">Set explicit or non-explicit lyrics</div>
-                        </div>
+                    </div>
                         <div class="checklist-item">
                             <div class="checklist-number">3</div>
                             <div class="checklist-text">Save your venue settings</div>
+                </div>
                         </div>
                     </div>
-                </div>
-            </div>
+                    </div>
             <div class="setup-navigation-wrapper">
                 <div class="setup-navigation">
                     <div class="setup-back-button">
@@ -2712,15 +2710,15 @@
                         <div class="checklist-item">
                             <div class="checklist-number">1</div>
                             <div class="checklist-text">Describe the song idea or moment</div>
-                        </div>
+                </div>
                         <div class="checklist-item">
                             <div class="checklist-number">2</div>
                             <div class="checklist-text">Optionally select a genre (if enabled)</div>
-                        </div>
+                </div>
                         <div class="checklist-item">
                             <div class="checklist-number">3</div>
                             <div class="checklist-text">Submit the request to the live queue</div>
-                        </div>
+            </div>
                     </div>
                 </div>
             </div>
@@ -2786,11 +2784,11 @@
                 Find your venue type and see how it works for you.
             </p>
             <div class="venue-tabs-wrapper">
-                <div class="venue-tabs">
-                    <button class="venue-tab active" onclick="showVenueType('bars')">Bars & Lounges</button>
-                    <button class="venue-tab" onclick="showVenueType('restaurants')">Restaurants</button>
-                    <button class="venue-tab" onclick="showVenueType('sports')">Sports Bars</button>
-                    <button class="venue-tab" onclick="showVenueType('events')">Events</button>
+            <div class="venue-tabs">
+                <button class="venue-tab active" onclick="showVenueType('bars')">Bars & Lounges</button>
+                <button class="venue-tab" onclick="showVenueType('restaurants')">Restaurants</button>
+                <button class="venue-tab" onclick="showVenueType('sports')">Sports Bars</button>
+                <button class="venue-tab" onclick="showVenueType('events')">Events</button>
                 </div>
             </div>
             <div class="venue-content">
@@ -2841,13 +2839,13 @@
             <div class="setup-strip">
                 <div class="setup-strip-content">
                     <div class="setup-strip-content-wrapper">
-                        <div class="setup-strip-item">📱 QR Codes Provided</div>
-                        <div class="setup-strip-separator">·</div>
-                        <div class="setup-strip-item">🔊 Works with Existing Setup</div>
-                        <div class="setup-strip-separator">·</div>
-                        <div class="setup-strip-item">⏱️ 10-Minute Training</div>
-                        <div class="setup-strip-separator">·</div>
-                        <div class="setup-strip-item">📞 Dedicated Support</div>
+                <div class="setup-strip-item">📱 QR Codes Provided</div>
+                <div class="setup-strip-separator">·</div>
+                <div class="setup-strip-item">🔊 Works with Existing Setup</div>
+                <div class="setup-strip-separator">·</div>
+                <div class="setup-strip-item">⏱️ 10-Minute Training</div>
+                <div class="setup-strip-separator">·</div>
+                <div class="setup-strip-item">📞 Dedicated Support</div>
                     </div>
                     <div class="setup-strip-content-wrapper">
                         <div class="setup-strip-item">📱 QR Codes Provided</div>
@@ -3035,9 +3033,9 @@
             
             if (!message) {
                 alert('Please enter a song description');
-                return;
-            }
-            
+                    return;
+                }
+
             if (!currentDemoId) {
                 alert('Demo not initialized');
                 return;
@@ -3050,8 +3048,8 @@
             
             // Update status
             document.getElementById('demoQueueStatus').textContent = 'Generating song...';
-            
-            try {
+
+                try {
                 const response = await fetch(`/demo/${currentDemoId}/submit`, {
                     method: 'POST',
                     headers: {
@@ -3063,8 +3061,8 @@
                     })
                 });
                 
-                const data = await response.json();
-                
+                    const data = await response.json();
+
                 if (data.success) {
                     // Increment interaction count
                     demoInteractionCount++;
@@ -3083,16 +3081,16 @@
                         status: 'generating',
                         table_id: 'demo-table-1'
                     });
-                } else {
+                    } else {
                     alert('Error: ' + (data.error || 'Failed to create song'));
-                }
-            } catch (error) {
+                    }
+                } catch (error) {
                 console.error('Error:', error);
                 alert('Error creating song: ' + error.message);
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
-            }
+                }
         }
 
         function addQueueItem(item) {
@@ -3131,8 +3129,8 @@
             if (currentDemoAudio) {
                 currentDemoAudio.pause();
                 currentDemoAudio = null;
-            }
-            
+        }
+
             // Create new audio element and play
             const audioUrl = `/audio/${filename}`;
             currentDemoAudio = new Audio(audioUrl);
@@ -3205,7 +3203,7 @@
                         submitDemoSong();
                     }
                 });
-            }
+                }
         });
 
         // Old generateSong function removed - no longer needed in demo mode
@@ -3243,8 +3241,8 @@
             const secondSection = document.getElementById('setupSection2');
             const firstSection = document.getElementById('setupSection1');
             switchSetupSection(secondSection, firstSection);
-        }
-
+                }
+                
         // Switch to Setup Section 3 (Section 2 -> Section 3 or Section 4 -> Section 3)
         function scrollToSetupSection3() {
             const secondSection = document.getElementById('setupSection2');
