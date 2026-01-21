@@ -1370,9 +1370,12 @@
                 <img src="/img/logo.png" alt="whatsthat logo" style="width: 48px; height: 48px; object-fit: contain;">
             </div>
             <div id="welcomeText" style="margin-top: 60px; text-align: center; opacity: 0; transition: opacity 1.2s ease-out 0.4s;">
-                <h1 style="font-size: 36px; font-weight: 800; margin: 0; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                <h1 style="font-size: 36px; font-weight: 800; margin: 0 0 32px 0; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
                     Welcome<span id="welcomeName"></span>, let's get started
                 </h1>
+                <button id="welcomeContinueBtn" onclick="hideWelcomeScreen()" style="padding: 14px 32px; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); border: none; border-radius: 12px; color: white; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(255, 20, 147, 0.4); transition: all 0.2s; opacity: 0; transition: opacity 1.2s ease-out 0.8s, transform 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(255, 20, 147, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(255, 20, 147, 0.4)'">
+                    Continue
+                </button>
             </div>
         </div>
     </div>
@@ -2083,6 +2086,38 @@
             onbComplete(true);
         }
 
+        function hideWelcomeScreen() {
+            const welcomeScreen = document.getElementById('welcomeScreen');
+            const welcomeSquare = document.getElementById('welcomeSquare');
+            const welcomeText = document.getElementById('welcomeText');
+            const continueBtn = document.getElementById('welcomeContinueBtn');
+            const mainLayout = document.getElementById('mainLayout');
+            const navbar = document.querySelector('nav');
+            
+            if (welcomeSquare && welcomeText) {
+                // Fade out welcome screen
+                welcomeSquare.style.opacity = '0';
+                welcomeSquare.style.transform = 'scale(0.95)';
+                welcomeText.style.opacity = '0';
+                if (continueBtn) {
+                    continueBtn.style.opacity = '0';
+                }
+                
+                // Show main layout after fade out
+                setTimeout(() => {
+                    if (welcomeScreen) {
+                        welcomeScreen.style.display = 'none';
+                    }
+                    if (mainLayout) {
+                        mainLayout.style.display = 'flex';
+                    }
+                    if (navbar) {
+                        navbar.style.display = 'flex';
+                    }
+                }, 600);
+            }
+        }
+
         document.addEventListener('DOMContentLoaded', () => {
             // Show welcome screen on first login
             if (showOnboarding) {
@@ -2122,22 +2157,13 @@
                         welcomeText.style.opacity = '1';
                     }, 500);
                     
-                    // Hide welcome screen after 3 seconds and show main layout
-                    setTimeout(() => {
-                        welcomeSquare.style.opacity = '0';
-                        welcomeSquare.style.transform = 'scale(0.95)';
-                        welcomeText.style.opacity = '0';
-                        
+                    // Animate button fading in
+                    const continueBtn = document.getElementById('welcomeContinueBtn');
+                    if (continueBtn) {
                         setTimeout(() => {
-                            welcomeScreen.style.display = 'none';
-                            if (mainLayout) {
-                                mainLayout.style.display = 'flex';
-                            }
-                            if (navbar) {
-                                navbar.style.display = 'flex';
-                            }
-                        }, 600);
-                    }, 3000);
+                            continueBtn.style.opacity = '1';
+                        }, 800);
+                    }
                 }
             }
             
