@@ -169,6 +169,8 @@ SUNO_API_BASE = "https://api.sunoapi.org"
 SUNO_API_KEY = os.environ.get("SUNO_API_KEY", "71eeeb5e47a6c71175731530f6b2635a")
 # Google Places API (optional, used for demo venue profiling)
 GOOGLE_PLACES_API_KEY = os.environ.get("GOOGLE_PLACES_API_KEY")
+# Google Gemini Studio API (for future AI features)
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "AIzaSyCoEGIY014EkDxvgbs7yg69ODLYlkVTMtI")
 
 # Get base URL from current request
 def get_base_url():
