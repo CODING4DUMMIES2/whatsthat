@@ -1469,6 +1469,30 @@
         </div>
     </div>
 
+    <!-- Tutorial Overlay (Step-by-step guide) -->
+    <div id="tutorialOverlay" style="position: fixed; inset: 0; z-index: 4000; display: none; pointer-events: none;">
+        <div id="tutorialHighlight" style="position: absolute; border: 3px solid rgba(255, 20, 147, 0.8); border-radius: 12px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 20, 147, 0.6); pointer-events: none; transition: all 0.3s ease;"></div>
+        <div id="tutorialPopup" style="position: absolute; background: rgba(15, 23, 42, 0.98); border-radius: 16px; padding: 20px 24px; max-width: 320px; box-shadow: 0 20px 60px rgba(0,0,0,0.9); border: 2px solid rgba(255, 20, 147, 0.6); pointer-events: auto; opacity: 0; transform: scale(0.9); transition: opacity 0.3s ease, transform 0.3s ease;">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
+                <h3 id="tutorialTitle" style="font-size: 18px; font-weight: 800; margin: 0; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; flex: 1;">
+                    Step 1
+                </h3>
+                <span id="tutorialStepCount" style="font-size: 12px; color: rgba(255,255,255,0.6); margin-left: 12px;">1/7</span>
+            </div>
+            <p id="tutorialText" style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 0 0 16px 0; line-height: 1.5;">
+                Tutorial text here
+            </p>
+            <div style="display: flex; gap: 8px; justify-content: flex-end;">
+                <button id="tutorialSkipBtn" onclick="skipTutorial()" style="padding: 8px 16px; background: transparent; border: 1px solid rgba(255,255,255,0.3); border-radius: 8px; color: rgba(255,255,255,0.8); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.borderColor='rgba(255,255,255,0.5)'; this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.3)'; this.style.background='transparent'">
+                    Skip
+                </button>
+                <button id="tutorialNextBtn" onclick="nextTutorialStep()" style="padding: 8px 20px; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); border: none; border-radius: 8px; color: white; font-size: 14px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 20, 147, 0.4); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-1px)'; this.style.boxShadow='0 6px 20px rgba(255, 20, 147, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(255, 20, 147, 0.4)'">
+                    Next
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="main-layout" id="mainLayout">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -2527,7 +2551,7 @@
                     dashboardExplanationBtn.style.opacity = '0';
                 }
                 
-                // Show main layout after fade out
+                // Show main layout after fade out, then start tutorial
                 setTimeout(() => {
                     if (dashboardExplanationScreen) {
                         dashboardExplanationScreen.style.display = 'none';
@@ -2535,8 +2559,215 @@
                     if (mainLayout) {
                         mainLayout.style.display = 'flex';
                     }
+                    // Start tutorial after a short delay
+                    setTimeout(() => {
+                        startTutorial();
+                    }, 800);
                 }, 600);
             }
+        }
+
+        // Tutorial system
+        let currentTutorialStep = 0;
+        const tutorialSteps = [
+            {
+                selector: '.venue-card:first-child',
+                title: 'Expand Your Venue',
+                text: 'Click here to expand this venue card and see all its details, tables, and QR codes.',
+                position: 'bottom'
+            },
+            {
+                selector: '.add-table-form button, .add-table-form input[type="text"]',
+                title: 'Add Tables',
+                text: 'Click here to add a table or multiple tables. Type a table name and click "Add Table". Each table gets its own printable QR code for tracking requests.',
+                position: 'top'
+            },
+            {
+                selector: '.qr-box:first-child a, .qr-section .qr-box a',
+                title: 'QR Code Links',
+                text: 'Click these links to copy or open your QR code URLs. Use the Print and Download buttons to share QR codes with guests.',
+                position: 'right'
+            },
+            {
+                selector: '#streamToggleBtn',
+                title: 'Open Stream Player',
+                text: 'Click this button to pull up your live music stream player. This is what you use on the device connected to your sound system.',
+                position: 'right'
+            },
+            {
+                selector: '#streamVenueSelect',
+                title: 'Select Venue Stream',
+                text: 'Click this dropdown to change which venue\'s stream you\'re looking at. Each venue has its own separate queue.',
+                position: 'bottom'
+            },
+            {
+                selector: 'a[href="/settings"]',
+                title: 'Access Settings',
+                text: 'Click this button to access settings where you can control genres, explicit content filters, and type custom rules or guidelines for music generation.',
+                position: 'right'
+            },
+            {
+                selector: '#createVenueSection',
+                title: 'Create More Venues',
+                text: 'Use this section to create additional venues. Each venue has its own tables, QR codes, and stream.',
+                position: 'bottom'
+            }
+        ];
+
+        function startTutorial() {
+            // Check if tutorial was already completed
+            if (sessionStorage.getItem('tutorialCompleted') === 'true') {
+                return;
+            }
+            
+            currentTutorialStep = 0;
+            showTutorialStep(0);
+        }
+
+        function showTutorialStep(stepIndex) {
+            if (stepIndex >= tutorialSteps.length) {
+                endTutorial();
+                return;
+            }
+
+            const step = tutorialSteps[stepIndex];
+            const element = document.querySelector(step.selector);
+            
+            // Check if element exists and is visible
+            if (!element || element.offsetParent === null) {
+                // Element not found or not visible, skip to next step
+                setTimeout(() => {
+                    showTutorialStep(stepIndex + 1);
+                }, 500);
+                return;
+            }
+
+            const tutorialOverlay = document.getElementById('tutorialOverlay');
+            const tutorialHighlight = document.getElementById('tutorialHighlight');
+            const tutorialPopup = document.getElementById('tutorialPopup');
+            const tutorialTitle = document.getElementById('tutorialTitle');
+            const tutorialText = document.getElementById('tutorialText');
+            const tutorialStepCount = document.getElementById('tutorialStepCount');
+            const tutorialNextBtn = document.getElementById('tutorialNextBtn');
+
+            if (!tutorialOverlay || !tutorialHighlight || !tutorialPopup) return;
+
+            // Update text
+            tutorialTitle.textContent = step.title;
+            tutorialText.textContent = step.text;
+            tutorialStepCount.textContent = `${stepIndex + 1}/${tutorialSteps.length}`;
+            
+            // Update button text for last step
+            if (stepIndex === tutorialSteps.length - 1) {
+                tutorialNextBtn.textContent = 'Finish';
+            } else {
+                tutorialNextBtn.textContent = 'Next';
+            }
+
+            // Show overlay
+            tutorialOverlay.style.display = 'block';
+
+            // Get element position
+            const rect = element.getBoundingClientRect();
+            const scrollX = window.scrollX || window.pageXOffset;
+            const scrollY = window.scrollY || window.pageYOffset;
+
+            // Position highlight around element
+            tutorialHighlight.style.left = (rect.left + scrollX - 8) + 'px';
+            tutorialHighlight.style.top = (rect.top + scrollY - 8) + 'px';
+            tutorialHighlight.style.width = (rect.width + 16) + 'px';
+            tutorialHighlight.style.height = (rect.height + 16) + 'px';
+
+            // Position popup based on step.position
+            let popupLeft, popupTop;
+            const popupWidth = 320;
+            const popupHeight = 150;
+            const spacing = 20;
+
+            switch(step.position) {
+                case 'top':
+                    popupLeft = rect.left + scrollX + (rect.width / 2) - (popupWidth / 2);
+                    popupTop = rect.top + scrollY - popupHeight - spacing;
+                    break;
+                case 'bottom':
+                    popupLeft = rect.left + scrollX + (rect.width / 2) - (popupWidth / 2);
+                    popupTop = rect.bottom + scrollY + spacing;
+                    break;
+                case 'left':
+                    popupLeft = rect.left + scrollX - popupWidth - spacing;
+                    popupTop = rect.top + scrollY + (rect.height / 2) - (popupHeight / 2);
+                    break;
+                case 'right':
+                    popupLeft = rect.right + scrollX + spacing;
+                    popupTop = rect.top + scrollY + (rect.height / 2) - (popupHeight / 2);
+                    break;
+                default:
+                    popupLeft = rect.left + scrollX + (rect.width / 2) - (popupWidth / 2);
+                    popupTop = rect.bottom + scrollY + spacing;
+            }
+
+            // Keep popup within viewport
+            popupLeft = Math.max(20, Math.min(popupLeft, window.innerWidth - popupWidth - 20));
+            popupTop = Math.max(20, Math.min(popupTop, window.innerHeight - popupHeight - 20));
+
+            tutorialPopup.style.left = popupLeft + 'px';
+            tutorialPopup.style.top = popupTop + 'px';
+
+            // Scroll element into view if needed
+            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Animate popup in
+            setTimeout(() => {
+                tutorialPopup.style.opacity = '1';
+                tutorialPopup.style.transform = 'scale(1)';
+            }, 100);
+
+            // Highlight the element
+            element.style.transition = 'all 0.3s ease';
+            element.style.zIndex = '4001';
+            element.style.position = 'relative';
+        }
+
+        function nextTutorialStep() {
+            const tutorialPopup = document.getElementById('tutorialPopup');
+            if (tutorialPopup) {
+                tutorialPopup.style.opacity = '0';
+                tutorialPopup.style.transform = 'scale(0.9)';
+            }
+
+            setTimeout(() => {
+                currentTutorialStep++;
+                showTutorialStep(currentTutorialStep);
+            }, 300);
+        }
+
+        function skipTutorial() {
+            endTutorial();
+        }
+
+        function endTutorial() {
+            // Mark tutorial as completed
+            sessionStorage.setItem('tutorialCompleted', 'true');
+            
+            const tutorialOverlay = document.getElementById('tutorialOverlay');
+            const tutorialHighlight = document.getElementById('tutorialHighlight');
+            const tutorialPopup = document.getElementById('tutorialPopup');
+            
+            if (tutorialPopup) {
+                tutorialPopup.style.opacity = '0';
+                tutorialPopup.style.transform = 'scale(0.9)';
+            }
+
+            setTimeout(() => {
+                if (tutorialOverlay) {
+                    tutorialOverlay.style.display = 'none';
+                }
+                // Remove highlight from all elements
+                document.querySelectorAll('[style*="z-index: 4001"]').forEach(el => {
+                    el.style.zIndex = '';
+                    el.style.position = '';
+                });
+            }, 300);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
