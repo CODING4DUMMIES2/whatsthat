@@ -2826,6 +2826,8 @@
         </div>
 
 
+        </div>
+
         <!-- Where It Fits Section -->
         <div class="venue-types-section">
             <h2>Where It Fits</h2>
@@ -3257,7 +3259,6 @@
 
         // Old generateSong function removed - no longer needed in demo mode
 
-        // Store scroll position to prevent jumping
         function switchSetupSection(hideSection, showSection) {
             if (hideSection && showSection) {
                 // Hide current section
@@ -3267,15 +3268,7 @@
                 // Show new section
                 showSection.style.display = 'block';
                 showSection.classList.add('active');
-                
-                // Wait for DOM to update, then scroll to top of new section
-                setTimeout(() => {
-                    const sectionTop = showSection.offsetTop;
-                    window.scrollTo({
-                        top: sectionTop - 120, // Offset for navbar
-                        behavior: 'smooth'
-                    });
-                }, 10);
+                // Do NOT scroll – keep the viewport exactly where it is
             }
         }
 
