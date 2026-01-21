@@ -859,47 +859,58 @@ def check_and_process_pending_tasks(venue_id=None):
                         if suno_list and len(suno_list) > 0:
                             first_track = suno_list[0]
                             audio_url = first_track.get("audioUrl") or first_track.get("audio_url")
+                            stream_url = (
+                                first_track.get("stream_audio_url")
+                                or first_track.get("streamAudioUrl")
+                                or first_track.get("stream_url")
+                            )
                             song_title = first_track.get("title") or first_track.get("song_name") or ""
-                            
-                            # If we have an audio URL, the song is complete
+
+                            if v_id not in venue_queues:
+                                venue_queues[v_id] = []
+                            queue = venue_queues[v_id]
+                            existing = next((s for s in queue if s.get('task_id') == task_id), None)
+                            if not existing:
+                                existing = {
+                                    'task_id': task_id,
+                                    'title': song_title or 'Generating song...',
+                                    'timestamp': datetime.now().isoformat(),
+                                    'added_at': datetime.now().strftime("%H:%M:%S"),
+                                    'status': 'generating'
+                                }
+                                queue.append(existing)
+
+                            # Attach stream URL as soon as available
+                            if stream_url:
+                                existing['stream_url'] = stream_url
+                                if not audio_url:
+                                    existing['status'] = 'stream_ready'
+
+                            # If we have an audio URL, treat as complete and download
                             if audio_url:
                                 print(f"📥 Found completed song for task {task_id}, downloading...")
                                 if song_title:
                                     song_titles[task_id] = song_title
                                     print(f"   Song title: {song_title}")
-                                
+
                                 filename = download_audio_file(audio_url, prefix=task_id)
                                 if filename:
                                     task_audio_map[task_id] = filename
-                                    
-                                    # Add to venue queue
-                                    if v_id not in venue_queues:
-                                        venue_queues[v_id] = []
-                                    
-                                    song_title_display = song_titles.get(task_id, filename)
-                                    song_entry = {
-                                        'filename': filename,
-                                        'title': song_title_display,
-                                        'task_id': task_id,
-                                        'timestamp': datetime.now().isoformat(),
-                                        'added_at': datetime.now().strftime("%H:%M:%S")
-                                    }
-                                    
-                                    venue_queues[v_id].append(song_entry)
-                                    print(f"✅ Added song '{song_title_display}' to venue {v_id} queue via polling")
+                                    existing['filename'] = filename
+                                    existing['status'] = 'ready'
+
+                                    print(f"✅ Updated queue entry for task {task_id} with downloaded filename")
                                     print(f"   Venue {v_id} now has {len(venue_queues[v_id])} song(s) in queue")
-                                    
+
                                     # Clean up tracking
-                                    del task_to_venue[task_id]
-                                    save_data()  # Save updated task_to_venue
-                                    
-                                    # Save data
+                                    if task_id in task_to_venue:
+                                        del task_to_venue[task_id]
                                     save_data()
                                     print(f"✅ Saved queue data to disk (polling)")
                                 else:
                                     print(f"❌ Failed to download audio for task {task_id}")
                             else:
-                                print(f"⏳ Task {task_id} still processing (no audio URL yet)")
+                                print(f"⏳ Task {task_id} still processing (no audio URL yet, stream_url={bool(stream_url)})")
                         else:
                             print(f"⏳ Task {task_id} still processing (no tracks yet)")
                     else:
@@ -1034,6 +1045,25 @@ def send_message():
         music_info = call_suno_generate_music(prompt=message, venue_id=venue_id, table_id=table_id, genre=genre if genre else None)
         print(f"🎵 Suno API response: {music_info}")
 
+        # If we have a task_id and venue, immediately add a "generating" entry to the venue queue
+        try:
+            if venue_id and isinstance(music_info, dict) and music_info.get('task_id'):
+                load_data()
+                if venue_id not in venue_queues:
+                    venue_queues[venue_id] = []
+                song_entry = {
+                    'task_id': music_info['task_id'],
+                    'title': 'Generating song...',
+                    'timestamp': datetime.now().isoformat(),
+                    'added_at': datetime.now().strftime("%H:%M:%S"),
+                    'status': 'generating'
+                }
+                venue_queues[venue_id].append(song_entry)
+                save_data()
+                print(f"✅ Added placeholder generating entry for task {music_info['task_id']} in venue {venue_id}")
+        except Exception as e:
+            print(f"⚠️ Error adding placeholder queue entry: {e}")
+
         # Return success with timestamp + music generation info
         display_timestamp = datetime.now().strftime("%H:%M:%S")
         response_data = {
@@ -1141,70 +1171,70 @@ def music_callback():
                 del task_to_venue[task_id]
             return jsonify({'success': False, 'error': f'Suno API error: {error_msg}'}), 200
 
-        # When we get 'first' or 'complete', download the first track's audio
+        # When we get 'first' or 'complete', we may have streaming and/or download URLs
         if callback_type in ("first", "complete") and tracks:
             first_track = tracks[0]
             audio_url = first_track.get("audio_url") or first_track.get("audioUrl")
+            stream_url = (
+                first_track.get("stream_audio_url")
+                or first_track.get("streamAudioUrl")
+                or first_track.get("stream_url")
+            )
             # Extract song title if available
             song_title = first_track.get("title") or first_track.get("song_name") or ""
-            
-            if audio_url and task_id:
-                print(f"Downloading audio for task {task_id} from {audio_url}")
-                if song_title:
-                    print(f"Song title: {song_title}")
-                    song_titles[task_id] = song_title
-                filename = download_audio_file(audio_url, prefix=task_id)
-                if filename:
-                    # Store mapping so /status endpoint can return it immediately
-                    task_audio_map[task_id] = filename
-                    file_path = os.path.join(AUDIO_DIR, filename)
-                    print(f"Audio downloaded and saved as: {filename}")
-                    print(f"File path: {file_path}")
-                    print(f"File exists check: {os.path.exists(file_path)}")
-                    if os.path.exists(file_path):
-                        file_size = os.path.getsize(file_path)
-                        print(f"File size: {file_size} bytes")
-                    print(f"Stored in task_audio_map with key: {task_id}")
-                    print(f"Current task_audio_map keys: {list(task_audio_map.keys())}")
-                    print(f"Current task_audio_map values: {list(task_audio_map.values())}")
-                    
-                    # Check if this song belongs to a venue and add to queue
-                    if task_id in task_to_venue:
-                        venue_id = task_to_venue[task_id]
-                        song_title = song_titles.get(task_id, filename)
-                        
-                        song_entry = {
-                            'filename': filename,
-                            'title': song_title,
-                            'task_id': task_id,
-                            'timestamp': datetime.now().isoformat(),
-                            'added_at': datetime.now().strftime("%H:%M:%S")
-                        }
-                        
-                        # Add to venue queue
-                        if venue_id not in venue_queues:
-                            venue_queues[venue_id] = []
-                        venue_queues[venue_id].append(song_entry)
-                        
-                        print(f"✅ Added song '{song_title}' to venue {venue_id} queue")
-                        print(f"   Venue {venue_id} now has {len(venue_queues[venue_id])} song(s) in queue")
-                        
-                        # Save queue changes to disk
-                        save_data()
-                        print(f"✅ Saved queue data to disk")
-                        
-                        # Clean up the mapping
+
+            # Update title cache if we have one
+            if song_title and task_id:
+                song_titles[task_id] = song_title
+
+            # If this task belongs to a venue, update or create the queue entry
+            if task_id in task_to_venue:
+                venue_id = task_to_venue[task_id]
+                if venue_id not in venue_queues:
+                    venue_queues[venue_id] = []
+                queue = venue_queues[venue_id]
+                existing = next((s for s in queue if s.get('task_id') == task_id), None)
+                if not existing:
+                    existing = {
+                        'task_id': task_id,
+                        'title': song_title or 'Generating song...',
+                        'timestamp': datetime.now().isoformat(),
+                        'added_at': datetime.now().strftime("%H:%M:%S"),
+                        'status': 'generating'
+                    }
+                    queue.append(existing)
+
+                # Attach streaming URL as soon as we have it
+                if stream_url:
+                    existing['stream_url'] = stream_url
+                    if not audio_url:
+                        existing['status'] = 'stream_ready'
+
+                # If we have a downloadable audio URL, fetch it and mark as fully ready
+                if audio_url and task_id:
+                    print(f"Downloading audio for task {task_id} from {audio_url}")
+                    filename = download_audio_file(audio_url, prefix=task_id)
+                    if filename:
+                        existing['filename'] = filename
+                        existing['status'] = 'ready'
+
+                        # Store mapping so /status endpoint can return it immediately
+                        task_audio_map[task_id] = filename
+
+                        # Clean up tracking for this task (no more polling needed)
                         del task_to_venue[task_id]
-                    
-                    # Update table request status if this was from a table
-                    for table_id, requests in table_requests.items():
-                        for req in requests:
-                            if req['task_id'] == task_id:
-                                req['status'] = 'completed'
-                                print(f"✅ Marked table {table_id} request as completed")
-                                save_data()  # Save updated table request status
-                else:
-                    print(f"ERROR: download_audio_file returned empty string for task {task_id}")
+                    else:
+                        print(f"ERROR: download_audio_file returned empty string for task {task_id}")
+
+                save_data()
+
+            # Update table request status if this was from a table
+            for table_id, requests in table_requests.items():
+                for req in requests:
+                    if req['task_id'] == task_id:
+                        req['status'] = 'completed'
+                        print(f"✅ Marked table {table_id} request as completed")
+                        save_data()  # Save updated table request status
 
         return jsonify({'success': True}), 200
     except Exception as e:

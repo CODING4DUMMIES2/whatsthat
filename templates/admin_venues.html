@@ -2088,6 +2088,9 @@
             
             if (queue.length === 0) {
                 queueList.innerHTML = '<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">No songs in queue</div>';
+                document.getElementById('statusTextStream').textContent = 'Waiting for songs...';
+                document.getElementById('statusIndicatorStream').className = 'status-indicator-stream waiting';
+                document.getElementById('currentSongTitleStream').textContent = 'No song playing';
                 return;
             }
 
@@ -2099,14 +2102,35 @@
                 }
             }
 
+            const hasGenerating = queue.some(song => song.status === 'generating');
+            const hasStreamReady = queue.some(song => song.status === 'stream_ready' || song.stream_url);
+
+            // Update overall status text if nothing is playing
+            if (!isStreamPlaying) {
+                if (hasStreamReady) {
+                    document.getElementById('statusTextStream').textContent = 'Song ready to stream';
+                } else if (hasGenerating) {
+                    document.getElementById('statusTextStream').textContent = 'Generating song...';
+                } else {
+                    document.getElementById('statusTextStream').textContent = 'Queue Active - Waiting for songs...';
+                }
+            }
+
             queueList.innerHTML = queue.map((song, index) => {
                 const isPlayed = streamPlayedSongs.has(song.task_id);
                 const isCurrent = index === nextUnplayedIndex && isStreamPlaying && !isPlayed;
-                
+                const statusLabel = song.status === 'generating'
+                    ? 'Generating...'
+                    : song.status === 'stream_ready'
+                        ? 'Streaming soon'
+                        : isPlayed
+                            ? '✓ Played'
+                            : `#${index + 1} - Added at ${song.added_at || ''}`;
+            
                 return `
                     <div style="background: rgba(45, 27, 78, 0.3); padding: 12px; border-radius: 8px; margin-bottom: 8px; ${isCurrent ? 'background: rgba(102, 126, 234, 0.4); border: 1px solid rgba(102, 126, 234, 0.6);' : ''} ${isPlayed ? 'opacity: 0.4;' : ''}">
                         <div style="font-weight: 600; margin-bottom: 4px;">${escapeHtml(song.title || 'Untitled')}</div>
-                        <div style="font-size: 12px; color: rgba(255,255,255,0.6);">${isPlayed ? '✓ Played' : `#${index + 1} - Added at ${song.added_at || ''}`}</div>
+                        <div style="font-size: 12px; color: rgba(255,255,255,0.6);">${statusLabel}</div>
                     </div>
                 `;
             }).join('');
@@ -2137,7 +2161,15 @@
             streamAudioElement.controls = true;
             streamAudioElement.autoplay = true;
             streamAudioElement.preload = 'auto';
-            streamAudioElement.src = `/audio/${song.filename}`;
+            // Prefer streaming URL if available, fall back to downloaded audio file
+            const sourceUrl = song.stream_url || song.streamUrl || (song.filename ? `/audio/${song.filename}` : null);
+            if (!sourceUrl) {
+                console.warn('No playable source found for song', song);
+                document.getElementById('statusTextStream').textContent = 'Waiting for audio...';
+                isStreamPlaying = false;
+                return;
+            }
+            streamAudioElement.src = sourceUrl;
             
             audioContainer.innerHTML = '';
             audioContainer.appendChild(streamAudioElement);
