@@ -2478,7 +2478,21 @@
                 card.classList.toggle('expanded');
                 const btn = card.querySelector('.venue-actions button');
                 if (btn) {
-                    btn.textContent = card.classList.contains('expanded') ? 'Collapse' : 'Expand';
+                    const isExpanded = card.classList.contains('expanded');
+                    const helpIcon = btn.querySelector('.help-icon');
+                    const buttonText = isExpanded ? 'Collapse' : 'Expand';
+                    // Preserve the help icon when updating text
+                    if (helpIcon) {
+                        btn.innerHTML = buttonText + ' <span class="help-icon" onclick="showHelp(event, \'venue-collapse\')">?</span>';
+                    } else {
+                        btn.textContent = buttonText;
+                        // Add help icon if it doesn't exist
+                        const helpSpan = document.createElement('span');
+                        helpSpan.className = 'help-icon';
+                        helpSpan.onclick = function(e) { showHelp(e, 'venue-collapse'); };
+                        helpSpan.textContent = '?';
+                        btn.appendChild(helpSpan);
+                    }
                 }
             }
         }
