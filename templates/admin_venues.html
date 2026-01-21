@@ -2070,10 +2070,11 @@
         }
 
         document.addEventListener('DOMContentLoaded', () => {
-            if (showOnboarding && document.getElementById('onboardingOverlay')) {
-                document.getElementById('onboardingOverlay').style.display = 'flex';
-                onbUpdateUI();
-            }
+            // Onboarding wizard disabled - keeping code for future restructuring
+            // if (showOnboarding && document.getElementById('onboardingOverlay')) {
+            //     document.getElementById('onboardingOverlay').style.display = 'flex';
+            //     onbUpdateUI();
+            // }
         });
 
         function scrollToCreate() {
