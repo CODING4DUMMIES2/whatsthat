@@ -604,7 +604,6 @@
             padding: 20px;
             position: relative;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
-            cursor: pointer;
             min-height: 220px;
             display: flex;
             flex-direction: column;
@@ -2500,15 +2499,7 @@
                         }
                     }
 
-                    // Clicking anywhere on the card (except buttons/links) toggles expand/collapse
-                    const venueId = card.id.replace('venue-', '');
-                    card.addEventListener('click', function(e) {
-                        // Ignore clicks on interactive elements inside the card
-                        if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input') || e.target.closest('textarea')) {
-                            return;
-                        }
-                        toggleVenueCard(venueId);
-                    });
+                    // Cards only expand/collapse via the Collapse button, not by clicking the card itself
                 }
             });
         }
