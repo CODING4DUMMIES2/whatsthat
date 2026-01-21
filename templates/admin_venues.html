@@ -1673,12 +1673,6 @@
                                 <img src="${venueData.stream_qr}" alt="Stream QR">
                                 <code>${venueData.stream_url}</code>
                             </div>
-                            <div class="qr-box">
-                                <h4>📺 Queue View Link</h4>
-                                <p style="color: rgba(255,255,255,0.7); font-size: 12px; margin-bottom: 10px;">Display-only queue for TVs/devices</p>
-                                <code id="queue-view-url-${venueData.venue_id}" style="word-break: break-all; display: block; margin-bottom: 10px;">${venueData.queue_view_url || 'Loading...'}</code>
-                                <button onclick="copyQueueViewLink('${venueData.venue_id}')" style="padding: 8px 16px; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); border: none; border-radius: 6px; color: white; font-weight: 600; cursor: pointer; font-size: 12px;">Copy Link</button>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -1807,7 +1801,6 @@
                                 name: data.name,
                                 submit_url: data.submit_url,
                                 stream_url: data.stream_url,
-                                queue_view_url: data.queue_view_url,
                                 submit_qr: data.submit_qr,
                                 stream_qr: data.stream_qr,
                                 tables: data.tables || []
@@ -2056,45 +2049,6 @@
             return null;
         }
 
-        // Copy Queue View Link
-        function copyQueueViewLink(venueId) {
-            const urlElement = document.getElementById(`queue-view-url-${venueId}`);
-            if (!urlElement) return;
-            
-            const url = urlElement.textContent.trim();
-            
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(url).then(() => {
-                    // Show feedback
-                    const button = event.target;
-                    const originalText = button.textContent;
-                    button.textContent = 'Copied!';
-                    button.style.background = 'linear-gradient(135deg, #00ff00 0%, #00cc00 100%)';
-                    setTimeout(() => {
-                        button.textContent = originalText;
-                        button.style.background = 'linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%)';
-                    }, 2000);
-                }).catch(err => {
-                    console.error('Failed to copy:', err);
-                    alert('Failed to copy link. Please copy manually:\n' + url);
-                });
-            } else {
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = url;
-                textArea.style.position = 'fixed';
-                textArea.style.opacity = '0';
-                document.body.appendChild(textArea);
-                textArea.select();
-                try {
-                    document.execCommand('copy');
-                    alert('Link copied to clipboard!');
-                } catch (err) {
-                    alert('Please copy manually:\n' + url);
-                }
-                document.body.removeChild(textArea);
-            }
-        }
 
         function startStreamQueuePolling(venueId) {
             if (streamQueueCheckInterval) return;
