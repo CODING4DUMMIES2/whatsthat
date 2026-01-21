@@ -1119,7 +1119,7 @@
             grid-template-columns: 1.2fr 1fr;
             gap: 60px;
             align-items: start;
-            margin-top: 60px;
+            margin: 60px auto 0;
             padding: 50px 60px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px) saturate(180%);
@@ -1128,6 +1128,10 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             border-radius: 24px;
             position: relative;
+            max-width: 1200px;
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 629px;
         }
 
         .setup-content-wrapper::before {
