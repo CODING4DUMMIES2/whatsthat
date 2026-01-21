@@ -487,7 +487,8 @@
 
         .venues-list {
             display: grid;
-            gap: 30px;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 20px;
         }
 
         .venue-card {
@@ -496,9 +497,19 @@
             -webkit-backdrop-filter: blur(20px) saturate(180%);
             border: 2px solid transparent;
             border-radius: 16px;
-            padding: 32px;
+            padding: 20px;
             position: relative;
             transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            min-height: 200px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .venue-card.expanded {
+            grid-column: 1 / -1;
+            padding: 32px;
         }
 
         .venue-card::before {
@@ -527,6 +538,66 @@
         .venue-card:hover {
             transform: translateY(-4px);
             box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+
+        .venue-card:not(.expanded) .venue-header-section,
+        .venue-card:not(.expanded) .tables-section,
+        .venue-card:not(.expanded) .qr-section,
+        .venue-card:not(.expanded) .venue-actions {
+            display: none;
+        }
+
+        .venue-card:not(.expanded) .venue-name-compact {
+            margin-bottom: 15px;
+        }
+
+        .venue-card:not(.expanded) .venue-name-input {
+            border: none;
+            background: transparent;
+            padding: 0;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            pointer-events: auto;
+            width: 100%;
+            cursor: text;
+        }
+
+        .venue-card:not(.expanded) .venue-name-input:focus {
+            outline: 1px solid rgba(255, 255, 255, 0.3);
+            outline-offset: 4px;
+            border-radius: 4px;
+        }
+
+        .venue-card.expanded .venue-name-compact {
+            display: none;
+        }
+
+        .venue-card:not(.expanded) .venue-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .venue-card:not(.expanded) .stat-item {
+            text-align: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+        }
+
+        .venue-card:not(.expanded) .stat-value {
+            font-size: 24px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+
+        .venue-card:not(.expanded) .stat-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.7;
         }
 
         .venue-card h3 {
@@ -1505,7 +1576,23 @@
             const card = document.createElement('div');
             card.className = 'venue-card';
             card.id = `venue-${venueData.venue_id}`;
+            card.onclick = function(e) {
+                // Don't expand if clicking on interactive elements
+                if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.closest('button') || e.target.closest('input')) {
+                    return;
+                }
+                // Toggle expanded state
+                this.classList.toggle('expanded');
+            };
             card.innerHTML = `
+                <div class="venue-name-compact">
+                    <input type="text" 
+                           class="venue-name-input" 
+                           id="venue-name-${venueData.venue_id}" 
+                           value="${venueData.name || venueData.venue_id}"
+                           placeholder="Venue Name"
+                           onclick="event.stopPropagation();">
+                </div>
                 <div class="venue-header-section">
                     <div class="venue-name-section">
                         <input type="text" 
@@ -1587,6 +1674,7 @@
             `;
             
             venuesList.appendChild(card);
+            attachVenueCardHandlers();
             
             // If tables were automatically created, display them immediately
             if (venueData.tables && venueData.tables.length > 0) {
@@ -1649,7 +1737,39 @@
         }
 
         // Update quick links on page load
+        function attachVenueCardHandlers() {
+            const venueCards = document.querySelectorAll('.venue-card');
+            venueCards.forEach(card => {
+                // Only attach if not already attached
+                if (!card.hasAttribute('data-handler-attached')) {
+                    card.setAttribute('data-handler-attached', 'true');
+                    card.onclick = function(e) {
+                        // Don't expand if clicking on interactive elements
+                        if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.closest('button') || e.target.closest('input') || e.target.closest('a')) {
+                            return;
+                        }
+                        // Toggle expanded state
+                        this.classList.toggle('expanded');
+                    };
+                    
+                    // Add compact name if not present
+                    if (!card.querySelector('.venue-name-compact')) {
+                        const nameInput = card.querySelector('.venue-name-input');
+                        if (nameInput) {
+                            const compactDiv = document.createElement('div');
+                            compactDiv.className = 'venue-name-compact';
+                            compactDiv.innerHTML = nameInput.outerHTML;
+                            const newInput = compactDiv.querySelector('.venue-name-input');
+                            newInput.onclick = function(e) { e.stopPropagation(); };
+                            card.insertBefore(compactDiv, card.firstChild);
+                        }
+                    }
+                }
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
+            attachVenueCardHandlers();
             setTimeout(updateVenueQuickLinks, 500);
             
             // For normal users, load their venue
