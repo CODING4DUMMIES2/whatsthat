@@ -737,6 +737,46 @@
             transform: rotate(-90deg);
         }
 
+        .help-icon {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            width: 18px;
+            height: 18px;
+            margin-left: 6px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.15);
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 11px;
+            font-weight: 700;
+            cursor: pointer;
+            line-height: 1;
+        }
+
+        .help-icon:hover {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        .help-popover {
+            position: absolute;
+            max-width: 260px;
+            background: rgba(10, 10, 20, 0.98);
+            color: #fff;
+            border-radius: 10px;
+            padding: 10px 12px;
+            font-size: 12px;
+            line-height: 1.4;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+            z-index: 9999;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        .help-popover strong {
+            display: block;
+            margin-bottom: 4px;
+            font-size: 12px;
+        }
+
         .collapsible-section {
             overflow: hidden;
             transition: max-height 0.3s ease;
@@ -1183,16 +1223,25 @@
                     <div class="sidebar-section-title">Navigation</div>
                     <button class="sidebar-button active" onclick="showVenuesSection()" id="venuesToggleBtn">
                         <span class="sidebar-button-icon"><img src="/img/venues.png" alt="Venues" style="width: 40px; height: 40px; object-fit: contain;"></span>
-                        <span class="sidebar-button-text">Venues</span>
+                        <span class="sidebar-button-text">
+                            Venues
+                            <span class="help-icon" onclick="showHelp(event, 'sidebar-venues')">?</span>
+                        </span>
                         <span class="sidebar-button-badge" id="venue-count-badge">0</span>
                     </button>
                     <button class="sidebar-button" onclick="toggleStreamSection()" id="streamToggleBtn">
                         <span class="sidebar-button-icon"><img src="/img/songs.png" alt="Stream" style="width: 40px; height: 40px; object-fit: contain;"></span>
-                        <span class="sidebar-button-text">Stream</span>
+                        <span class="sidebar-button-text">
+                            Stream
+                            <span class="help-icon" onclick="showHelp(event, 'sidebar-stream')">?</span>
+                        </span>
                     </button>
                     <a href="/settings" class="sidebar-button">
                         <span class="sidebar-button-icon">⚙️</span>
-                        <span class="sidebar-button-text">Settings</span>
+                        <span class="sidebar-button-text">
+                            Settings
+                            <span class="help-icon" onclick="showHelp(event, 'sidebar-settings')">?</span>
+                        </span>
                     </a>
                     <a href="/admin/genres" class="sidebar-button" style="display: {% if is_admin %}flex{% else %}none{% endif %};">
                         <span class="sidebar-button-icon">🎵</span>
@@ -1205,11 +1254,17 @@
                     <div class="sidebar-section-title">Quick Actions</div>
                     <button class="sidebar-button" onclick="scrollToCreate()">
                         <span class="sidebar-button-icon"><img src="/img/create.png" alt="Create" style="width: 40px; height: 40px; object-fit: contain;"></span>
-                        <span class="sidebar-button-text">Create Venue</span>
+                        <span class="sidebar-button-text">
+                            Create Venue
+                            <span class="help-icon" onclick="showHelp(event, 'sidebar-create-venue')">?</span>
+                        </span>
                     </button>
                     <button class="sidebar-button" onclick="openQRCreator()">
                         <span class="sidebar-button-icon"><img src="/img/qr.png" alt="QR" style="width: 40px; height: 40px; object-fit: contain;"></span>
-                        <span class="sidebar-button-text">QR Creator</span>
+                        <span class="sidebar-button-text">
+                            QR Creator
+                            <span class="help-icon" onclick="showHelp(event, 'sidebar-qr-creator')">?</span>
+                        </span>
                     </button>
                 </div>
         {% endif %}
@@ -1217,7 +1272,10 @@
                 <div class="sidebar-section">
                     <a href="/logout" class="sidebar-button">
                         <span class="sidebar-button-icon">🚪</span>
-                        <span class="sidebar-button-text">Logout</span>
+                        <span class="sidebar-button-text">
+                            Logout
+                            <span class="help-icon" onclick="showHelp(event, 'sidebar-logout')">?</span>
+                        </span>
                     </a>
                 </div>
             </div>
@@ -1353,6 +1411,101 @@
         const isAdmin = {{ 'true' if is_admin else 'false' }};
         const userVenueIds = {{ user_venue_ids|tojson if user_venue_ids else '[]' }};
         const currentVenueId = userVenueIds.length > 0 ? userVenueIds[0] : null;
+
+        // Central help text registry so every "?" in the app can explain itself.
+        const helpTexts = {
+            'sidebar-venues': {
+                title: 'Venues',
+                body: 'Shows all the venues you have created. Click a venue card to expand it, edit its name, see stats, QR codes, and manage tables.'
+            },
+            'sidebar-stream': {
+                title: 'Stream',
+                body: 'Opens the live music stream player for the currently selected venue. Use this on the device that plays music in your bar.'
+            },
+            'sidebar-settings': {
+                title: 'Settings',
+                body: 'Takes you to account and global settings where you can configure your profile, venue defaults, and other options.'
+            },
+            'sidebar-logout': {
+                title: 'Logout',
+                body: 'Logs you out of the dashboard. Use this when you are finished managing your venues.'
+            },
+            'sidebar-create-venue': {
+                title: 'Create Venue',
+                body: 'Create a new venue (room, bar area, etc.). Each venue gets its own QR codes, stream link, and queue.'
+            },
+            'sidebar-qr-creator': {
+                title: 'QR Creator',
+                body: 'Opens a tool to generate custom QR codes with AI backgrounds and optional logos, using your venue links.'
+            },
+            'venue-save-name': {
+                title: 'Save Venue Name',
+                body: 'Saves any changes you made to the venue name so they show up on QR codes, tables, and in your dashboard.'
+            },
+            'venue-live-tables': {
+                title: 'Live Tables',
+                body: 'Opens the live view for this venue where you can see tables, requests, and real-time activity.'
+            },
+            'stat-tables': {
+                title: 'Tables',
+                body: 'Shows how many tables (or areas) are configured for this venue. Each table can have its own QR code.'
+            },
+            'stat-queue': {
+                title: 'Queue',
+                body: 'Shows how many songs are currently waiting in the queue for this venue.'
+            },
+            'stat-requests': {
+                title: 'Requests',
+                body: 'Total number of song requests this venue has received.'
+            },
+            'section-tables': {
+                title: 'Tables Section',
+                body: 'Manage tables for this venue. Add tables and see the list of existing tables and their QR codes.'
+            },
+            'button-add-table': {
+                title: 'Add Table',
+                body: 'Creates a new table/area for this venue using the name you typed, and generates the links and QR codes for it.'
+            },
+            'section-qr-codes': {
+                title: 'QR Codes',
+                body: 'Shows ready-to-use QR codes and direct links for guests to submit song requests and for staff to open the live stream.'
+            }
+        };
+
+        function showHelp(event, key) {
+            event.stopPropagation();
+            const config = helpTexts[key];
+            if (!config) return;
+
+            // Remove any existing popover
+            document.querySelectorAll('.help-popover').forEach(p => p.remove());
+
+            const rect = event.currentTarget.getBoundingClientRect();
+            const pop = document.createElement('div');
+            pop.className = 'help-popover';
+            pop.innerHTML = `<strong>${config.title}</strong>${config.body}`;
+
+            document.body.appendChild(pop);
+
+            const top = rect.bottom + window.scrollY + 6;
+            let left = rect.left + window.scrollX;
+            const maxRight = left + pop.offsetWidth;
+            const viewportRight = window.scrollX + window.innerWidth - 12;
+            if (maxRight > viewportRight) {
+                left = viewportRight - pop.offsetWidth;
+            }
+
+            pop.style.top = `${top}px`;
+            pop.style.left = `${left}px`;
+
+            const close = () => {
+                pop.remove();
+                document.removeEventListener('click', close);
+            };
+            setTimeout(() => {
+                document.addEventListener('click', close, { once: true });
+            }, 0);
+        }
 
         function scrollToCreate() {
             document.getElementById('createVenueSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1611,7 +1764,10 @@
                                id="venue-name-${venueData.venue_id}" 
                                value="${venueData.name || 'Venue Name'}"
                                placeholder="Venue Name">
-                        <button onclick="updateVenueName('${venueData.venue_id}')" style="padding: 12px 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; cursor: pointer; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">Save</button>
+                        <button onclick="updateVenueName('${venueData.venue_id}')" style="padding: 12px 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; cursor: pointer; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                            Save
+                            <span class="help-icon" onclick="showHelp(event, 'venue-save-name')">?</span>
+                        </button>
                     </div>
                     <div class="venue-actions">
                         <button onclick="window.location.href='/venue/${venueData.venue_id}/live-tables'" 
@@ -1619,6 +1775,7 @@
                                 onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(255, 20, 147, 0.5)'" 
                                 onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(255, 20, 147, 0.4)'">
                             🎵 Live Tables
+                            <span class="help-icon" onclick="showHelp(event, 'venue-live-tables')">?</span>
                         </button>
                     </div>
                 </div>
@@ -1626,21 +1783,32 @@
                 <div class="venue-stats" id="stats-${venueData.venue_id}">
                     <div class="stat-item">
                         <div class="stat-value" id="table-count-${venueData.venue_id}">0</div>
-                        <div class="stat-label">Tables</div>
+                        <div class="stat-label">
+                            Tables
+                            <span class="help-icon" onclick="showHelp(event, 'stat-tables')">?</span>
+                        </div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-value" id="queue-count-${venueData.venue_id}">0</div>
-                        <div class="stat-label">Queue</div>
+                        <div class="stat-label">
+                            Queue
+                            <span class="help-icon" onclick="showHelp(event, 'stat-queue')">?</span>
+                        </div>
                     </div>
                     <div class="stat-item">
                         <div class="stat-value" id="request-count-${venueData.venue_id}">0</div>
-                        <div class="stat-label">Requests</div>
+                        <div class="stat-label">
+                            Requests
+                            <span class="help-icon" onclick="showHelp(event, 'stat-requests')">?</span>
+                        </div>
                     </div>
                 </div>
 
                 <div class="tables-section">
                     <div class="section-header" onclick="toggleSection('tables-section-${venueData.venue_id}', this)">
-                        <h3>📋 <span>Tables</span></h3>
+                        <h3>📋 <span>Tables</span>
+                            <span class="help-icon" onclick="showHelp(event, 'section-tables')">?</span>
+                        </h3>
                         <span class="section-toggle">Toggle</span>
                     </div>
                     <div class="collapsible-section" id="tables-section-${venueData.venue_id}">
@@ -1648,7 +1816,10 @@
                             <input type="text" 
                                    id="table-name-${venueData.venue_id}" 
                                    placeholder="Table name (e.g., Table 1, Bar Area, etc.)">
-                            <button onclick="createTable('${venueData.venue_id}')" style="white-space: nowrap;">Add Table</button>
+                            <button onclick="createTable('${venueData.venue_id}')" style="white-space: nowrap;">
+                                Add Table
+                                <span class="help-icon" onclick="showHelp(event, 'button-add-table')">?</span>
+                            </button>
                         </div>
                         <div class="tables-list" id="tables-${venueData.venue_id}" style="margin-top: 20px;">
                             <p style="color: rgba(255,255,255,0.5); padding: 20px; text-align: center;">No tables yet. Add one above.</p>
@@ -1658,7 +1829,9 @@
 
                 <div class="qr-section">
                     <div class="section-header" onclick="toggleSection('qr-section-${venueData.venue_id}', this)">
-                        <h3>📱 <span>QR Codes</span></h3>
+                        <h3>📱 <span>QR Codes</span>
+                            <span class="help-icon" onclick="showHelp(event, 'section-qr-codes')">?</span>
+                        </h3>
                         <span class="section-toggle">Toggle</span>
                     </div>
                     <div class="collapsible-section" id="qr-section-${venueData.venue_id}">
