@@ -279,6 +279,48 @@
             text-align: center;
         }
 
+        .venue-dropdown {
+            margin-top: 10px;
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            max-height: 220px;
+            overflow-y: auto;
+        }
+
+        .venue-dropdown-header {
+            padding: 8px 10px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: rgba(148, 163, 184, 0.9);
+        }
+
+        .venue-dropdown-list {
+            list-style: none;
+            margin: 0;
+            padding: 0 0 6px 0;
+        }
+
+        .venue-dropdown-item {
+            padding: 6px 12px;
+            font-size: 13px;
+            color: rgba(226, 232, 240, 0.95);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .venue-dropdown-item:hover {
+            background: rgba(30, 64, 175, 0.55);
+        }
+
+        .venue-dropdown-item.active {
+            background: rgba(59, 130, 246, 0.7);
+            font-weight: 600;
+        }
+
 
         .main-content {
             flex: 1;
@@ -1245,6 +1287,12 @@
                         </span>
                         <span class="sidebar-button-badge" id="venue-count-badge">0</span>
                     </button>
+                    <div class="venue-dropdown" id="venueDropdown" style="display:none;">
+                        <div class="venue-dropdown-header">Your Venues</div>
+                        <ul class="venue-dropdown-list" id="venueDropdownList">
+                            <!-- Populated by JS -->
+                        </ul>
+                    </div>
                     <button class="sidebar-button" onclick="toggleStreamSection()" id="streamToggleBtn">
                         <span class="sidebar-button-icon"><img src="/img/songs.png" alt="Stream" style="width: 40px; height: 40px; object-fit: contain;"></span>
                         <span class="sidebar-button-text">
@@ -2386,6 +2434,20 @@
             if (!isAdmin && userVenueIds.length > 0) {
                 loadUserVenues();
             }
+
+            // Build venue dropdown for multi-venue users
+            try {
+                const venueCards = document.querySelectorAll('.venue-card');
+                const venues = Array.from(venueCards).map(card => ({
+                    id: card.id.replace('venue-', ''),
+                    name: card.querySelector('.venue-name') ? card.querySelector('.venue-name').textContent.trim() : card.id
+                }));
+                if (venues.length > 0) {
+                    populateVenueDropdown(venues);
+                }
+            } catch (e) {
+                console.error('Error populating venue dropdown:', e);
+            }
         });
         
         async function loadUserVenues() {
@@ -2512,11 +2574,6 @@
                                     <a href="${table.submit_url}" target="_blank" rel="noopener noreferrer" style="display:block; word-break:break-all; font-size:11px; color:rgba(96,165,250,0.9); text-decoration:underline;" onclick="event.stopPropagation();">
                                         ${table.submit_url}
                                     </a>
-                                <div class="table-qr" style="margin-top:10px; display:flex; flex-direction:column; gap:8px; align-items:flex-start;">
-                                    <img src="${table.qr_code}" alt="Table QR" style="width:120px; height:120px; border-radius:10px; background:#020617;">
-                                    <a href="${table.submit_url}" target="_blank" rel="noopener noreferrer" style="display:block; word-break:break-all; font-size:11px; color:rgba(96,165,250,0.9); text-decoration:underline;" onclick="event.stopPropagation();">
-                                        ${table.submit_url}
-                                    </a>
                                     <div style="display:flex; gap:8px; flex-wrap:wrap; margin-top:4px;">
                                         <button type="button" onclick="onbPrintQr('${table.qr_code}')" style="border-radius:999px; padding:6px 12px; font-size:12px; border:1px solid transparent; background:linear-gradient(135deg,#FF1493,#8B2BE2); color:#f9fafb; cursor:pointer;">Print</button>
                                         <button type="button" onclick="onbDownloadQr('${table.qr_code}')" style="border-radius:999px; padding:6px 12px; font-size:12px; border:1px solid rgba(148,163,184,0.7); background:transparent; color:rgba(226,232,240,0.95); cursor:pointer;">Download</button>
@@ -2581,6 +2638,53 @@
             if (venuesBtn) {
                 venuesBtn.classList.add('active');
             }
+        }
+
+        function populateVenueDropdown(venues) {
+            const dropdown = document.getElementById('venueDropdown');
+            const list = document.getElementById('venueDropdownList');
+            if (!dropdown || !list) return;
+
+            if (!venues || venues.length === 0) {
+                dropdown.style.display = 'none';
+                return;
+            }
+
+            dropdown.style.display = 'block';
+            list.innerHTML = '';
+
+            venues.forEach(v => {
+                const li = document.createElement('li');
+                li.className = 'venue-dropdown-item';
+                li.dataset.venueId = v.id;
+                li.textContent = v.name || `Venue ${v.id}`;
+                if (v.id === currentVenueId) {
+                    li.classList.add('active');
+                }
+                li.onclick = (e) => {
+                    e.stopPropagation();
+                    selectVenueFromDropdown(v.id);
+                };
+                list.appendChild(li);
+            });
+        }
+
+        function selectVenueFromDropdown(venueId) {
+            const card = document.getElementById(`venue-${venueId}`);
+            const allCards = document.querySelectorAll('.venue-card');
+            allCards.forEach(c => {
+                if (c.id === `venue-${venueId}`) {
+                    c.classList.add('expanded');
+                    c.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                } else {
+                    c.classList.remove('expanded');
+                }
+            });
+
+            const items = document.querySelectorAll('.venue-dropdown-item');
+            items.forEach(item => {
+                item.classList.toggle('active', item.dataset.venueId === venueId);
+            });
         }
 
         function toggleStreamSection() {
