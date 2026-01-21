@@ -1428,11 +1428,136 @@
         </div>
     </div>
 
+    <!-- Onboarding modal overlay (first-time setup) -->
+    <div id="onboardingOverlay" style="position: fixed; inset: 0; background: radial-gradient(circle at top, rgba(15,23,42,0.96), rgba(3,7,18,0.98)); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); display: none; align-items: center; justify-content: center; z-index: 2000;">
+        <div style="max-width: 960px; width: 100%; padding: 28px 20px;">
+            <div style="position: relative; border-radius: 20px; padding: 26px 26px 20px; background: rgba(15,23,42,0.96); box-shadow: 0 30px 80px rgba(0,0,0,0.9); border: 1px solid rgba(167,139,250,0.6); overflow: hidden;">
+                <div style="position:absolute; inset:-2px; border-radius:22px; padding:2px; background:linear-gradient(120deg, rgba(236,72,153,0.7), rgba(129,140,248,0.9), rgba(56,189,248,0.7)); -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; opacity:0.8; pointer-events:none;"></div>
+                <div style="position:relative; z-index:1;">
+                    <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:18px;">
+                        <div>
+                            <div style="font-size:22px; font-weight:800; display:flex; align-items:center; gap:10px;">
+                                <span style="width:32px; height:32px; border-radius:999px; background:radial-gradient(circle at 30% 20%, #f97316, #ec4899 55%, #6366f1 100%); display:flex; align-items:center; justify-content:center; font-size:18px;">🎛️</span>
+                                <span>Welcome, {{ user_name }} — quick tour of your venue</span>
+                            </div>
+                            <div style="font-size:13px; color:rgba(226,232,240,0.7); margin-top:4px;">
+                                This runs only once. We’ll show you how to stream, use QR codes, and where to change your settings.
+                            </div>
+                        </div>
+                        <div style="display:flex; gap:8px; align-items:center;">
+                            <span id="onb-pill-1" style="padding:6px 10px; border-radius:999px; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; border:1px solid rgba(148,163,184,0.4); color:rgba(148,163,184,0.9);">Step 1 · Overview</span>
+                            <span id="onb-pill-2" style="padding:6px 10px; border-radius:999px; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; border:1px solid rgba(148,163,184,0.4); color:rgba(148,163,184,0.9);">Step 2 · QR & Tables</span>
+                            <span id="onb-pill-3" style="padding:6px 10px; border-radius:999px; font-size:11px; text-transform:uppercase; letter-spacing:0.08em; border:1px solid rgba(148,163,184,0.4); color:rgba(148,163,184,0.9);">Step 3 · Dashboard</span>
+                        </div>
+                    </div>
+
+                    <div id="onb-step-1" style="display:flex; gap:18px; margin-top:8px;">
+                        <div style="flex:2;">
+                            <h2 style="font-size:20px; margin-bottom:8px;">How this dashboard fits into your venue</h2>
+                            <p style="font-size:14px; color:rgba(226,232,240,0.85); margin-bottom:6px;">
+                                You’ll use this screen to create venues, print QR codes, and watch the live queue while music streams in your room.
+                            </p>
+                            <ul style="margin-top:10px; font-size:13px; color:rgba(226,232,240,0.9); padding-left:18px;">
+                                <li>Guests scan **QR codes** to request songs from their phone.</li>
+                                <li>Your **Live Music Stream** tab is what you open on the device plugged into your speakers.</li>
+                                <li>The **queue cards** below show tables, queue size, and total requests.</li>
+                            </ul>
+                        </div>
+                        <div style="flex:1.4; border-radius:14px; border:1px dashed rgba(148,163,184,0.5); padding:12px 12px 10px; background:radial-gradient(circle at top left, rgba(129,140,248,0.22), rgba(15,23,42,0.95)); font-size:12px;">
+                            <strong style="display:block; margin-bottom:6px;">Quick map of the left sidebar</strong>
+                            <ul style="padding-left:16px; line-height:1.5;">
+                                <li><b>Venues</b> — manage your venue cards, tables and QR codes.</li>
+                                <li><b>Stream</b> — open the live player for this venue.</li>
+                                <li><b>Settings</b> — Allowed Genres, explicit filter, custom stream rules.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div id="onb-step-2" style="display:none; gap:18px; margin-top:8px;">
+                        <div style="flex:2;">
+                            <h2 style="font-size:20px; margin-bottom:8px;">Choose how QR codes should work</h2>
+                            <p style="font-size:14px; color:rgba(226,232,240,0.85); margin-bottom:6px;">
+                                Decide if you want one QR for the whole room or unique QR codes per table with tracking.
+                            </p>
+                            <div style="margin-top:14px; display:grid; gap:10px;">
+                                <div id="onb-choice-single" style="border-radius:12px; border:1px solid rgba(148,163,184,0.7); padding:10px 12px; display:flex; gap:10px; align-items:flex-start; cursor:pointer; background:rgba(15,23,42,0.8);" onclick="onbSelectQrMode('single')">
+                                    <div style="margin-top:3px;"><input type="radio" name="onbQrMode" value="single" id="onb-qr-single"></div>
+                                    <div>
+                                        <div style="font-size:14px; font-weight:600;">Single QR for the whole venue</div>
+                                        <div style="font-size:12px; color:rgba(226,232,240,0.85); margin-top:3px;">
+                                            One QR you can print and post everywhere. Simple setup, no per-table tracking — just one shared request line.
+                                        </div>
+                                    </div>
+                                </div>
+                                <div id="onb-choice-tables" style="border-radius:12px; border:1px solid rgba(148,163,184,0.7); padding:10px 12px; display:flex; gap:10px; align-items:flex-start; cursor:pointer; background:rgba(15,23,42,0.8);" onclick="onbSelectQrMode('tables')">
+                                    <div style="margin-top:3px;"><input type="radio" name="onbQrMode" value="tables" id="onb-qr-tables"></div>
+                                    <div>
+                                        <div style="font-size:14px; font-weight:600;">Table tracking with unique QR per table</div>
+                                        <div style="font-size:12px; color:rgba(226,232,240,0.85); margin-top:3px;">
+                                            Each table gets its own printable QR. Requests are logged per table so you know exactly who requested what.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="flex:1.4; border-radius:14px; border:1px dashed rgba(148,163,184,0.5); padding:12px 12px 10px; background:radial-gradient(circle at top left, rgba(56,189,248,0.22), rgba(15,23,42,0.95)); font-size:12px;">
+                            <strong style="display:block; margin-bottom:6px;">We’ll remember this for you</strong>
+                            <ul style="padding-left:16px; line-height:1.5;">
+                                <li><b>Single QR</b> — easiest for bars & stages; copy the same code everywhere.</li>
+                                <li><b>Table QR</b> — best when you want per-table analytics and VIP treatment.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div id="onb-step-3" style="display:none; gap:18px; margin-top:8px;">
+                        <div style="flex:2;">
+                            <h2 style="font-size:20px; margin-bottom:8px;">Next: click through your live dashboard</h2>
+                            <p style="font-size:14px; color:rgba(226,232,240,0.85); margin-bottom:6px;">
+                                When this window closes you’ll be looking at this same dashboard for real — with live cards and controls.
+                            </p>
+                            <div style="margin-top:10px; border-radius:12px; border:1px solid rgba(148,163,184,0.6); padding:10px 12px; background:radial-gradient(circle at top left, rgba(129,140,248,0.25), rgba(15,23,42,0.98)); font-size:12px;">
+                                <div style="display:flex; gap:8px; margin-bottom:6px;">
+                                    <span style="border-radius:999px; padding:3px 8px; background:rgba(15,23,42,0.9); border:1px solid rgba(148,163,184,0.5);">Venues</span>
+                                    <span>· Expand your venue card to see Tables, QR Codes, and stats.</span>
+                                </div>
+                                <div style="display:flex; gap:8px; margin-bottom:6px;">
+                                    <span style="border-radius:999px; padding:3px 8px; background:rgba(15,23,42,0.9); border:1px solid rgba(148,163,184,0.5);">Stream</span>
+                                    <span>· Start the Live Music Stream from the device plugged into your sound system.</span>
+                                </div>
+                                <div style="display:flex; gap:8px;">
+                                    <span style="border-radius:999px; padding:3px 8px; background:rgba(15,23,42,0.9); border:1px solid rgba(148,163,184,0.5);">Settings</span>
+                                    <span>· Lock in Allowed Genres, explicit filter, and custom stream instructions for your room.</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="flex:1.4; border-radius:14px; border:1px dashed rgba(148,163,184,0.5); padding:12px 12px 10px; background:radial-gradient(circle at top left, rgba(236,72,153,0.25), rgba(15,23,42,0.98)); font-size:12px;">
+                            <strong style="display:block; margin-bottom:6px;">After this window closes</strong>
+                            <ul style="padding-left:16px; line-height:1.5;">
+                                <li>Create or rename your venue at the top.</li>
+                                <li>Print QR codes from the **QR Codes** section.</li>
+                                <li>Press **Stream** and **Start Queue** to start the music.</li>
+                            </ul>
+                        </div>
+                    </div>
+
+                    <div style="margin-top:20px; display:flex; justify-content:space-between; align-items:center; font-size:11px; color:rgba(148,163,184,0.9);">
+                        <div id="onb-indicator">Step 1 of 3 · You can tweak everything later in Venues and Settings.</div>
+                        <div style="display:flex; gap:8px;">
+                            <button type="button" onclick="onbSkip()" style="border-radius:999px; padding:8px 14px; font-size:13px; border:1px solid rgba(148,163,184,0.6); background:transparent; color:rgba(226,232,240,0.9); cursor:pointer;">Skip for now</button>
+                            <button type="button" id="onb-next-btn" onclick="onbNext()" style="border-radius:999px; padding:8px 16px; font-size:13px; border:1px solid transparent; background:linear-gradient(135deg,#FF1493,#8B2BE2); color:#f9fafb; cursor:pointer; box-shadow:0 6px 20px rgba(139,92,246,0.6);">Next</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const baseUrl = '{{ base_url }}';
         const isAdmin = {{ 'true' if is_admin else 'false' }};
         const userVenueIds = {{ user_venue_ids|tojson if user_venue_ids else '[]' }};
         const currentVenueId = userVenueIds.length > 0 ? userVenueIds[0] : null;
+        const showOnboarding = {{ 'true' if show_onboarding else 'false' if show_onboarding is not none else 'false' }};
 
         // Central help text registry so every "?" in the app can explain itself.
         const helpTexts = {
@@ -1560,6 +1685,89 @@
                 document.addEventListener('click', close, { once: true });
             }, 0);
         }
+
+        // In-dashboard onboarding modal logic
+        let onbStep = 1;
+        let onbQrMode = null;
+
+        function onbUpdateUI() {
+            for (let i = 1; i <= 3; i++) {
+                const s = document.getElementById(`onb-step-${i}`);
+                const p = document.getElementById(`onb-pill-${i}`);
+                if (s) s.style.display = (i === onbStep) ? 'flex' : 'none';
+                if (p) {
+                    p.style.background = i === onbStep ? 'linear-gradient(135deg,#FF1493,#8B2BE2)' : 'transparent';
+                    p.style.color = i === onbStep ? '#fff' : 'rgba(148,163,184,0.9)';
+                    p.style.borderColor = i === onbStep ? 'transparent' : 'rgba(148,163,184,0.4)';
+                }
+            }
+            const ind = document.getElementById('onb-indicator');
+            const btn = document.getElementById('onb-next-btn');
+            if (ind) ind.textContent = `Step ${onbStep} of 3 · You can tweak everything later in Venues and Settings.`;
+            if (btn) btn.textContent = onbStep === 3 ? 'Finish & Go To My Dashboard' : 'Next';
+        }
+
+        function onbSelectQrMode(mode) {
+            onbQrMode = mode;
+            const cs = document.getElementById('onb-choice-single');
+            const ct = document.getElementById('onb-choice-tables');
+            const rS = document.getElementById('onb-qr-single');
+            const rT = document.getElementById('onb-qr-tables');
+            if (mode === 'single') {
+                if (cs) cs.classList.add('selected');
+                if (ct) ct.classList.remove('selected');
+                if (rS) rS.checked = true;
+            } else {
+                if (ct) ct.classList.add('selected');
+                if (cs) cs.classList.remove('selected');
+                if (rT) rT.checked = true;
+            }
+        }
+
+        async function onbComplete(skip = false) {
+            try {
+                const payload = skip ? {} : { qr_mode: onbQrMode };
+                const resp = await fetch('/onboarding/complete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (resp.ok) {
+                    const data = await resp.json().catch(() => null);
+                    const redirectUrl = (data && data.redirect) || '/venues';
+                    window.location.href = redirectUrl;
+                } else {
+                    document.getElementById('onboardingOverlay').style.display = 'none';
+                }
+            } catch (e) {
+                console.error('Error completing onboarding:', e);
+                document.getElementById('onboardingOverlay').style.display = 'none';
+            }
+        }
+
+        function onbNext() {
+            if (onbStep === 2 && !onbQrMode) {
+                alert('Please choose how you want QR codes to work before continuing.');
+                return;
+            }
+            if (onbStep < 3) {
+                onbStep += 1;
+                onbUpdateUI();
+            } else {
+                onbComplete(false);
+            }
+        }
+
+        function onbSkip() {
+            onbComplete(true);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (showOnboarding && document.getElementById('onboardingOverlay')) {
+                document.getElementById('onboardingOverlay').style.display = 'flex';
+                onbUpdateUI();
+            }
+        });
 
         function scrollToCreate() {
             document.getElementById('createVenueSection').scrollIntoView({ behavior: 'smooth', block: 'start' });

@@ -1928,17 +1928,16 @@ def signup():
         # Mark session as modified to ensure it's saved
         session.modified = True
         
-        # After signup, send non-admins into onboarding wizard first
-        target = 'venues' if users[email].get('is_admin', False) else 'onboarding'
+        # After signup, send everyone to venues; first-time users will see the in-dashboard wizard modal
         if request.is_json:
-            redirect_url = url_for(target)
+            redirect_url = url_for('venues')
             return jsonify({
                 'success': True, 
                 'message': 'Account created successfully',
                 'redirect': redirect_url
             })
         
-        return redirect(url_for(target))
+        return redirect(url_for('venues'))
     
     return render_template('signup.html')
 
@@ -2001,18 +2000,13 @@ def login():
         # Mark session as modified to ensure it's saved
         session.modified = True
         
-        # Decide where to send the user: onboarding wizard for first-time non-admins, venues otherwise
-        user_record = users.get(email, {})
-        should_onboard = (not user_record.get('is_admin', False)) and (not user_record.get('onboarding_completed', False))
-        target = 'onboarding' if should_onboard else 'venues'
-
         if request.is_json:
             return jsonify({
                 'success': True, 
                 'message': 'Logged in successfully',
-                'redirect': url_for(target)
+                'redirect': url_for('venues')
             })
-        return redirect(url_for(target))
+        return redirect(url_for('venues'))
     
     return render_template('login.html')
 
@@ -2041,13 +2035,11 @@ def venues():
         base_url = get_base_url() or ''
         return render_template('admin_venues.html', base_url=base_url, user_name=session.get('user_name', 'User'), is_admin=True, user_venue_ids=all_venue_ids)
     else:
-        # Normal user sees only their venue
-        # If they haven't completed onboarding, send them through the wizard first.
+        # Normal user sees only their venue; onboarding wizard (if any) is shown as a modal on top of this page.
         global users
         users = load_users()
         user_record = users.get(user_email, {})
-        if not user_record.get('onboarding_completed', False):
-            return redirect(url_for('onboarding'))
+        show_onboarding = not user_record.get('onboarding_completed', False)
         # RELOAD data before checking to ensure we have latest
         load_data()
         user_venue_ids = venue_owners.get(user_email, [])
@@ -2085,7 +2077,14 @@ def venues():
             print(f"✅ Auto-created venue saved")
         
         base_url = get_base_url() or ''
-        return render_template('admin_venues.html', base_url=base_url, user_name=session.get('user_name', 'User'), is_admin=False, user_venue_ids=user_venue_ids)
+        return render_template(
+            'admin_venues.html',
+            base_url=base_url,
+            user_name=session.get('user_name', 'User'),
+            is_admin=False,
+            user_venue_ids=user_venue_ids,
+            show_onboarding=show_onboarding
+        )
 
 
 @app.route('/admin/genres')
