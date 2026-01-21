@@ -2614,11 +2614,21 @@
             console.log('Tutorial steps:', tutorialSteps.length);
             currentTutorialStep = 0;
             
+            // Make sure overlay exists and is visible
+            const overlay = document.getElementById('tutorialOverlay');
+            if (!overlay) {
+                console.error('Tutorial overlay not found in DOM!');
+                return;
+            }
+            console.log('Tutorial overlay found:', overlay);
+            
             // Ensure DOM is ready and elements are loaded
             setTimeout(() => {
                 console.log('Calling showTutorialStep(0)...');
-                const overlay = document.getElementById('tutorialOverlay');
-                console.log('Tutorial overlay element:', overlay);
+                // Force overlay to be visible first
+                overlay.style.display = 'block';
+                overlay.style.visibility = 'visible';
+                overlay.style.zIndex = '4000';
                 showTutorialStep(0);
             }, 500);
         }
@@ -2664,13 +2674,13 @@
             // Check if element exists and is visible
             if (!element) {
                 console.log(`Tutorial step ${stepIndex + 1}: Element not found for selector: ${step.selector}`);
-                // Element not found, wait a bit longer and try again, or skip
+                // Element not found, wait a bit longer and try again
                 setTimeout(() => {
                     const retryElement = document.querySelector(step.selector);
                     if (!retryElement) {
-                        // Still not found, skip to next step
-                        console.log(`Skipping step ${stepIndex + 1}: ${step.title}`);
-                        showTutorialStep(stepIndex + 1);
+                        // Still not found - show popup in center of screen as fallback
+                        console.log(`Element still not found for step ${stepIndex + 1}, showing popup in center`);
+                        showTutorialStepFallback(stepIndex, step);
                     } else {
                         // Found it, show this step
                         showTutorialStep(stepIndex);
@@ -2686,6 +2696,40 @@
                 }, 500);
                 return;
             }
+            
+            // Element found and visible - proceed with showing tutorial step
+            showTutorialStepWithElement(stepIndex, step, element);
+        }
+        
+        function showTutorialStepFallback(stepIndex, step) {
+            // Show tutorial popup in center of screen when element not found
+            const tutorialOverlay = document.getElementById('tutorialOverlay');
+            const tutorialPopup = document.getElementById('tutorialPopup');
+            const tutorialTitle = document.getElementById('tutorialTitle');
+            const tutorialText = document.getElementById('tutorialText');
+            const tutorialStepCount = document.getElementById('tutorialStepCount');
+            const tutorialNextBtn = document.getElementById('tutorialNextBtn');
+            
+            if (!tutorialOverlay || !tutorialPopup) return;
+            
+            tutorialTitle.textContent = step.title;
+            tutorialText.textContent = step.text + ' (Element not found - please navigate to this feature manually)';
+            tutorialStepCount.textContent = `${stepIndex + 1}/${tutorialSteps.length}`;
+            
+            if (stepIndex === tutorialSteps.length - 1) {
+                tutorialNextBtn.textContent = 'Finish';
+            } else {
+                tutorialNextBtn.textContent = 'Next';
+            }
+            
+            tutorialOverlay.style.display = 'block';
+            tutorialPopup.style.left = '50%';
+            tutorialPopup.style.top = '50%';
+            tutorialPopup.style.transform = 'translate(-50%, -50%)';
+            tutorialPopup.style.opacity = '1';
+        }
+        
+        function showTutorialStepWithElement(stepIndex, step, element) {
 
             const tutorialOverlay = document.getElementById('tutorialOverlay');
             const tutorialHighlight = document.getElementById('tutorialHighlight');
