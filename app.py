@@ -531,9 +531,11 @@ def chat():
 @app.route('/venue/<venue_id>/submit')
 def venue_submit(venue_id):
     """Submission page for users to request songs for a specific venue"""
-    # Get allowed genres for this venue, default to all if not set
-    allowed_genres = venue_metadata.get(venue_id, {}).get('allowed_genres', ['country', 'rap', 'rock', 'pop', 'jazz', 'lofi', 'electronic', 'r&b', 'metal', 'classical'])
-    return render_template('venue_submit.html', venue_id=venue_id, table_id=None, allowed_genres=allowed_genres)
+    # Get allowed genres and custom instructions for this venue
+    venue_data = venue_metadata.get(venue_id, {})
+    allowed_genres = venue_data.get('allowed_genres', ['country', 'rap', 'rock', 'pop', 'jazz', 'lofi', 'electronic', 'r&b', 'metal', 'classical'])
+    custom_instructions = venue_data.get('custom_instructions', None)
+    return render_template('venue_submit.html', venue_id=venue_id, table_id=None, allowed_genres=allowed_genres, custom_instructions=custom_instructions)
 
 
 @app.route('/venue/<venue_id>/stream')
@@ -1000,6 +1002,24 @@ def send_message():
                         'error': f'Genre "{genre}" is not allowed for this venue. Allowed genres: {", ".join(allowed_genres)}'
                     }), 400
 
+        # Filter/modify message using GPT API if custom instructions exist
+        if venue_id:
+            load_data()
+            if venue_id in venue_metadata:
+                custom_instructions = venue_metadata[venue_id].get('custom_instructions')
+                if custom_instructions:
+                    print(f"🔍 Filtering message with custom instructions: {custom_instructions}")
+                    filtered_result = filter_message_with_gpt(message, custom_instructions)
+                    if filtered_result['rejected']:
+                        print(f"❌ Message rejected by GPT filter: {filtered_result['reason']}")
+                        return jsonify({
+                            'success': False,
+                            'error': filtered_result['reason'] or 'This song request violates venue rules.'
+                        }), 400
+                    if filtered_result['modified']:
+                        message = filtered_result['modified_message']
+                        print(f"✅ Message modified by GPT: {message}")
+
         # Save message to file
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
         filename = f"message_{timestamp}.txt"
@@ -1055,7 +1075,7 @@ def serve_image(filename):
         if not os.path.exists(file_path):
             print(f"   ❌ File not found! Listing directory: {os.listdir(IMG_DIR) if os.path.exists(IMG_DIR) else 'IMG_DIR does not exist'}")
             return jsonify({'error': f'Image not found: {filename}'}), 404
-        return send_from_directory(IMG_DIR, filename)
+    return send_from_directory(IMG_DIR, filename)
     except Exception as e:
         import traceback
         error_msg = f"Error serving image {filename}: {str(e)}\n{traceback.format_exc()}"
@@ -1192,6 +1212,81 @@ def music_callback():
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+def filter_message_with_gpt(message: str, custom_instructions: str):
+    """
+    Use GPT API to filter/modify song requests based on custom instructions.
+    Returns: {'rejected': bool, 'reason': str or None, 'modified': bool, 'modified_message': str or None}
+    """
+    if not OPENAI_API_KEY:
+        print("⚠️ OPENAI_API_KEY not set, skipping GPT filtering")
+        return {'rejected': False, 'reason': None, 'modified': False, 'modified_message': None}
+    
+    try:
+        prompt = f"""You are a gatekeeper for a music venue's song request system. The venue has set these custom rules:
+
+{custom_instructions}
+
+A guest has submitted this song request: "{message}"
+
+Your task:
+1. If the request violates the rules, respond with JSON: {{"rejected": true, "reason": "explanation of why it was rejected"}}
+2. If the request is acceptable but needs modification to comply with rules, respond with JSON: {{"rejected": false, "modified": true, "modified_message": "the modified request"}}
+3. If the request is fine as-is, respond with JSON: {{"rejected": false, "modified": false}}
+
+Only respond with valid JSON, nothing else."""
+
+        headers = {
+            'Authorization': f'Bearer {OPENAI_API_KEY}',
+            'Content-Type': 'application/json'
+        }
+        
+        payload = {
+            'model': 'gpt-3.5-turbo',
+            'messages': [
+                {'role': 'system', 'content': 'You are a helpful assistant that filters song requests based on venue rules. Always respond with valid JSON only.'},
+                {'role': 'user', 'content': prompt}
+            ],
+            'temperature': 0.3,
+            'max_tokens': 200
+        }
+        
+        response = requests.post('https://api.openai.com/v1/chat/completions', headers=headers, json=payload, timeout=10)
+        
+        if response.status_code == 200:
+            result = response.json()
+            content = result['choices'][0]['message']['content'].strip()
+            
+            # Try to parse JSON response
+            try:
+                # Remove markdown code blocks if present
+                if content.startswith('```'):
+                    content = content.split('```')[1]
+                    if content.startswith('json'):
+                        content = content[4:]
+                    content = content.strip()
+                
+                parsed = json.loads(content)
+                return {
+                    'rejected': parsed.get('rejected', False),
+                    'reason': parsed.get('reason'),
+                    'modified': parsed.get('modified', False),
+                    'modified_message': parsed.get('modified_message')
+                }
+            except json.JSONDecodeError:
+                print(f"⚠️ GPT returned invalid JSON: {content}")
+                # If GPT doesn't return valid JSON, allow the request through
+                return {'rejected': False, 'reason': None, 'modified': False, 'modified_message': None}
+        else:
+            print(f"⚠️ GPT API error: {response.status_code} - {response.text}")
+            return {'rejected': False, 'reason': None, 'modified': False, 'modified_message': None}
+    except Exception as e:
+        print(f"⚠️ Error calling GPT API: {e}")
+        import traceback
+        traceback.print_exc()
+        # On error, allow request through (fail open)
+        return {'rejected': False, 'reason': None, 'modified': False, 'modified_message': None}
+
+
 def call_suno_generate_music(prompt: str, venue_id: str = None, table_id: str = None, genre: str = None):
     """
     Call Suno /api/v1/generate to start music generation.
@@ -1220,7 +1315,7 @@ def call_suno_generate_music(prompt: str, venue_id: str = None, table_id: str = 
     try:
         # Use provided genre, or detect from message, or leave empty
         if not genre:
-            genre = detect_genre(prompt)
+        genre = detect_genre(prompt)
             print(f"   Detected genre: {genre}")
         
         # Get venue settings for explicit content
@@ -1235,7 +1330,7 @@ def call_suno_generate_music(prompt: str, venue_id: str = None, table_id: str = 
         else:
             # Let Suno decide, but still ask for a full vocal song
             final_prompt = f"Make a full vocal song about: {prompt}"
-        
+
         # Add explicit/non-explicit instruction ONLY if setting is configured
         if explicit_content is not None:
             if explicit_content:
@@ -1994,9 +2089,11 @@ def settings():
         metadata = venue_metadata[venue_id]
         allowed_genres = metadata.get('allowed_genres', ['country', 'rap', 'rock', 'pop', 'jazz', 'lofi', 'electronic', 'r&b', 'metal', 'classical'])
         explicit_content = metadata.get('explicit_content', None)  # None = not set, True = explicit, False = non-explicit
+        custom_instructions = metadata.get('custom_instructions', None)
     else:
         allowed_genres = ['country', 'rap', 'rock', 'pop', 'jazz', 'lofi', 'electronic', 'r&b', 'metal', 'classical']
         explicit_content = None
+        custom_instructions = None
     
     all_genres = ['country', 'rap', 'rock', 'pop', 'jazz', 'lofi', 'electronic', 'r&b', 'metal', 'classical']
     
@@ -2005,6 +2102,7 @@ def settings():
                          user_venue_ids=user_venue_ids,
                          allowed_genres=allowed_genres,
                          explicit_content=explicit_content,
+                         custom_instructions=custom_instructions,
                          all_genres=all_genres,
                          user_name=session.get('user_name', 'User'),
                          is_admin=is_admin)
@@ -2013,11 +2111,12 @@ def settings():
 @app.route('/venue/<venue_id>/settings', methods=['POST'])
 @require_login
 def update_venue_settings(venue_id):
-    """Update venue settings (genres and explicit content)"""
+    """Update venue settings (genres, explicit content, and custom instructions)"""
     try:
         data = request.get_json()
         allowed_genres = data.get('allowed_genres', [])
         explicit_content = data.get('explicit_content', None)  # None, True, or False
+        custom_instructions = data.get('custom_instructions', None)  # String or None
         
         if venue_id not in venue_metadata:
             return jsonify({'success': False, 'error': 'Venue not found'}), 404
@@ -2038,13 +2137,20 @@ def update_venue_settings(venue_id):
             # Remove the setting if None (not set)
             venue_metadata[venue_id].pop('explicit_content', None)
         
+        # Update custom instructions
+        if custom_instructions:
+            venue_metadata[venue_id]['custom_instructions'] = custom_instructions.strip()
+        else:
+            venue_metadata[venue_id].pop('custom_instructions', None)
+        
         save_data()
         
         return jsonify({
             'success': True,
             'venue_id': venue_id,
             'allowed_genres': allowed_genres,
-            'explicit_content': explicit_content
+            'explicit_content': explicit_content,
+            'custom_instructions': custom_instructions
         })
     except Exception as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -2480,12 +2586,12 @@ if __name__ == '__main__':
     debug = os.environ.get('FLASK_ENV') == 'development'
     
     if debug:
-        local_ip = get_local_ip()
-        print(f"\n{'='*60}")
-        print("Server starting...")
-        print(f"Local access: http://127.0.0.1:{port}")
-        print(f"Network access: http://{local_ip}:{port}")
-        print(f"QR Code: http://{local_ip}:{port}/qr")
-        print(f"{'='*60}\n")
+    local_ip = get_local_ip()
+    print(f"\n{'='*60}")
+    print("Server starting...")
+    print(f"Local access: http://127.0.0.1:{port}")
+    print(f"Network access: http://{local_ip}:{port}")
+    print(f"QR Code: http://{local_ip}:{port}/qr")
+    print(f"{'='*60}\n")
     
     app.run(debug=debug, host='0.0.0.0', port=port)

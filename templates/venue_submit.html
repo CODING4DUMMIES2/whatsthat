@@ -245,7 +245,7 @@
         </div>
 
         <form id="songRequestForm">
-            <div class="form-group">
+            <div class="form-group" id="genreGroup">
                 <label for="genreSelect">Genre (Optional)</label>
                 <select id="genreSelect">
                     <option value="">Auto-detect from description</option>
@@ -288,6 +288,43 @@
         const statusMessage = document.getElementById('statusMessage');
         const venueId = '{{ venue_id }}';
         const tableId = '{{ table_id }}' || null;
+        const customInstructions = {{ custom_instructions|tojson if custom_instructions else 'null' }};
+        
+        // Check for "only [genre]" pattern in custom instructions
+        let forcedGenre = null;
+        if (customInstructions) {
+            const instructionsLower = customInstructions.toLowerCase();
+            const genreMap = {
+                'country': 'country',
+                'rap': 'rap',
+                'rock': 'rock',
+                'pop': 'pop',
+                'jazz': 'jazz',
+                'lofi': 'lofi',
+                'lo-fi': 'lofi',
+                'electronic': 'electronic',
+                'r&b': 'r&b',
+                'rnb': 'r&b',
+                'metal': 'metal',
+                'classical': 'classical'
+            };
+            
+            // Check for "only [genre]" pattern
+            for (const [key, genre] of Object.entries(genreMap)) {
+                if (instructionsLower.includes(`only ${key}`) || instructionsLower.includes(`only ${genre}`)) {
+                    forcedGenre = genre;
+                    break;
+                }
+            }
+            
+            // If forced genre found, hide dropdown and set genre automatically
+            if (forcedGenre) {
+                const genreGroup = document.getElementById('genreGroup');
+                const genreSelect = document.getElementById('genreSelect');
+                genreGroup.style.display = 'none';
+                genreSelect.value = forcedGenre;
+            }
+        }
 
         form.addEventListener('submit', async function(e) {
             e.preventDefault();

@@ -519,6 +519,19 @@
                     </p>
                 </div>
 
+                <div class="settings-section">
+                    <h2>📝 Custom Stream Instructions</h2>
+                    <p>Set custom rules for song requests. These instructions will be used by AI to filter and modify requests before they reach the music generator.</p>
+                    <p style="margin-bottom: 12px; font-size: 13px; color: rgba(255,255,255,0.6);">
+                        Examples: "No more songs about jeff or divorce", "Only country music", "No songs about breakups", etc.
+                    </p>
+                    <textarea 
+                        id="customInstructions" 
+                        placeholder="Enter custom instructions for your stream (e.g., 'Only country music' or 'No songs about jeff or divorce')..."
+                        style="width: 100%; min-height: 120px; padding: 14px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 10px; background: rgba(44, 46, 50, 0.8); color: white; font-family: inherit; font-size: 14px; resize: vertical;"
+                    >{{ custom_instructions or '' }}</textarea>
+                </div>
+
                 <button class="save-button" onclick="saveSettings()" id="saveBtn">
                     💾 Save Settings
                 </button>
@@ -589,6 +602,8 @@
             }
 
             try {
+                const customInstructions = document.getElementById('customInstructions').value.trim();
+                
                 const response = await fetch(`/venue/${venueId}/settings`, {
                     method: 'POST',
                     headers: {
@@ -596,7 +611,8 @@
                     },
                     body: JSON.stringify({
                         allowed_genres: selectedGenres,
-                        explicit_content: currentExplicitContent
+                        explicit_content: currentExplicitContent,
+                        custom_instructions: customInstructions || null
                     })
                 });
 
