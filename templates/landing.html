@@ -3177,9 +3177,18 @@
                 </div>
                 <div style="display: flex; align-items: center; gap: 12px;">
                     <div style="color: rgba(255, 255, 255, 0.7); font-size: 14px;">${item.status === 'generating' ? '⏳ Generating...' : '✅ Ready'}</div>
-                    ${isReady ? '<button onclick="playDemoSong(\'' + (item.filename || '') + '\')" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform=\'scale(1.05)\';" onmouseout="this.style.transform=\'scale(1)\';">▶ Play</button>' : ''}
+                    ${isReady ? '<button class="demo-play-btn" style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border: none; color: white; padding: 8px 16px; border-radius: 6px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s;" onmouseover="this.style.transform=\'scale(1.05)\';" onmouseout="this.style.transform=\'scale(1)\';">▶ Play</button>' : ''}
                 </div>
             `;
+            // Attach play handler using the stream URL when ready
+            if (isReady) {
+                const btn = itemDiv.querySelector('.demo-play-btn');
+                if (btn) {
+                    btn.addEventListener('click', () => {
+                        playDemoSong(item.stream_url || item.streamUrl || '', item.filename || '');
+                    });
+                }
+            }
             
             queueItems.insertBefore(itemDiv, queueItems.firstChild);
             
@@ -3191,7 +3200,7 @@
 
         let currentDemoAudio = null;
         
-        function playDemoSong(filename) {
+        function playDemoSong(streamUrl, filename) {
             // Stop any currently playing demo song
             if (currentDemoAudio) {
                 currentDemoAudio.pause();
@@ -3203,20 +3212,33 @@
                 backgroundAudio.pause();
             }
 
+            // Decide which audio URL to use: prefer streaming URL from Suno, fall back to downloaded file
+            let audioUrl = null;
+            if (streamUrl && typeof streamUrl === 'string') {
+                audioUrl = streamUrl;
+            } else if (filename) {
+                audioUrl = `/audio/${filename}`;
+            }
+
+            if (!audioUrl) {
+                console.warn('No audio URL available for demo song yet.');
+                document.getElementById('demoQueueStatus').textContent = 'Audio not ready yet. Please wait a moment and try again.';
+                return;
+            }
+
             // Create new audio element and play
-            const audioUrl = `/audio/${filename}`;
             currentDemoAudio = new Audio(audioUrl);
             
             currentDemoAudio.onloadeddata = function() {
                 currentDemoAudio.play().catch(function(error) {
                     console.error('Error playing audio:', error);
-                    alert('Error playing audio. Please try again.');
+                    document.getElementById('demoQueueStatus').textContent = 'Error playing audio. Please try again in a moment.';
                 });
             };
             
             currentDemoAudio.onerror = function() {
                 console.error('Error loading audio:', audioUrl);
-                alert('Error loading audio file. The song may still be generating.');
+                document.getElementById('demoQueueStatus').textContent = 'Error loading audio file. The song may still be generating.';
             };
             
             // When the demo song finishes, resume the background music
@@ -3248,9 +3270,10 @@
                         data.queue.forEach((item, index) => {
                             addQueueItem({
                                 title: item.title || 'Untitled Song',
-                                status: 'ready',
-                                table_id: 'demo-table-1',
-                                filename: item.filename || ''
+                                status: item.status || 'ready',
+                                table_id: item.table_id || 'demo-table-1',
+                                filename: item.filename || '',
+                                stream_url: item.stream_url || item.streamUrl || ''
                             });
                         });
                         
