@@ -347,10 +347,17 @@
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value.trim();
             const name = document.getElementById('name').value.trim();
-            const prefillVenueName = "{{ prefill_venue_name or '' }}";
+            const errorBox = document.querySelector('.error-message') || (() => {
+                const div = document.createElement('div');
+                div.className = 'error-message';
+                form.parentNode.insertBefore(div, form);
+                return div;
+            })();
+
+            errorBox.textContent = '';
 
             if (!email || !password) {
-                alert('Please fill in email and password');
+                errorBox.textContent = 'Please fill in email and password.';
                 return;
             }
 
@@ -378,18 +385,18 @@
                         // Redirect will be handled by server based on user type
                         window.location.href = data.redirect || '/venues';
                     } else {
-                        alert('Error: ' + (data.error || 'Failed to create account'));
+                        errorBox.textContent = data.error || 'Failed to create account.';
                         submitBtn.disabled = false;
                         submitBtn.textContent = 'Sign Up';
                     }
                 } else {
                     const data = await response.json();
-                    alert('Error: ' + (data.error || 'Failed to create account'));
+                    errorBox.textContent = data.error || 'Failed to create account.';
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Sign Up';
                 }
             } catch (error) {
-                alert('Error: ' + error.message);
+                errorBox.textContent = 'Error: ' + error.message;
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Sign Up';
             }
