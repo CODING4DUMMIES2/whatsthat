@@ -3316,9 +3316,13 @@
                 });
             }
 
-            // Show/hide Previous button depending on slide index
+            // Show/hide Previous button depending on slide index (no gap on first slide)
             if (backButtonWrapper) {
-                backButtonWrapper.style.visibility = currentSetupSlide === 0 ? 'hidden' : 'visible';
+                if (currentSetupSlide === 0) {
+                    backButtonWrapper.style.display = 'none';
+                } else {
+                    backButtonWrapper.style.display = 'block';
+                }
             }
         }
 
