@@ -308,12 +308,12 @@
             <form id="signupForm">
                 <div class="form-group">
                     <label for="name">Name (optional)</label>
-                    <input type="text" id="name" name="name" placeholder="Your name">
+                    <input type="text" id="name" name="name" placeholder="Your name" value="{{ prefill_name or '' }}">
                 </div>
 
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" name="email" placeholder="your@email.com" required>
+                    <input type="email" id="email" name="email" placeholder="your@email.com" required value="{{ prefill_email or '' }}">
                 </div>
 
                 <div class="form-group">
@@ -347,6 +347,7 @@
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value.trim();
             const name = document.getElementById('name').value.trim();
+            const prefillVenueName = "{{ prefill_venue_name or '' }}";
 
             if (!email || !password) {
                 alert('Please fill in email and password');

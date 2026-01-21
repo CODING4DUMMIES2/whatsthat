@@ -3288,8 +3288,12 @@
         }
 
         function activateVenue() {
-            // Redirect to signup with venue name pre-filled
-            window.location.href = `/signup?venue_name=${encodeURIComponent(currentVenueName)}`;
+            // Redirect to signup with fields pre-filled from the demo form
+            const venueName = encodeURIComponent(currentVenueName || document.getElementById('venueNameInput').value.trim());
+            const email = encodeURIComponent(document.getElementById('businessEmailInput').value.trim());
+            const name = ''; // we could add a separate name field later
+            const query = `?venue_name=${venueName}&email=${email}&name=${name}`;
+            window.location.href = '/signup' + query;
         }
 
         // Enter key in demo song input

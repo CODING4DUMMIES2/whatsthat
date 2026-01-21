@@ -822,8 +822,11 @@ def generate_demo_prompt_with_gpt(profile: dict, fallback_name: str):
         suggestion = content.strip().strip('"').strip("'")
         if not suggestion:
             return None
-        if len(suggestion) > 160:
-            suggestion = suggestion[:157].rsplit(" ", 1)[0] + "..."
+        # Ensure the venue name is explicitly mentioned in the prompt
+        if venue_name and venue_name.lower() not in suggestion.lower():
+            suggestion = f"{venue_name} – {suggestion}"
+        if len(suggestion) > 180:
+            suggestion = suggestion[:177].rsplit(" ", 1)[0] + "..."
         return suggestion
     except Exception as e:
         print(f"⚠️ Error generating demo prompt with GPT: {e}")
@@ -2114,7 +2117,11 @@ def signup():
         
         return redirect(url_for('venues'))
     
-    return render_template('signup.html')
+    # Pre-fill from query string when coming from landing-page demo
+    prefill_venue_name = request.args.get('venue_name', '').strip()
+    prefill_email = request.args.get('email', '').strip()
+    prefill_name = request.args.get('name', '').strip()
+    return render_template('signup.html', prefill_venue_name=prefill_venue_name, prefill_email=prefill_email, prefill_name=prefill_name)
 
 
 @app.route('/login', methods=['GET', 'POST'])
