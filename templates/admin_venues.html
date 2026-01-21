@@ -659,9 +659,9 @@
         }
 
         .venue-card:not(.expanded) .venue-name-input {
-            border: none;
-            background: transparent;
-            padding: 0;
+            border: 2px solid rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.05);
+            padding: 8px 12px;
             font-size: 18px;
             font-weight: 700;
             color: white;
@@ -669,12 +669,16 @@
             width: 100%;
             cursor: text;
             text-align: center;
+            border-radius: 8px;
+            transition: border-color 0.2s, background-color 0.2s;
         }
 
         .venue-card:not(.expanded) .venue-name-input:focus {
-            outline: 1px solid rgba(255, 255, 255, 0.3);
-            outline-offset: 4px;
-            border-radius: 4px;
+            outline: 2px solid rgba(255, 20, 147, 0.8);
+            outline-offset: 2px;
+            border-color: rgba(255, 20, 147, 0.8);
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
         }
 
         .venue-card.expanded .venue-name-compact {
