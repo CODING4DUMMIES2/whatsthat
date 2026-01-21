@@ -1097,6 +1097,7 @@
         /* Keepsake Albums Section / Setup Section */
         .keepsake-section {
             margin-bottom: 100px;
+            position: relative;
         }
 
         .keepsake-section h2 {
@@ -1226,10 +1227,11 @@
             border: 2px solid transparent;
             box-shadow: 0 18px 40px rgba(0, 0, 0, 0.7);
             border-radius: 50px;
-            position: relative;
-            margin: 40px auto 0;
+            position: absolute;
+            margin: 40px 0 0;
             width: fit-content;
-            left: calc(50vw - 50%);
+            left: 50vw;
+            transform: translateX(-50%);
             z-index: 999998;
         }
 
