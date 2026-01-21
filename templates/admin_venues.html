@@ -2118,14 +2118,19 @@
 
             queueList.innerHTML = queue.map((song, index) => {
                 const isPlayed = streamPlayedSongs.has(song.task_id);
-                const isCurrent = index === nextUnplayedIndex && isStreamPlaying && !isPlayed;
-                const statusLabel = song.status === 'generating'
-                    ? 'Generating...'
-                    : song.status === 'stream_ready'
-                        ? 'Streaming soon'
-                        : isPlayed
-                            ? '✓ Played'
-                            : `#${index + 1} - Added at ${song.added_at || ''}`;
+                const isCurrent = currentStreamSong && song.task_id === currentStreamSong.task_id && isStreamPlaying;
+                let statusLabel;
+                if (isCurrent) {
+                    statusLabel = '▶ Playing';
+                } else if (song.status === 'generating') {
+                    statusLabel = 'Generating...';
+                } else if (song.status === 'stream_ready' || song.stream_url) {
+                    statusLabel = 'Streaming soon';
+                } else if (isPlayed) {
+                    statusLabel = '✓ Played';
+                } else {
+                    statusLabel = `#${index + 1} - Added at ${song.added_at || ''}`;
+                }
             
                 return `
                     <div style="background: rgba(45, 27, 78, 0.3); padding: 12px; border-radius: 8px; margin-bottom: 8px; ${isCurrent ? 'background: rgba(102, 126, 234, 0.4); border: 1px solid rgba(102, 126, 234, 0.6);' : ''} ${isPlayed ? 'opacity: 0.4;' : ''}">

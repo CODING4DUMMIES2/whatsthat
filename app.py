@@ -873,7 +873,8 @@ def check_and_process_pending_tasks(venue_id=None):
                             if not existing:
                                 existing = {
                                     'task_id': task_id,
-                                    'title': song_title or 'Generating song...',
+                                    # keep existing GPT title if already there; otherwise use Suno title or fallback
+                                    'title': song_titles.get(task_id) or song_title or 'Custom Song',
                                     'timestamp': datetime.now().isoformat(),
                                     'added_at': datetime.now().strftime("%H:%M:%S"),
                                     'status': 'generating'
@@ -1051,9 +1052,15 @@ def send_message():
                 load_data()
                 if venue_id not in venue_queues:
                     venue_queues[venue_id] = []
+                # Generate a provisional song title from the user's prompt so the guest sees a real name immediately
+                try:
+                    provisional_title = generate_song_title_from_prompt(message)
+                except Exception as e:
+                    print(f"⚠️ Error generating provisional title: {e}")
+                    provisional_title = "Custom Song"
                 song_entry = {
                     'task_id': music_info['task_id'],
-                    'title': 'Generating song...',
+                    'title': provisional_title,
                     'timestamp': datetime.now().isoformat(),
                     'added_at': datetime.now().strftime("%H:%M:%S"),
                     'status': 'generating'
@@ -1197,7 +1204,7 @@ def music_callback():
                 if not existing:
                     existing = {
                         'task_id': task_id,
-                        'title': song_title or 'Generating song...',
+                        'title': song_title or existing.get('title') if existing else 'Custom Song',
                         'timestamp': datetime.now().isoformat(),
                         'added_at': datetime.now().strftime("%H:%M:%S"),
                         'status': 'generating'
@@ -1315,6 +1322,64 @@ Only respond with valid JSON, nothing else."""
         traceback.print_exc()
         # On error, allow request through (fail open)
         return {'rejected': False, 'reason': None, 'modified': False, 'modified_message': None}
+
+
+def generate_song_title_from_prompt(prompt_text: str) -> str:
+    """
+    Generate a short, user-friendly song title from a guest's prompt.
+    Uses GPT when OPENAI_API_KEY is available; otherwise falls back to a simple heuristic.
+    """
+    base_fallback = "Custom Song"
+    if not prompt_text:
+        return base_fallback
+
+    # Simple fallback: trim the prompt and format it
+    def heuristic_title(p: str) -> str:
+        trimmed = p.strip().replace("\n", " ")
+        if len(trimmed) > 80:
+            trimmed = trimmed[:77].rsplit(" ", 1)[0] + "..."
+        return trimmed or base_fallback
+
+    if not OPENAI_API_KEY:
+        return heuristic_title(prompt_text)
+
+    try:
+        headers = {
+            'Authorization': f'Bearer {OPENAI_API_KEY}',
+            'Content-Type': 'application/json'
+        }
+        prompt = (
+            "You are naming songs for a bar's live AI music system. "
+            "Given what a guest requested, create a short, catchy song title (max 40 characters). "
+            "Return ONLY the title text, no quotes, no extra words.\n\n"
+            f"Guest request: {prompt_text}"
+        )
+        payload = {
+            'model': 'gpt-3.5-turbo',
+            'messages': [
+                {'role': 'system', 'content': 'You generate short, catchy song titles.'},
+                {'role': 'user', 'content': prompt}
+            ],
+            'temperature': 0.6,
+            'max_tokens': 30
+        }
+        resp = requests.post('https://api.openai.com/v1/chat/completions', headers=headers, json=payload, timeout=8)
+        if resp.status_code != 200:
+            print(f"⚠️ GPT title API error: {resp.status_code} - {resp.text[:200]}")
+            return heuristic_title(prompt_text)
+        data = resp.json()
+        content = (data.get('choices') or [{}])[0].get('message', {}).get('content', '') or ''
+        title = content.strip().strip('"').strip("'")
+        if not title:
+            return heuristic_title(prompt_text)
+        if len(title) > 60:
+            title = title[:57].rsplit(" ", 1)[0] + "..."
+        return title
+    except Exception as e:
+        print(f"⚠️ Error generating song title with GPT: {e}")
+        import traceback
+        traceback.print_exc()
+        return heuristic_title(prompt_text)
 
 
 def call_suno_generate_music(prompt: str, venue_id: str = None, table_id: str = None, genre: str = None):
