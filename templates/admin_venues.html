@@ -1380,6 +1380,33 @@
         </div>
     </div>
 
+    <!-- Venue Name Setup Screen (After Welcome) -->
+    <div id="venueNameScreen" style="position: fixed; inset: 0; z-index: 3000; display: none; align-items: center; justify-content: center;">
+        <div id="venueNameSquare" style="background: rgba(15, 23, 42, 0.95); border-radius: 24px; padding: 48px 56px; max-width: 600px; width: 90%; box-shadow: 0 40px 110px rgba(0,0,0,0.85); border: 1px solid rgba(167,139,250,0.3); position: relative; opacity: 0; transform: scale(0.9); transition: opacity 0.8s ease-out, transform 0.8s ease-out;">
+            <div style="position: absolute; top: 24px; left: 24px;">
+                <img src="/img/logo.png" alt="whatsthat logo" style="width: 48px; height: 48px; object-fit: contain;">
+            </div>
+            <div id="venueNameText" style="margin-top: 60px; text-align: center; opacity: 0; transition: opacity 1.2s ease-out 0.4s;">
+                <h2 id="venueNamePrompt" style="font-size: 28px; font-weight: 800; margin: 0 0 24px 0; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    What's your venue name?
+                </h2>
+                <p id="venueNameSubtext" style="font-size: 16px; color: rgba(255,255,255,0.7); margin: 0 0 32px 0;">
+                    <span id="venueNameDisplay"></span>
+                </p>
+                <input type="text" 
+                       id="venueNameInput" 
+                       placeholder="Enter venue name" 
+                       style="width: 100%; padding: 16px 20px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; font-size: 18px; font-weight: 600; margin-bottom: 24px; text-align: center; transition: border-color 0.2s, background-color 0.2s;"
+                       onfocus="this.style.borderColor='rgba(255, 20, 147, 0.8)'; this.style.background='rgba(255,255,255,0.15)'"
+                       onblur="this.style.borderColor='rgba(255,255,255,0.2)'; this.style.background='rgba(255,255,255,0.1)'"
+                       onkeypress="if(event.key==='Enter') { submitVenueName(); }">
+                <button id="venueNameSubmitBtn" onclick="submitVenueName()" style="padding: 14px 32px; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); border: none; border-radius: 12px; color: white; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(255, 20, 147, 0.4); transition: all 0.2s; opacity: 0; transition: opacity 1.2s ease-out 0.8s, transform 0.2s; width: 100%;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(255, 20, 147, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(255, 20, 147, 0.4)'">
+                    Continue
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="main-layout" id="mainLayout">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -2091,8 +2118,6 @@
             const welcomeSquare = document.getElementById('welcomeSquare');
             const welcomeText = document.getElementById('welcomeText');
             const continueBtn = document.getElementById('welcomeContinueBtn');
-            const mainLayout = document.getElementById('mainLayout');
-            const navbar = document.querySelector('nav');
             
             if (welcomeSquare && welcomeText) {
                 // Fade out welcome screen
@@ -2103,10 +2128,160 @@
                     continueBtn.style.opacity = '0';
                 }
                 
-                // Show main layout after fade out
+                // Show venue name screen after fade out
                 setTimeout(() => {
                     if (welcomeScreen) {
                         welcomeScreen.style.display = 'none';
+                    }
+                    showVenueNameScreen();
+                }, 600);
+            }
+        }
+
+        function showVenueNameScreen() {
+            const venueNameScreen = document.getElementById('venueNameScreen');
+            const venueNameSquare = document.getElementById('venueNameSquare');
+            const venueNameText = document.getElementById('venueNameText');
+            const venueNameInput = document.getElementById('venueNameInput');
+            const venueNamePrompt = document.getElementById('venueNamePrompt');
+            const venueNameSubtext = document.getElementById('venueNameSubtext');
+            const venueNameDisplay = document.getElementById('venueNameDisplay');
+            const venueNameSubmitBtn = document.getElementById('venueNameSubmitBtn');
+            
+            if (!venueNameScreen || !venueNameSquare || !venueNameText) return;
+            
+            // Get initial venue name or user name
+            const initialVenueName = '{{ initial_venue_name }}' || '';
+            const userName = '{{ user_name }}' || '';
+            const prefilledName = initialVenueName || userName;
+            
+            // Check if user already has venues
+            const hasVenues = userVenueIds && userVenueIds.length > 0;
+            
+            if (prefilledName && !hasVenues) {
+                // Prefilled name - ask if they want to change it
+                venueNamePrompt.textContent = 'Is this your venue name?';
+                venueNameDisplay.textContent = prefilledName;
+                venueNameDisplay.style.display = 'inline';
+                venueNameSubtext.style.display = 'block';
+                venueNameInput.value = prefilledName;
+                venueNameInput.placeholder = 'Change venue name (optional)';
+            } else if (hasVenues) {
+                // User already has venues - skip this step
+                submitVenueName();
+                return;
+            } else {
+                // No prefilled name - ask them to type it
+                venueNamePrompt.textContent = "What's your venue name?";
+                venueNameDisplay.style.display = 'none';
+                venueNameSubtext.style.display = 'none';
+                venueNameInput.value = '';
+                venueNameInput.placeholder = 'Enter venue name';
+            }
+            
+            // Show venue name screen
+            venueNameScreen.style.display = 'flex';
+            
+            // Animate square easing in
+            setTimeout(() => {
+                venueNameSquare.style.opacity = '1';
+                venueNameSquare.style.transform = 'scale(1)';
+            }, 100);
+            
+            // Animate text fading in
+            setTimeout(() => {
+                venueNameText.style.opacity = '1';
+            }, 500);
+            
+            // Animate button fading in
+            if (venueNameSubmitBtn) {
+                setTimeout(() => {
+                    venueNameSubmitBtn.style.opacity = '1';
+                }, 800);
+            }
+            
+            // Focus input after animation
+            setTimeout(() => {
+                if (venueNameInput) {
+                    venueNameInput.focus();
+                }
+            }, 1000);
+        }
+
+        async function submitVenueName() {
+            const venueNameInput = document.getElementById('venueNameInput');
+            const venueNameScreen = document.getElementById('venueNameScreen');
+            const venueNameSquare = document.getElementById('venueNameSquare');
+            const venueNameText = document.getElementById('venueNameText');
+            const venueNameSubmitBtn = document.getElementById('venueNameSubmitBtn');
+            const mainLayout = document.getElementById('mainLayout');
+            const navbar = document.querySelector('nav');
+            
+            const venueName = venueNameInput ? venueNameInput.value.trim() : '';
+            
+            // If user has venues already, just proceed to dashboard
+            if (userVenueIds && userVenueIds.length > 0) {
+                if (venueNameSquare && venueNameText) {
+                    venueNameSquare.style.opacity = '0';
+                    venueNameSquare.style.transform = 'scale(0.95)';
+                    venueNameText.style.opacity = '0';
+                    if (venueNameSubmitBtn) {
+                        venueNameSubmitBtn.style.opacity = '0';
+                    }
+                    
+                    setTimeout(() => {
+                        if (venueNameScreen) {
+                            venueNameScreen.style.display = 'none';
+                        }
+                        if (mainLayout) {
+                            mainLayout.style.display = 'flex';
+                        }
+                        if (navbar) {
+                            navbar.style.display = 'flex';
+                        }
+                    }, 600);
+                }
+                return;
+            }
+            
+            // If no venue name provided and no prefilled, use default
+            const finalVenueName = venueName || '{{ initial_venue_name }}' || '{{ user_name }}\'s Venue' || 'My Venue';
+            
+            // Create venue with this name if needed
+            try {
+                if (!userVenueIds || userVenueIds.length === 0) {
+                    const response = await fetch('/venue/create', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ 
+                            name: finalVenueName,
+                            num_tables: 0
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        console.error('Error creating venue');
+                    }
+                }
+            } catch (error) {
+                console.error('Error creating venue:', error);
+            }
+            
+            // Fade out venue name screen
+            if (venueNameSquare && venueNameText) {
+                venueNameSquare.style.opacity = '0';
+                venueNameSquare.style.transform = 'scale(0.95)';
+                venueNameText.style.opacity = '0';
+                if (venueNameSubmitBtn) {
+                    venueNameSubmitBtn.style.opacity = '0';
+                }
+                
+                // Show main layout after fade out
+                setTimeout(() => {
+                    if (venueNameScreen) {
+                        venueNameScreen.style.display = 'none';
                     }
                     if (mainLayout) {
                         mainLayout.style.display = 'flex';
@@ -2114,6 +2289,8 @@
                     if (navbar) {
                         navbar.style.display = 'flex';
                     }
+                    // Reload to show the new venue
+                    window.location.reload();
                 }, 600);
             }
         }
