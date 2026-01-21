@@ -1136,11 +1136,6 @@
                 </div>
         {% endif %}
 
-                <div class="sidebar-section" id="venueQuickLinks" style="display: none;">
-                    <div class="sidebar-section-title">Your Venues</div>
-                    <div id="venueLinksContainer"></div>
-                </div>
-
                 <div class="sidebar-section">
                     <a href="/logout" class="sidebar-button">
                         <span class="sidebar-button-icon">🚪</span>
@@ -1437,42 +1432,11 @@
 
         function updateVenueQuickLinks() {
             const venueCards = document.querySelectorAll('.venue-card');
-            const linksContainer = document.getElementById('venueLinksContainer');
-            const quickLinksSection = document.getElementById('venueQuickLinks');
             const venueCountBadge = document.getElementById('venue-count-badge');
             
             // Update badge
             if (venueCountBadge) {
                 venueCountBadge.textContent = venueCards.length;
-            }
-            
-            if (venueCards.length > 0) {
-                quickLinksSection.style.display = 'block';
-                linksContainer.innerHTML = '';
-                
-                venueCards.forEach((card, index) => {
-                    const venueId = card.id.replace('venue-', '');
-                    const nameInput = card.querySelector('.venue-name-input');
-                    const venueName = nameInput ? nameInput.value || `Venue ${venueId}` : `Venue ${venueId}`;
-                    
-                    const link = document.createElement('button');
-                    link.className = 'sidebar-button';
-                    link.onclick = () => {
-                        card.scrollIntoView({ behavior: 'smooth', block: 'start' });
-                        // Add visual feedback
-                        link.style.transform = 'translateX(6px) scale(1.02)';
-                        setTimeout(() => {
-                            link.style.transform = '';
-                        }, 200);
-                    };
-                    link.innerHTML = `
-                        <span class="sidebar-button-icon">📍</span>
-                        <span class="sidebar-button-text">${venueName}</span>
-                    `;
-                    linksContainer.appendChild(link);
-                });
-            } else {
-                quickLinksSection.style.display = 'none';
             }
         }
 
