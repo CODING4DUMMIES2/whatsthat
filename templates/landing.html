@@ -1348,46 +1348,22 @@
             transform: translateX(-3px) scale(1.02);
         }
 
-        /* Setup Section 2 */
-        .setup-section-2 {
-            display: none;
-            position: absolute;
-            width: 100%;
-        }
-
-        .setup-section-2.active {
-            display: block;
-            position: relative;
-        }
-
-        /* Setup Section 3 */
-        .setup-section-3 {
-            display: none;
-            position: absolute;
-            width: 100%;
-        }
-
-        .setup-section-3.active {
-            display: block;
-            position: relative;
-        }
-
-        /* Setup Section 4 */
+        /* Setup Sections – simple show/hide */
+        .setup-section-2,
+        .setup-section-3,
         .setup-section-4 {
             display: none;
-            position: absolute;
-            width: 100%;
         }
 
+        .setup-section-2.active,
+        .setup-section-3.active,
         .setup-section-4.active {
             display: block;
-            position: relative;
         }
         
-        /* Container for setup sections to maintain height */
+        /* Container for setup sections */
         .setup-sections-container {
             position: relative;
-            min-height: 800px;
         }
 
         .keepsake-item {
