@@ -1211,7 +1211,8 @@
 
         /* Setup Navigation Buttons */
         .setup-navigation-wrapper {
-            display: inline-flex;
+            display: flex;
+            justify-content: center;
             padding: 20px 30px;
             background: rgba(10, 6, 30, 0.8);
             backdrop-filter: blur(20px) saturate(180%);
@@ -1221,7 +1222,9 @@
             border-radius: 50px;
             position: relative;
             margin: 40px auto 0;
-            max-width: fit-content;
+            width: fit-content;
+            left: 50%;
+            transform: translateX(-50%);
         }
 
         .setup-navigation-wrapper::before {
