@@ -1350,59 +1350,44 @@
 
         /* Setup Section 2 */
         .setup-section-2 {
-            display: block;
-            opacity: 0;
-            visibility: hidden;
-            height: 0;
-            overflow: hidden;
-            margin: 0;
-            padding: 0;
+            display: none;
+            position: absolute;
+            width: 100%;
         }
 
         .setup-section-2.active {
-            opacity: 1;
-            visibility: visible;
-            height: auto;
-            overflow: visible;
-            margin-bottom: 100px;
+            display: block;
+            position: relative;
         }
 
         /* Setup Section 3 */
         .setup-section-3 {
-            display: block;
-            opacity: 0;
-            visibility: hidden;
-            height: 0;
-            overflow: hidden;
-            margin: 0;
-            padding: 0;
+            display: none;
+            position: absolute;
+            width: 100%;
         }
 
         .setup-section-3.active {
-            opacity: 1;
-            visibility: visible;
-            height: auto;
-            overflow: visible;
-            margin-bottom: 100px;
+            display: block;
+            position: relative;
         }
 
         /* Setup Section 4 */
         .setup-section-4 {
-            display: block;
-            opacity: 0;
-            visibility: hidden;
-            height: 0;
-            overflow: hidden;
-            margin: 0;
-            padding: 0;
+            display: none;
+            position: absolute;
+            width: 100%;
         }
 
         .setup-section-4.active {
-            opacity: 1;
-            visibility: visible;
-            height: auto;
-            overflow: visible;
-            margin-bottom: 100px;
+            display: block;
+            position: relative;
+        }
+        
+        /* Container for setup sections to maintain height */
+        .setup-sections-container {
+            position: relative;
+            min-height: 800px;
         }
 
         .keepsake-item {
@@ -2677,6 +2662,8 @@
                     </div>
                     </div>
 
+        <!-- Setup Sections Container -->
+        <div class="setup-sections-container">
         <!-- Create Your Venue Section -->
         <div class="keepsake-section" id="setupSection1">
             <div class="setup-content-wrapper">
@@ -3273,29 +3260,30 @@
         // Store scroll position to prevent jumping
         function switchSetupSection(hideSection, showSection) {
             if (hideSection && showSection) {
-                // Store current scroll position
-                const currentScroll = window.pageYOffset;
+                // Get the top position of the section we're hiding
+                const hideTop = hideSection.getBoundingClientRect().top + window.pageYOffset;
                 
                 // Hide current section
+                hideSection.style.display = 'none';
                 hideSection.classList.remove('active');
                 
                 // Show new section
+                showSection.style.display = 'block';
                 showSection.classList.add('active');
                 
-                // Wait for transition, then scroll to maintain position
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        // Calculate the difference in position
-                        const hideTop = hideSection.getBoundingClientRect().top;
-                        const showTop = showSection.getBoundingClientRect().top;
-                        const offset = showTop - hideTop;
-                        
-                        // Scroll to maintain visual position
-                        window.scrollTo({
-                            top: currentScroll + offset,
-                            behavior: 'smooth'
-                        });
-                    });
+                // Force browser to recalculate layout
+                void showSection.offsetHeight;
+                
+                // Get the top position of the new section
+                const showTop = showSection.getBoundingClientRect().top + window.pageYOffset;
+                
+                // Calculate scroll adjustment to maintain visual position
+                const scrollAdjustment = showTop - hideTop;
+                
+                // Scroll to maintain the same visual position
+                window.scrollTo({
+                    top: window.pageYOffset + scrollAdjustment - 100,
+                    behavior: 'instant'
                 });
             }
         }
