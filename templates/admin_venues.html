@@ -2608,6 +2608,15 @@
             }
         ];
 
+        // Prevent scrolling during tutorial
+        function preventScroll(e) {
+            if (document.getElementById('tutorialOverlay') && document.getElementById('tutorialOverlay').style.display === 'block') {
+                e.preventDefault();
+                e.stopPropagation();
+                return false;
+            }
+        }
+
         function startTutorial() {
             // Only skip if tutorial was explicitly completed in this session
             // After onboarding, always show tutorial
@@ -2629,6 +2638,11 @@
                 return;
             }
             console.log('Tutorial overlay found:', overlay);
+            
+            // Add scroll prevention
+            window.addEventListener('wheel', preventScroll, { passive: false });
+            window.addEventListener('touchmove', preventScroll, { passive: false });
+            window.addEventListener('scroll', preventScroll, { passive: false });
             
             // Ensure DOM is ready and elements are loaded
             setTimeout(() => {
@@ -2781,26 +2795,62 @@
             tutorialOverlay.style.zIndex = '4000';
             tutorialOverlay.style.pointerEvents = 'auto';
             
-            // Block all interactions with the main layout
+            // Block all interactions with the main layout and lock scrolling
             const mainLayout = document.getElementById('mainLayout');
             if (mainLayout) {
                 mainLayout.style.pointerEvents = 'none';
                 mainLayout.style.userSelect = 'none';
             }
+            
+            // Lock scrolling
+            document.body.style.overflow = 'hidden';
+            document.documentElement.style.overflow = 'hidden';
+            
+            // Scroll element into view first, then position highlight
+            element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
+            
+            // Wait for scroll to complete, then position highlight
+            setTimeout(() => {
+                // Recalculate element position after scroll
+                const rect = element.getBoundingClientRect();
+                const scrollX = window.scrollX || window.pageXOffset;
+                const scrollY = window.scrollY || window.pageYOffset;
 
-            // Get element position (getBoundingClientRect is relative to viewport)
-            const rect = element.getBoundingClientRect();
-            const scrollX = window.scrollX || window.pageXOffset;
-            const scrollY = window.scrollY || window.pageYOffset;
-
-            // Position highlight around element (use viewport coordinates + scroll)
-            tutorialHighlight.style.left = (rect.left + scrollX - 12) + 'px';
-            tutorialHighlight.style.top = (rect.top + scrollY - 12) + 'px';
-            tutorialHighlight.style.width = (rect.width + 24) + 'px';
-            tutorialHighlight.style.height = (rect.height + 24) + 'px';
+                // Position highlight using fixed positioning (relative to viewport)
+                tutorialHighlight.style.position = 'fixed';
+                tutorialHighlight.style.left = (rect.left - 12) + 'px';
+                tutorialHighlight.style.top = (rect.top - 12) + 'px';
+                tutorialHighlight.style.width = (rect.width + 24) + 'px';
+                tutorialHighlight.style.height = (rect.height + 24) + 'px';
+                tutorialHighlight.style.display = 'block';
+                tutorialHighlight.style.opacity = '1';
+                
+                // Update popup position based on new rect
+                updateTutorialPopupPosition(step, rect, stepIndex);
+            }, 600);
+            
+            // Initial positioning (will be updated after scroll)
+            const initialRect = element.getBoundingClientRect();
+            const initialScrollX = window.scrollX || window.pageXOffset;
+            const initialScrollY = window.scrollY || window.pageYOffset;
+            
+            tutorialHighlight.style.position = 'fixed';
+            tutorialHighlight.style.left = (initialRect.left - 12) + 'px';
+            tutorialHighlight.style.top = (initialRect.top - 12) + 'px';
+            tutorialHighlight.style.width = (initialRect.width + 24) + 'px';
+            tutorialHighlight.style.height = (initialRect.height + 24) + 'px';
             tutorialHighlight.style.display = 'block';
-
-            // Position popup based on step.position
+            tutorialHighlight.style.opacity = '1';
+            
+            // Position popup initially
+            updateTutorialPopupPosition(step, initialRect, stepIndex);
+        }
+        
+        function updateTutorialPopupPosition(step, rect, stepIndex) {
+            const tutorialPopup = document.getElementById('tutorialPopup');
+            if (!tutorialPopup) return;
+            
+            // Position popup based on step.position (using fixed positioning - no scroll offset needed)
             let popupLeft, popupTop;
             const popupWidth = 320;
             const popupHeight = 150;
@@ -2808,100 +2858,45 @@
 
             switch(step.position) {
                 case 'top':
-                    popupLeft = rect.left + scrollX + (rect.width / 2) - (popupWidth / 2);
-                    popupTop = rect.top + scrollY - popupHeight - spacing;
+                    popupLeft = rect.left + (rect.width / 2) - (popupWidth / 2);
+                    popupTop = rect.top - popupHeight - spacing;
                     break;
                 case 'bottom':
-                    popupLeft = rect.left + scrollX + (rect.width / 2) - (popupWidth / 2);
-                    popupTop = rect.bottom + scrollY + spacing;
+                    popupLeft = rect.left + (rect.width / 2) - (popupWidth / 2);
+                    popupTop = rect.bottom + spacing;
                     break;
                 case 'left':
-                    popupLeft = rect.left + scrollX - popupWidth - spacing;
-                    popupTop = rect.top + scrollY + (rect.height / 2) - (popupHeight / 2);
+                    popupLeft = rect.left - popupWidth - spacing;
+                    popupTop = rect.top + (rect.height / 2) - (popupHeight / 2);
                     break;
                 case 'right':
-                    popupLeft = rect.right + scrollX + spacing;
-                    popupTop = rect.top + scrollY + (rect.height / 2) - (popupHeight / 2);
+                    popupLeft = rect.right + spacing;
+                    popupTop = rect.top + (rect.height / 2) - (popupHeight / 2);
                     break;
                 default:
-                    popupLeft = rect.left + scrollX + (rect.width / 2) - (popupWidth / 2);
-                    popupTop = rect.bottom + scrollY + spacing;
+                    popupLeft = rect.left + (rect.width / 2) - (popupWidth / 2);
+                    popupTop = rect.bottom + spacing;
             }
 
             // Keep popup within viewport
             popupLeft = Math.max(20, Math.min(popupLeft, window.innerWidth - popupWidth - 20));
             popupTop = Math.max(20, Math.min(popupTop, window.innerHeight - popupHeight - 20));
 
+            tutorialPopup.style.position = 'fixed';
             tutorialPopup.style.left = popupLeft + 'px';
             tutorialPopup.style.top = popupTop + 'px';
             
-            // Make sure popup is visible (reset opacity)
-            tutorialPopup.style.opacity = '0';
-            tutorialPopup.style.transform = 'scale(0.9)';
-
-            // Scroll element into view if needed
-            element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            
-            // Wait for scroll to complete, then show popup
+            // Animate popup in
             setTimeout(() => {
-                // Recalculate position after scroll
-                const newRect = element.getBoundingClientRect();
-                const newScrollX = window.scrollX || window.pageXOffset;
-                const newScrollY = window.scrollY || window.pageYOffset;
-                
-                // Recalculate popup position
-                let finalPopupLeft, finalPopupTop;
-                switch(step.position) {
-                    case 'top':
-                        finalPopupLeft = newRect.left + newScrollX + (newRect.width / 2) - (popupWidth / 2);
-                        finalPopupTop = newRect.top + newScrollY - popupHeight - spacing;
-                        break;
-                    case 'bottom':
-                        finalPopupLeft = newRect.left + newScrollX + (newRect.width / 2) - (popupWidth / 2);
-                        finalPopupTop = newRect.bottom + newScrollY + spacing;
-                        break;
-                    case 'left':
-                        finalPopupLeft = newRect.left + newScrollX - popupWidth - spacing;
-                        finalPopupTop = newRect.top + newScrollY + (newRect.height / 2) - (popupHeight / 2);
-                        break;
-                    case 'right':
-                        finalPopupLeft = newRect.right + newScrollX + spacing;
-                        finalPopupTop = newRect.top + newScrollY + (newRect.height / 2) - (popupHeight / 2);
-                        break;
-                    default:
-                        finalPopupLeft = newRect.left + newScrollX + (newRect.width / 2) - (popupWidth / 2);
-                        finalPopupTop = newRect.bottom + newScrollY + spacing;
-                }
-                
-                // Keep popup within viewport
-                finalPopupLeft = Math.max(20, Math.min(finalPopupLeft, window.innerWidth - popupWidth - 20));
-                finalPopupTop = Math.max(20, Math.min(finalPopupTop, window.innerHeight - popupHeight - 20));
-                
-                tutorialPopup.style.left = finalPopupLeft + 'px';
-                tutorialPopup.style.top = finalPopupTop + 'px';
-                
-                // Update highlight position
-                tutorialHighlight.style.left = (newRect.left + newScrollX - 12) + 'px';
-                tutorialHighlight.style.top = (newRect.top + newScrollY - 12) + 'px';
-                tutorialHighlight.style.width = (newRect.width + 24) + 'px';
-                tutorialHighlight.style.height = (newRect.height + 24) + 'px';
-                tutorialHighlight.style.display = 'block';
-                
-                // Make sure overlay is visible
-                tutorialOverlay.style.display = 'block';
-                
-                // Animate popup in
-                setTimeout(() => {
-                    tutorialPopup.style.opacity = '1';
-                    tutorialPopup.style.transform = 'scale(1)';
-                }, 50);
-                
-                console.log(`Tutorial step ${stepIndex + 1} displayed:`, { 
-                    title: step.title, 
-                    popupPosition: { left: finalPopupLeft, top: finalPopupTop },
-                    elementPosition: { left: newRect.left, top: newRect.top }
-                });
-            }, 600);
+                tutorialPopup.style.opacity = '1';
+                tutorialPopup.style.transform = 'scale(1)';
+            }, 50);
+            
+            console.log(`Tutorial step ${stepIndex + 1} popup positioned:`, { 
+                title: step.title, 
+                popupPosition: { left: popupLeft, top: popupTop },
+                elementPosition: { left: rect.left, top: rect.top }
+            });
 
             // Highlight the element
             element.style.transition = 'all 0.3s ease';
@@ -2969,6 +2964,15 @@
                     mainLayout.style.pointerEvents = 'auto';
                     mainLayout.style.userSelect = 'auto';
                 }
+                
+                // Restore scrolling
+                document.body.style.overflow = '';
+                document.documentElement.style.overflow = '';
+                
+                // Remove scroll prevention listeners
+                window.removeEventListener('wheel', preventScroll);
+                window.removeEventListener('touchmove', preventScroll);
+                window.removeEventListener('scroll', preventScroll);
                 
                 // Remove highlight from all elements
                 document.querySelectorAll('[style*="z-index: 4001"]').forEach(el => {
