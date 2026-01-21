@@ -1275,7 +1275,7 @@ def serve_image(filename):
         if not os.path.exists(file_path):
             print(f"   ❌ File not found! Listing directory: {os.listdir(IMG_DIR) if os.path.exists(IMG_DIR) else 'IMG_DIR does not exist'}")
             return jsonify({'error': f'Image not found: {filename}'}), 404
-    return send_from_directory(IMG_DIR, filename)
+        return send_from_directory(IMG_DIR, filename)
     except Exception as e:
         import traceback
         error_msg = f"Error serving image {filename}: {str(e)}\n{traceback.format_exc()}"
@@ -1356,20 +1356,20 @@ def music_callback():
             
             # Update title cache if we have one
             if song_title and task_id:
-                    song_titles[task_id] = song_title
+                song_titles[task_id] = song_title
 
             # If this task belongs to a venue, update or create the queue entry
-                    if task_id in task_to_venue:
-                        venue_id = task_to_venue[task_id]
+            if task_id in task_to_venue:
+                venue_id = task_to_venue[task_id]
                 if venue_id not in venue_queues:
                     venue_queues[venue_id] = []
                 queue = venue_queues[venue_id]
                 existing = next((s for s in queue if s.get('task_id') == task_id), None)
                 if not existing:
                     existing = {
-                            'task_id': task_id,
+                        'task_id': task_id,
                         'title': song_titles.get(task_id) or song_title or 'Custom Song',
-                            'timestamp': datetime.now().isoformat(),
+                        'timestamp': datetime.now().isoformat(),
                         'added_at': datetime.now().strftime("%H:%M:%S"),
                         'status': 'generating'
                     }
@@ -1383,18 +1383,21 @@ def music_callback():
                 # We don't download full audio files here; this is a pure streaming player.
                 # Once we have either a stream URL or a final audio URL, stop polling this task.
                 if (stream_url or audio_url) and task_id in task_to_venue:
-                    print(f"✅ Callback complete for task {task_id}, stopping polling (stream_url={bool(stream_url)}, audio_url={bool(audio_url)})")
-                        del task_to_venue[task_id]
-                    
+                    print(
+                        f"✅ Callback complete for task {task_id}, stopping polling "
+                        f"(stream_url={bool(stream_url)}, audio_url={bool(audio_url)})"
+                    )
+                    del task_to_venue[task_id]
+                
                 save_data()
 
-                    # Update table request status if this was from a table
-                    for table_id, requests in table_requests.items():
-                        for req in requests:
-                            if req['task_id'] == task_id:
-                                req['status'] = 'completed'
-                                print(f"✅ Marked table {table_id} request as completed")
-                        save_data()  # Save updated table request status
+                # Update table request status if this was from a table
+                for table_id, requests in table_requests.items():
+                    for req in requests:
+                        if req['task_id'] == task_id:
+                            req['status'] = 'completed'
+                            print(f"✅ Marked table {table_id} request as completed")
+                save_data()  # Save updated table request status
 
         return jsonify({'success': True}), 200
     except Exception as e:
@@ -1563,7 +1566,7 @@ def call_suno_generate_music(prompt: str, venue_id: str = None, table_id: str = 
     try:
         # Use provided genre, or detect from message, or leave empty
         if not genre:
-        genre = detect_genre(prompt)
+            genre = detect_genre(prompt)
             print(f"   Detected genre: {genre}")
         
         # Get venue settings for explicit content
@@ -2907,12 +2910,12 @@ if __name__ == '__main__':
     debug = os.environ.get('FLASK_ENV') == 'development'
     
     if debug:
-    local_ip = get_local_ip()
-    print(f"\n{'='*60}")
-    print("Server starting...")
-    print(f"Local access: http://127.0.0.1:{port}")
-    print(f"Network access: http://{local_ip}:{port}")
-    print(f"QR Code: http://{local_ip}:{port}/qr")
-    print(f"{'='*60}\n")
+        local_ip = get_local_ip()
+        print(f"\n{'='*60}")
+        print("Server starting...")
+        print(f"Local access: http://127.0.0.1:{port}")
+        print(f"Network access: http://{local_ip}:{port}")
+        print(f"QR Code: http://{local_ip}:{port}/qr")
+        print(f"{'='*60}\n")
     
     app.run(debug=debug, host='0.0.0.0', port=port)
