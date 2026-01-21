@@ -3237,6 +3237,37 @@
             });
         }
 
+        // Background Audio - Home Page Only
+        let backgroundAudio = null;
+        function initBackgroundAudio() {
+            // Check if we're on the home page (landing page)
+            if (window.location.pathname === '/' || window.location.pathname.includes('landing')) {
+                backgroundAudio = new Audio('/static/audio/background-music.mp3');
+                backgroundAudio.volume = 0.5; // 50% volume
+                backgroundAudio.loop = true;
+                backgroundAudio.preload = 'auto';
+                
+                // Play audio after user interaction (required by browsers)
+                const playBackgroundAudio = () => {
+                    if (backgroundAudio && backgroundAudio.paused) {
+                        backgroundAudio.play().catch(error => {
+                            console.log('Background audio play prevented:', error);
+                        });
+                    }
+                    // Remove event listeners after first play
+                    document.removeEventListener('click', playBackgroundAudio);
+                    document.removeEventListener('touchstart', playBackgroundAudio);
+                };
+                
+                // Try to play on page load, fallback to user interaction
+                backgroundAudio.play().catch(() => {
+                    // If autoplay is blocked, wait for user interaction
+                    document.addEventListener('click', playBackgroundAudio, { once: true });
+                    document.addEventListener('touchstart', playBackgroundAudio, { once: true });
+                });
+            }
+        }
+
         // Initialize on page load
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
@@ -3244,11 +3275,14 @@
                 // Init How It Works swiper
                 showHowItWorksStep(0);
                 initHowItWorksSwipe();
+                // Init background audio
+                initBackgroundAudio();
             });
         } else {
             initScrollAnimations();
             showHowItWorksStep(0);
             initHowItWorksSwipe();
+            initBackgroundAudio();
         }
 
         // How It Works Swiper
