@@ -3260,9 +3260,6 @@
         // Store scroll position to prevent jumping
         function switchSetupSection(hideSection, showSection) {
             if (hideSection && showSection) {
-                // Get the top position of the section we're hiding
-                const hideTop = hideSection.getBoundingClientRect().top + window.pageYOffset;
-                
                 // Hide current section
                 hideSection.style.display = 'none';
                 hideSection.classList.remove('active');
@@ -3271,20 +3268,14 @@
                 showSection.style.display = 'block';
                 showSection.classList.add('active');
                 
-                // Force browser to recalculate layout
-                void showSection.offsetHeight;
-                
-                // Get the top position of the new section
-                const showTop = showSection.getBoundingClientRect().top + window.pageYOffset;
-                
-                // Calculate scroll adjustment to maintain visual position
-                const scrollAdjustment = showTop - hideTop;
-                
-                // Scroll to maintain the same visual position
-                window.scrollTo({
-                    top: window.pageYOffset + scrollAdjustment - 100,
-                    behavior: 'instant'
-                });
+                // Wait for DOM to update, then scroll to top of new section
+                setTimeout(() => {
+                    const sectionTop = showSection.offsetTop;
+                    window.scrollTo({
+                        top: sectionTop - 120, // Offset for navbar
+                        behavior: 'smooth'
+                    });
+                }, 10);
             }
         }
 
