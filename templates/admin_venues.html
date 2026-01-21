@@ -1490,7 +1490,7 @@
                             </p>
                             <div style="margin-top:14px; display:grid; gap:10px;">
                                 <div id="onb-choice-single" style="border-radius:12px; border:1px solid rgba(148,163,184,0.7); padding:10px 12px; display:flex; gap:10px; align-items:flex-start; cursor:pointer; background:rgba(15,23,42,0.8);" onclick="onbSelectQrMode('single')">
-                                    <div style="margin-top:3px;"><input type="radio" name="onbQrMode" value="single" id="onb-qr-single"></div>
+                                    <div style="margin-top:3px;"><input type="radio" name="onbQrMode" value="single" id="onb-qr-single-option"></div>
                                     <div>
                                         <div style="font-size:15px; font-weight:600;">Single QR for the whole venue</div>
                                         <div style="font-size:13px; color:rgba(226,232,240,0.9); margin-top:4px;">
@@ -1499,7 +1499,7 @@
                                     </div>
                                 </div>
                                 <div id="onb-choice-tables" style="border-radius:12px; border:1px solid rgba(148,163,184,0.7); padding:10px 12px; display:flex; gap:10px; align-items:flex-start; cursor:pointer; background:rgba(15,23,42,0.8);" onclick="onbSelectQrMode('tables')">
-                                    <div style="margin-top:3px;"><input type="radio" name="onbQrMode" value="tables" id="onb-qr-tables"></div>
+                                    <div style="margin-top:3px;"><input type="radio" name="onbQrMode" value="tables" id="onb-qr-tables-option"></div>
                                     <div>
                                         <div style="font-size:15px; font-weight:600;">Table tracking with unique QR per table</div>
                                         <div style="font-size:13px; color:rgba(226,232,240,0.9); margin-top:4px;">
@@ -1513,14 +1513,14 @@
                                         Your QR codes (ready to print or download)
                                         <span class="help-icon" onclick="showHelp(event, 'onb-qr-preview')">?</span>
                                     </div>
-                                    <div id="onb-qr-single" style="display:none; gap:16px; align-items:center; flex-wrap:wrap;">
+                                    <div id="onb-qr-single-preview" style="display:none; gap:16px; align-items:center; flex-wrap:wrap;">
                                         <img id="onb-qr-img" src="" alt="Venue QR" style="width:140px; height:140px; border-radius:10px; background:#020617;">
                                         <div style="flex:1; min-width:180px;">
                                             <button type="button" onclick="onbPrintQr(onbQrUrl)" style="display:block; width:100%; margin-bottom:6px; border-radius:999px; padding:8px 14px; font-size:13px; border:1px solid transparent; background:linear-gradient(135deg,#FF1493,#8B2BE2); color:#f9fafb; cursor:pointer;">Print QR</button>
                                             <button type="button" onclick="onbDownloadQr(onbQrUrl)" style="display:block; width:100%; border-radius:999px; padding:8px 14px; font-size:13px; border:1px solid rgba(148,163,184,0.7); background:transparent; color:rgba(226,232,240,0.95); cursor:pointer;">Download PNG</button>
                                         </div>
                                     </div>
-                                    <div id="onb-qr-tables" style="display:none; margin-top:6px;">
+                                    <div id="onb-qr-tables-preview" style="display:none; margin-top:6px;">
                                         <label for="onb-table-count" style="display:block; font-size:12px; margin-bottom:6px; color:rgba(226,232,240,0.9);">How many tables do you want QR codes for?</label>
                                         <input id="onb-table-count" type="number" min="1" max="30" value="4" style="width:80px; padding:6px 8px; border-radius:8px; border:1px solid rgba(148,163,184,0.7); background:rgba(15,23,42,0.9); color:#E5E7EB; font-size:13px; margin-bottom:10px;">
                                         <div id="onb-qr-table-list" style="display:grid; gap:8px;"></div>
@@ -1747,8 +1747,8 @@
             onbQrMode = mode;
             const cs = document.getElementById('onb-choice-single');
             const ct = document.getElementById('onb-choice-tables');
-            const rS = document.getElementById('onb-qr-single');
-            const rT = document.getElementById('onb-qr-tables');
+            const rS = document.getElementById('onb-qr-single-option');
+            const rT = document.getElementById('onb-qr-tables-option');
             if (mode === 'single') {
                 if (cs) cs.classList.add('selected');
                 if (ct) ct.classList.remove('selected');
@@ -1782,8 +1782,8 @@
                 const box = document.getElementById('onb-qr-preview');
                 if (box) box.style.display = 'block';
 
-                const singleBox = document.getElementById('onb-qr-single');
-                const tablesBox = document.getElementById('onb-qr-tables');
+                const singleBox = document.getElementById('onb-qr-single-preview');
+                const tablesBox = document.getElementById('onb-qr-tables-preview');
 
                 if (onbQrMode === 'tables' && data.tables && data.tables.length > 0) {
                     if (singleBox) singleBox.style.display = 'none';
