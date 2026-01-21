@@ -2247,7 +2247,7 @@
                     </div>
                     <div class="venue-actions">
                         <button onclick="toggleVenueCard('${venueData.venue_id}')" style="padding: 12px 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; cursor: pointer; font-weight: 600; transition: all 0.2s; margin-right: 12px;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
-                            Collapse
+                            Expand
                             <span class="help-icon" onclick="showHelp(event, 'venue-collapse')">?</span>
                         </button>
                         <button onclick="window.location.href='/venue/${venueData.venue_id}/live-tables'" 
@@ -2326,7 +2326,7 @@
                                 </div>
                             </div>
                             <div class="qr-box">
-                                    <img src="${venueData.stream_qr}" alt="Stream QR">
+                                <img src="${venueData.stream_qr}" alt="Stream QR">
                                     <div class="qr-box-content">
                                         <h4>
                                             🎵 Venue Stream QR
@@ -2417,7 +2417,7 @@
             if (card) {
                 card.classList.toggle('expanded');
                 const btn = card.querySelector('.venue-actions button');
-                if (btn && btn.textContent.includes('Collapse')) {
+                if (btn) {
                     btn.textContent = card.classList.contains('expanded') ? 'Collapse' : 'Expand';
                 }
             }
@@ -2443,6 +2443,16 @@
                             card.insertBefore(compactDiv, card.firstChild);
                         }
                     }
+
+                    // Clicking anywhere on the card (except buttons/links) toggles expand/collapse
+                    const venueId = card.id.replace('venue-', '');
+                    card.addEventListener('click', function(e) {
+                        // Ignore clicks on interactive elements inside the card
+                        if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input') || e.target.closest('textarea')) {
+                            return;
+                        }
+                        toggleVenueCard(venueId);
+                    });
                 }
             });
         }
