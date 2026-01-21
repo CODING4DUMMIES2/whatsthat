@@ -622,31 +622,41 @@
         }
 
         .qr-box {
-            text-align: center;
-            padding: 24px;
-            background: rgba(255, 255, 255, 0.08);
+            display: flex;
+            flex-direction: row;
+            align-items: flex-start;
+            gap: 14px;
+            padding: 14px 16px;
+            background: rgba(255, 255, 255, 0.06);
             border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             transition: all 0.2s ease;
         }
 
         .qr-box:hover {
-            background: rgba(255, 255, 255, 0.12);
-            transform: translateY(-2px);
+            background: rgba(255, 255, 255, 0.10);
+            transform: translateY(-1px);
         }
 
         .qr-box h4 {
-            font-size: 16px;
-            margin-bottom: 16px;
-            color: rgba(255, 255, 255, 0.9);
+            font-size: 14px;
+            margin: 0 0 6px 0;
+            color: rgba(255, 255, 255, 0.95);
             font-weight: 700;
         }
 
         .qr-box img {
-            max-width: 100%;
-            height: auto;
+            width: 90px;
+            height: 90px;
             border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            flex-shrink: 0;
+            object-fit: cover;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+        }
+
+        .qr-box-content {
+            flex: 1;
+            font-size: 13px;
         }
 
         .qr-box code {
@@ -1105,15 +1115,21 @@
 
         .tables-list {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 16px;
+            max-height: 360px;
+            overflow-y: auto;
+            padding-right: 4px;
         }
 
         .table-item {
-            background: rgba(255, 255, 255, 0.08);
-            padding: 20px;
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(15, 23, 42, 0.9);
+            padding: 12px 12px 10px;
+            border-radius: 10px;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
         .table-item-header {
@@ -2230,30 +2246,30 @@
                         <span class="section-toggle">Toggle</span>
                     </div>
                     <div class="collapsible-section" id="qr-section-${venueData.venue_id}">
-                        <div class="qr-codes" style="margin-top: 20px;">
+                        <div class="qr-codes" style="margin-top: 16px;">
                             <div class="qr-box">
-                                <h4>📱 General Submission QR</h4>
                                 <img src="${venueData.submit_qr}" alt="Submit QR">
-                                <div style="margin-top: 10px;">
+                                <div class="qr-box-content">
+                                    <h4>📱 General Submission QR</h4>
                                     <a href="${venueData.submit_url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; color: #61dafb; text-decoration: underline; word-break: break-all;" onclick="event.stopPropagation();">
                                         ${venueData.submit_url}
                                     </a>
                                 </div>
                             </div>
                             <div class="qr-box">
-                                <h4>
-                                    🎵 Venue Stream QR
-                                    <span class="help-icon" onclick="showHelp(event, 'stream-qr-smart-tv')">?</span>
-                                </h4>
                                 <img src="${venueData.stream_qr}" alt="Stream QR">
-                                <div style="margin-top: 10px;">
+                                <div class="qr-box-content">
+                                    <h4>
+                                        🎵 Venue Stream QR
+                                        <span class="help-icon" onclick="showHelp(event, 'stream-qr-smart-tv')">?</span>
+                                    </h4>
                                     <a href="${venueData.stream_url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; color: #61dafb; text-decoration: underline; word-break: break-all;" onclick="event.stopPropagation();">
                                         ${venueData.stream_url}
                                     </a>
+                                    <p style="margin-top: 8px; font-size: 12px; color: rgba(255,255,255,0.8); line-height: 1.5;">
+                                        Open this URL on a Smart TV or display screen connected to your sound system to show the live stream queue and play songs automatically.
+                                    </p>
                                 </div>
-                                <p style="margin-top: 12px; font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5;">
-                                    Open this URL on a Smart TV or display screen connected to your sound system to show the live stream queue and play songs automatically.
-                                </p>
                             </div>
                         </div>
                     </div>
