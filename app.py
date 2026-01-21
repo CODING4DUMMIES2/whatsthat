@@ -1016,7 +1016,7 @@ def send_message():
                             'success': False,
                             'error': filtered_result['reason'] or 'This song request violates venue rules.'
                         }), 400
-                    if filtered_result['modified']:
+                    if filtered_result.get('modified') and filtered_result.get('modified_message'):
                         message = filtered_result['modified_message']
                         print(f"✅ Message modified by GPT: {message}")
 
@@ -1075,7 +1075,7 @@ def serve_image(filename):
         if not os.path.exists(file_path):
             print(f"   ❌ File not found! Listing directory: {os.listdir(IMG_DIR) if os.path.exists(IMG_DIR) else 'IMG_DIR does not exist'}")
             return jsonify({'error': f'Image not found: {filename}'}), 404
-    return send_from_directory(IMG_DIR, filename)
+        return send_from_directory(IMG_DIR, filename)
     except Exception as e:
         import traceback
         error_msg = f"Error serving image {filename}: {str(e)}\n{traceback.format_exc()}"
@@ -1315,7 +1315,7 @@ def call_suno_generate_music(prompt: str, venue_id: str = None, table_id: str = 
     try:
         # Use provided genre, or detect from message, or leave empty
         if not genre:
-        genre = detect_genre(prompt)
+            genre = detect_genre(prompt)
             print(f"   Detected genre: {genre}")
         
         # Get venue settings for explicit content
@@ -2586,12 +2586,12 @@ if __name__ == '__main__':
     debug = os.environ.get('FLASK_ENV') == 'development'
     
     if debug:
-    local_ip = get_local_ip()
-    print(f"\n{'='*60}")
-    print("Server starting...")
-    print(f"Local access: http://127.0.0.1:{port}")
-    print(f"Network access: http://{local_ip}:{port}")
-    print(f"QR Code: http://{local_ip}:{port}/qr")
-    print(f"{'='*60}\n")
+        local_ip = get_local_ip()
+        print(f"\n{'='*60}")
+        print("Server starting...")
+        print(f"Local access: http://127.0.0.1:{port}")
+        print(f"Network access: http://{local_ip}:{port}")
+        print(f"QR Code: http://{local_ip}:{port}/qr")
+        print(f"{'='*60}\n")
     
     app.run(debug=debug, host='0.0.0.0', port=port)
