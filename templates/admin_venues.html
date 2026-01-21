@@ -2430,7 +2430,13 @@
                 </div>
             `;
             
-            venuesList.appendChild(card);
+            // Insert new venue at the top of the list
+            const firstChild = venuesList.firstChild;
+            if (firstChild) {
+                venuesList.insertBefore(card, firstChild);
+            } else {
+                venuesList.appendChild(card);
+            }
             attachVenueCardHandlers();
             
             // If tables were automatically created, display them immediately
