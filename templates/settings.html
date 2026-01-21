@@ -539,13 +539,13 @@
 
         <div class="main-content">
         <div class="container">
-            <h1>⚙️ Settings</h1>
+            <h1>Settings</h1>
             <p style="color: rgba(255,255,255,0.7); margin-bottom: 40px; font-size: 16px;">Configure genre preferences and content settings for your venue.</p>
 
             <div class="frosted-glass">
                 <div class="settings-section">
                     <h2>
-                        🎵 Allowed Genres
+                        Allowed Genres
                         <span class="help-icon" onclick="showHelp(event, 'settings-allowed-genres')">?</span>
                     </h2>
                     <p>Select which genres users can choose from when requesting songs. Only selected genres will be available.</p>
@@ -573,7 +573,7 @@
 
                 <div class="settings-section">
                     <h2>
-                        🔞 Content Settings
+                        Content Settings
                         <span class="help-icon" onclick="showHelp(event, 'settings-content')">?</span>
                     </h2>
                     <p>Choose whether to allow explicit or non-explicit lyrics. If neither is selected, no content restriction will be applied.</p>
@@ -599,7 +599,7 @@
 
                 <div class="settings-section">
                     <h2>
-                        📝 Custom Stream Instructions
+                        Custom Stream Instructions
                         <span class="help-icon" onclick="showHelp(event, 'settings-custom-instructions')">?</span>
                     </h2>
                     <p>Set custom rules for song requests. These instructions will be used by AI to filter and modify requests before they reach the music generator.</p>
@@ -614,7 +614,7 @@
                 </div>
 
                 <button class="save-button" onclick="saveSettings()" id="saveBtn">
-                    💾 Save Settings
+                    Save Settings
                     <span class="help-icon" onclick="showHelp(event, 'settings-save')">?</span>
                 </button>
             </div>
@@ -740,7 +740,7 @@
             if (selectedGenres.length === 0) {
                 if (!confirm('No genres selected. Users won\'t be able to select any genres. Continue?')) {
                     saveBtn.disabled = false;
-                    saveBtn.textContent = '💾 Save Settings';
+                    saveBtn.textContent = 'Save Settings';
                     return;
                 }
             }
@@ -783,7 +783,7 @@
                     statusEl.style.color = '#fecaca';
                     statusEl.textContent = 'Error saving settings: ' + (data.error || 'Unknown error');
                     saveBtn.disabled = false;
-                    saveBtn.textContent = '💾 Save Settings';
+                    saveBtn.textContent = 'Save Settings';
                 }
             } catch (error) {
                 let statusEl = document.getElementById('settingsStatus');
