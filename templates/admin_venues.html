@@ -1446,28 +1446,7 @@
     </div>
 
     <!-- Dashboard Explanation Screen (After Logo Upload) -->
-    <div id="dashboardExplanationScreen" style="position: fixed; inset: 0; z-index: 3000; display: none; align-items: center; justify-content: center;">
-        <div id="dashboardExplanationSquare" style="background: rgba(15, 23, 42, 0.95); border-radius: 24px; padding: 48px 56px; max-width: 600px; width: 90%; box-shadow: 0 40px 110px rgba(0,0,0,0.85); border: 1px solid rgba(167,139,250,0.3); position: relative; opacity: 0; transform: scale(0.9); transition: opacity 0.8s ease-out, transform 0.8s ease-out;">
-            <div style="position: absolute; top: 24px; left: 24px;">
-                <img src="/img/logo.png" alt="whatsthat logo" style="width: 48px; height: 48px; object-fit: contain;">
-            </div>
-            <div id="dashboardExplanationText" style="margin-top: 60px; text-align: center; opacity: 0; transition: opacity 1.2s ease-out 0.4s;">
-                <h2 style="font-size: 28px; font-weight: 800; margin: 0 0 24px 0; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-                    This is your dashboard
-                </h2>
-                <p style="font-size: 18px; color: rgba(255,255,255,0.9); margin: 0 0 32px 0; line-height: 1.6;">
-                    This is where you manage your<br>
-                    <strong style="color: white;">venues</strong>, <strong style="color: white;">tables</strong>, <strong style="color: white;">QR codes</strong> and <strong style="color: white;">streams</strong>
-                </p>
-                <button id="dashboardExplanationBtn" onclick="closeDashboardExplanation()" style="padding: 14px 32px; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); border: none; border-radius: 12px; color: white; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(255, 20, 147, 0.4); transition: all 0.2s; opacity: 0; transition: opacity 1.2s ease-out 0.8s, transform 0.2s; width: 100%;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(255, 20, 147, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(255, 20, 147, 0.4)'">
-                    Got it
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Dashboard Explanation Screen (After Logo Upload) -->
-    <div id="dashboardExplanationScreen" style="position: fixed; inset: 0; z-index: 3000; display: none; align-items: center; justify-content: center;">
+    <div id="dashboardExplanationScreen" style="position: fixed; inset: 0; z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); background: rgba(0, 0, 0, 0.3);">
         <div id="dashboardExplanationSquare" style="background: rgba(15, 23, 42, 0.95); border-radius: 24px; padding: 48px 56px; max-width: 600px; width: 90%; box-shadow: 0 40px 110px rgba(0,0,0,0.85); border: 1px solid rgba(167,139,250,0.3); position: relative; opacity: 0; transform: scale(0.9); transition: opacity 0.8s ease-out, transform 0.8s ease-out;">
             <div style="position: absolute; top: 24px; left: 24px;">
                 <img src="/img/logo.png" alt="whatsthat logo" style="width: 48px; height: 48px; object-fit: contain;">
@@ -2518,16 +2497,9 @@
             const dashboardExplanationSquare = document.getElementById('dashboardExplanationSquare');
             const dashboardExplanationText = document.getElementById('dashboardExplanationText');
             const dashboardExplanationBtn = document.getElementById('dashboardExplanationBtn');
-            const mainLayout = document.getElementById('mainLayout');
-            
             if (!dashboardExplanationScreen || !dashboardExplanationSquare || !dashboardExplanationText) return;
             
-            // Hide main layout initially
-            if (mainLayout) {
-                mainLayout.style.display = 'none';
-            }
-            
-            // Show dashboard explanation screen
+            // Show dashboard explanation screen (main layout stays visible behind it)
             dashboardExplanationScreen.style.display = 'flex';
             
             // Animate square easing in
@@ -2554,7 +2526,6 @@
             const dashboardExplanationSquare = document.getElementById('dashboardExplanationSquare');
             const dashboardExplanationText = document.getElementById('dashboardExplanationText');
             const dashboardExplanationBtn = document.getElementById('dashboardExplanationBtn');
-            const mainLayout = document.getElementById('mainLayout');
             
             // Clear the flag
             sessionStorage.removeItem('showDashboardExplanation');
@@ -2568,13 +2539,10 @@
                     dashboardExplanationBtn.style.opacity = '0';
                 }
                 
-                // Show main layout after fade out, then start tutorial
+                // Hide overlay after fade out, then start tutorial
                 setTimeout(() => {
                     if (dashboardExplanationScreen) {
                         dashboardExplanationScreen.style.display = 'none';
-                    }
-                    if (mainLayout) {
-                        mainLayout.style.display = 'flex';
                     }
                     // Start tutorial after a short delay
                     setTimeout(() => {
