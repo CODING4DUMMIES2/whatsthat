@@ -1466,16 +1466,16 @@
     </div>
 
     <!-- Tutorial Overlay (Step-by-step guide) -->
-    <div id="tutorialOverlay" style="position: fixed; inset: 0; z-index: 4000; display: none; pointer-events: none; background: rgba(0, 0, 0, 0.5);">
+    <div id="tutorialOverlay" style="position: fixed; inset: 0; z-index: 4000; display: none; pointer-events: auto; background: rgba(0, 0, 0, 0.5);">
         <div id="tutorialHighlight" style="position: absolute; border: 4px solid rgba(255, 20, 147, 1); border-radius: 12px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 20, 147, 0.8), inset 0 0 20px rgba(255, 20, 147, 0.3); pointer-events: none; transition: all 0.3s ease; z-index: 4001;"></div>
-        <div id="tutorialPopup" style="position: absolute; background: rgba(15, 23, 42, 0.98); border-radius: 16px; padding: 20px 24px; max-width: 320px; box-shadow: 0 20px 60px rgba(0,0,0,0.9); border: 2px solid rgba(255, 20, 147, 0.6); pointer-events: auto; opacity: 0; transform: scale(0.9); transition: opacity 0.3s ease, transform 0.3s ease;">
+        <div id="tutorialPopup" style="position: absolute; background: rgba(15, 23, 42, 1); border-radius: 16px; padding: 20px 24px; max-width: 320px; box-shadow: 0 20px 60px rgba(0,0,0,0.9), 0 0 30px rgba(255, 20, 147, 0.4); border: 3px solid rgba(255, 20, 147, 0.9); pointer-events: auto; opacity: 0; transform: scale(0.9); transition: opacity 0.3s ease, transform 0.3s ease; z-index: 4002;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                 <h3 id="tutorialTitle" style="font-size: 18px; font-weight: 800; margin: 0; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; flex: 1;">
                     Step 1
                 </h3>
-                <span id="tutorialStepCount" style="font-size: 12px; color: rgba(255,255,255,0.6); margin-left: 12px;">1/8</span>
+                <span id="tutorialStepCount" style="font-size: 12px; color: rgba(255,255,255,0.9); margin-left: 12px; font-weight: 600;">1/8</span>
             </div>
-            <p id="tutorialText" style="font-size: 14px; color: rgba(255,255,255,0.9); margin: 0 0 16px 0; line-height: 1.5;">
+            <p id="tutorialText" style="font-size: 14px; color: rgba(255,255,255,1); margin: 0 0 16px 0; line-height: 1.5; font-weight: 500;">
                 Tutorial text here
             </p>
             <div style="display: flex; gap: 8px; justify-content: flex-end;">
@@ -2472,6 +2472,8 @@
             
             // Set flag to show dashboard explanation after reload
             sessionStorage.setItem('showDashboardExplanation', 'true');
+            // Clear any previous tutorial completion so new accounts see the tutorial
+            sessionStorage.removeItem('tutorialCompleted');
             
             // Fade out logo upload screen
             if (logoUploadSquare && logoUploadText) {
@@ -2729,10 +2731,18 @@
             }
             
             tutorialOverlay.style.display = 'block';
+            tutorialOverlay.style.pointerEvents = 'auto';
             tutorialPopup.style.left = '50%';
             tutorialPopup.style.top = '50%';
             tutorialPopup.style.transform = 'translate(-50%, -50%)';
             tutorialPopup.style.opacity = '1';
+            
+            // Block all interactions with the main layout
+            const mainLayout = document.getElementById('mainLayout');
+            if (mainLayout) {
+                mainLayout.style.pointerEvents = 'none';
+                mainLayout.style.userSelect = 'none';
+            }
         }
         
         function showTutorialStepWithElement(stepIndex, step, element) {
@@ -2769,6 +2779,14 @@
             tutorialOverlay.style.visibility = 'visible';
             tutorialOverlay.style.opacity = '1';
             tutorialOverlay.style.zIndex = '4000';
+            tutorialOverlay.style.pointerEvents = 'auto';
+            
+            // Block all interactions with the main layout
+            const mainLayout = document.getElementById('mainLayout');
+            if (mainLayout) {
+                mainLayout.style.pointerEvents = 'none';
+                mainLayout.style.userSelect = 'none';
+            }
 
             // Get element position (getBoundingClientRect is relative to viewport)
             const rect = element.getBoundingClientRect();
@@ -2942,6 +2960,14 @@
                 if (tutorialOverlay) {
                     tutorialOverlay.style.display = 'none';
                     tutorialOverlay.style.visibility = 'hidden';
+                    tutorialOverlay.style.pointerEvents = 'none';
+                }
+                
+                // Restore interactions with main layout
+                const mainLayout = document.getElementById('mainLayout');
+                if (mainLayout) {
+                    mainLayout.style.pointerEvents = 'auto';
+                    mainLayout.style.userSelect = 'auto';
                 }
                 
                 // Remove highlight from all elements
