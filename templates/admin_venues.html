@@ -1437,8 +1437,10 @@
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:18px;">
                         <div>
                             <div style="font-size:24px; font-weight:800; display:flex; align-items:center; gap:10px;">
-                                <span style="width:32px; height:32px; border-radius:999px; background:radial-gradient(circle at 30% 20%, #f97316, #ec4899 55%, #6366f1 100%); display:flex; align-items:center; justify-content:center; font-size:18px;">🎛️</span>
-                                <span>Welcome, {{ user_name }} — quick tour of your venue</span>
+                                <span style="width:32px; height:32px; border-radius:999px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:rgba(15,23,42,0.9); border:1px solid rgba(148,163,184,0.6);">
+                                    <img src="/img/logo.png" alt="whatsthat logo" style="width:26px; height:26px; object-fit:contain;">
+                                </span>
+                                <span>Welcome, {{ user_name }} – quick tour of your venue</span>
                             </div>
                             <div style="font-size:14px; color:rgba(226,232,240,0.78); margin-top:4px;">
                                 This runs only once. We’ll show you how to stream, use QR codes, name your venue, and where to change your settings.
@@ -1467,12 +1469,15 @@
                                 <input id="onb-venue-name" type="text" value="{{ user_name }}'s Venue" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(148,163,184,0.6); background:rgba(15,23,42,0.9); color:#E5E7EB; font-size:14px;">
                             </div>
                         </div>
-                        <div style="flex:1.4; border-radius:14px; border:1px dashed rgba(148,163,184,0.5); padding:12px 12px 10px; background:radial-gradient(circle at top left, rgba(129,140,248,0.22), rgba(15,23,42,0.95)); font-size:12px;">
-                            <strong style="display:block; margin-bottom:6px;">Quick map of the left sidebar</strong>
-                            <ul style="padding-left:16px; line-height:1.5;">
-                                <li><b>Venues</b> — manage your venue cards, tables and QR codes.</li>
-                                <li><b>Stream</b> — open the live player for this venue.</li>
-                                <li><b>Settings</b> — Allowed Genres, explicit filter, custom stream rules.</li>
+                        <div style="flex:1.4; border-radius:14px; border:1px dashed rgba(148,163,184,0.5); padding:12px 12px 10px; background:radial-gradient(circle at top left, rgba(129,140,248,0.22), rgba(15,23,42,0.95)); font-size:13px;">
+                            <strong style="display:block; margin-bottom:6px; font-size:14px;">
+                                Quick map of the left sidebar
+                                <span class="help-icon" onclick="showHelp(event, 'onb-sidebar-map')">?</span>
+                            </strong>
+                            <ul style="padding-left:18px; line-height:1.7;">
+                                <li><b>Venues</b> – manage your venue cards, tables and QR codes.</li>
+                                <li><b>Stream</b> – open the live player for this venue.</li>
+                                <li><b>Settings</b> – Allowed Genres, explicit filter, custom stream rules.</li>
                             </ul>
                         </div>
                     </div>
@@ -1504,13 +1509,21 @@
                                 </div>
 
                                 <div id="onb-qr-preview" style="display:none; margin-top:12px; border-radius:12px; border:1px solid rgba(148,163,184,0.7); padding:10px 12px; background:rgba(15,23,42,0.95);">
-                                    <div style="font-size:13px; margin-bottom:6px; color:rgba(226,232,240,0.9);">Your first QR code (ready to print or download)</div>
-                                    <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+                                    <div style="font-size:13px; margin-bottom:6px; color:rgba(226,232,240,0.9);">
+                                        Your QR codes (ready to print or download)
+                                        <span class="help-icon" onclick="showHelp(event, 'onb-qr-preview')">?</span>
+                                    </div>
+                                    <div id="onb-qr-single" style="display:none; gap:16px; align-items:center; flex-wrap:wrap;">
                                         <img id="onb-qr-img" src="" alt="Venue QR" style="width:140px; height:140px; border-radius:10px; background:#020617;">
                                         <div style="flex:1; min-width:180px;">
-                                            <button type="button" onclick="onbPrintQr()" style="display:block; width:100%; margin-bottom:6px; border-radius:999px; padding:8px 14px; font-size:13px; border:1px solid transparent; background:linear-gradient(135deg,#FF1493,#8B2BE2); color:#f9fafb; cursor:pointer;">Print QR</button>
-                                            <button type="button" onclick="onbDownloadQr()" style="display:block; width:100%; border-radius:999px; padding:8px 14px; font-size:13px; border:1px solid rgba(148,163,184,0.7); background:transparent; color:rgba(226,232,240,0.95); cursor:pointer;">Download PNG</button>
+                                            <button type="button" onclick="onbPrintQr(onbQrUrl)" style="display:block; width:100%; margin-bottom:6px; border-radius:999px; padding:8px 14px; font-size:13px; border:1px solid transparent; background:linear-gradient(135deg,#FF1493,#8B2BE2); color:#f9fafb; cursor:pointer;">Print QR</button>
+                                            <button type="button" onclick="onbDownloadQr(onbQrUrl)" style="display:block; width:100%; border-radius:999px; padding:8px 14px; font-size:13px; border:1px solid rgba(148,163,184,0.7); background:transparent; color:rgba(226,232,240,0.95); cursor:pointer;">Download PNG</button>
                                         </div>
+                                    </div>
+                                    <div id="onb-qr-tables" style="display:none; margin-top:6px;">
+                                        <label for="onb-table-count" style="display:block; font-size:12px; margin-bottom:6px; color:rgba(226,232,240,0.9);">How many tables do you want QR codes for?</label>
+                                        <input id="onb-table-count" type="number" min="1" max="30" value="4" style="width:80px; padding:6px 8px; border-radius:8px; border:1px solid rgba(148,163,184,0.7); background:rgba(15,23,42,0.9); color:#E5E7EB; font-size:13px; margin-bottom:10px;">
+                                        <div id="onb-qr-table-list" style="display:grid; gap:8px;"></div>
                                     </div>
                                 </div>
                             </div>
@@ -1667,6 +1680,14 @@
             'stream-queue': {
                 title: 'Stream Queue',
                 body: 'Shows the list of upcoming, generating, and played songs for the live stream in this venue.'
+            },
+            'onb-sidebar-map': {
+                title: 'Sidebar Map',
+                body: 'This is a quick legend for the Venues, Stream, and Settings buttons on the left so you always know where to click.'
+            },
+            'onb-qr-preview': {
+                title: 'QR Codes in Setup',
+                body: 'Based on your choice we generate either one room QR or a QR for each table, and give you quick print and download buttons for all of them.'
             }
         };
 
@@ -1747,7 +1768,9 @@
             try {
                 const nameInput = document.getElementById('onb-venue-name');
                 const venueName = (nameInput && nameInput.value.trim()) || '{{ user_name }}\'s Venue';
-                const numTables = onbQrMode === 'tables' ? 4 : 0;
+                const tableCountInput = document.getElementById('onb-table-count');
+                const parsedTables = tableCountInput ? parseInt(tableCountInput.value || '4', 10) : 4;
+                const numTables = onbQrMode === 'tables' ? Math.min(Math.max(parsedTables, 1), 30) : 0;
                 const resp = await fetch('/venue/create', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -1756,29 +1779,54 @@
                 if (!resp.ok) return;
                 const data = await resp.json();
                 onbCreatedVenue = data;
+                const box = document.getElementById('onb-qr-preview');
+                if (box) box.style.display = 'block';
+
+                const singleBox = document.getElementById('onb-qr-single');
+                const tablesBox = document.getElementById('onb-qr-tables');
+
                 if (onbQrMode === 'tables' && data.tables && data.tables.length > 0) {
-                    onbQrUrl = data.tables[0].qr_code;
+                    if (singleBox) singleBox.style.display = 'none';
+                    if (tablesBox) tablesBox.style.display = 'block';
+                    const list = document.getElementById('onb-qr-table-list');
+                    if (list) {
+                        list.innerHTML = data.tables.map((t, idx) => {
+                            const safeName = t.name || `Table ${idx + 1}`;
+                            return `
+                                <div style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; border-radius:10px; border:1px solid rgba(148,163,184,0.6); padding:8px 10px; background:rgba(15,23,42,0.9);">
+                                    <span style="font-size:13px; color:rgba(226,232,240,0.9); min-width:64px;">Table ${idx + 1}</span>
+                                    <input type="text" value="${safeName}" style="flex:1; min-width:140px; padding:6px 8px; border-radius:8px; border:1px solid rgba(148,163,184,0.7); background:rgba(15,23,42,0.95); color:#E5E7EB; font-size:13px;">
+                                    <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                                        <button type="button" onclick="onbPrintQr('${t.qr_code}')" style="border-radius:999px; padding:6px 10px; font-size:12px; border:1px solid transparent; background:linear-gradient(135deg,#FF1493,#8B2BE2); color:#f9fafb; cursor:pointer;">Print</button>
+                                        <button type="button" onclick="onbDownloadQr('${t.qr_code}')" style="border-radius:999px; padding:6px 10px; font-size:12px; border:1px solid rgba(148,163,184,0.7); background:transparent; color:rgba(226,232,240,0.95); cursor:pointer;">Download</button>
+                                    </div>
+                                </div>
+                            `;
+                        }).join('');
+                    }
                 } else {
                     onbQrUrl = data.submit_qr;
+                    const img = document.getElementById('onb-qr-img');
+                    if (img && onbQrUrl) img.src = onbQrUrl;
+                    if (singleBox) singleBox.style.display = 'flex';
+                    if (tablesBox) tablesBox.style.display = 'none';
                 }
-                const img = document.getElementById('onb-qr-img');
-                const box = document.getElementById('onb-qr-preview');
-                if (img && onbQrUrl) img.src = onbQrUrl;
-                if (box && onbQrUrl) box.style.display = 'block';
             } catch (e) {
                 console.error('Error creating venue for onboarding:', e);
             }
         }
 
-        function onbPrintQr() {
-            if (!onbQrUrl) return;
-            window.open(onbQrUrl, '_blank');
+        function onbPrintQr(url) {
+            const target = url || onbQrUrl;
+            if (!target) return;
+            window.open(target, '_blank');
         }
 
-        function onbDownloadQr() {
-            if (!onbQrUrl) return;
+        function onbDownloadQr(url) {
+            const target = url || onbQrUrl;
+            if (!target) return;
             const a = document.createElement('a');
-            a.href = onbQrUrl;
+            a.href = target;
             a.download = 'venue-qr.png';
             document.body.appendChild(a);
             a.click();
