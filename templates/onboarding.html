@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Welcome Setup - whatsthat</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+            background: radial-gradient(circle at top, #1f2937 0, #020617 60%);
+            color: #f9fafb;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .onboarding-shell {
+            max-width: 980px;
+            width: 100%;
+            padding: 32px 20px;
+        }
+
+        .onboarding-card {
+            background: rgba(15, 23, 42, 0.95);
+            border-radius: 18px;
+            border: 1px solid rgba(148, 163, 184, 0.3);
+            box-shadow: 0 25px 80px rgba(15, 23, 42, 0.8);
+            padding: 28px 28px 24px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .onboarding-card::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 20px;
+            padding: 1px;
+            background: linear-gradient(120deg, rgba(236, 72, 153, 0.4), rgba(129, 140, 248, 0.6), rgba(56, 189, 248, 0.4));
+            -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        .onboarding-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .onboarding-title {
+            font-size: 22px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .onboarding-title span.icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 999px;
+            background: radial-gradient(circle at 30% 20%, #f97316, #ec4899 55%, #6366f1 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .onboarding-subtitle {
+            font-size: 13px;
+            color: rgba(226, 232, 240, 0.7);
+            margin-top: 4px;
+        }
+
+        .onboarding-steps {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .step-pill {
+            padding: 6px 10px;
+            border-radius: 999px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            color: rgba(148, 163, 184, 0.9);
+        }
+
+        .step-pill.active {
+            background: linear-gradient(135deg, #ec4899, #6366f1);
+            color: white;
+            border-color: transparent;
+        }
+
+        .onboarding-body {
+            margin-top: 10px;
+            min-height: 260px;
+        }
+
+        .step {
+            display: none;
+        }
+
+        .step.active {
+            display: flex;
+            gap: 20px;
+        }
+
+        .step-main {
+            flex: 2;
+        }
+
+        .step-side {
+            flex: 1.4;
+            border-radius: 14px;
+            border: 1px dashed rgba(148, 163, 184, 0.4);
+            padding: 14px 14px 12px;
+            background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.12), transparent 55%);
+            font-size: 12px;
+        }
+
+        .step h2 {
+            font-size: 20px;
+            margin-bottom: 10px;
+        }
+
+        .step p {
+            font-size: 14px;
+            color: rgba(226, 232, 240, 0.8);
+            margin-bottom: 8px;
+        }
+
+        .info-list {
+            margin-top: 10px;
+            font-size: 13px;
+        }
+
+        .info-list li {
+            margin-bottom: 6px;
+        }
+
+        .choice-group {
+            margin-top: 16px;
+            display: grid;
+            gap: 10px;
+        }
+
+        .choice-card {
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.6);
+            padding: 10px 12px;
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(15, 23, 42, 0.7);
+        }
+
+        .choice-card.selected {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.6);
+            background: radial-gradient(circle at top, rgba(8, 47, 73, 0.9), rgba(15, 23, 42, 0.9));
+        }
+
+        .choice-radio {
+            margin-top: 3px;
+        }
+
+        .choice-title {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .choice-desc {
+            font-size: 12px;
+            color: rgba(226, 232, 240, 0.8);
+            margin-top: 3px;
+        }
+
+        .mini-dashboard {
+            margin-top: 10px;
+            border-radius: 12px;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            padding: 10px 12px;
+            background: radial-gradient(circle at top left, rgba(129, 140, 248, 0.2), rgba(15, 23, 42, 0.95));
+            font-size: 12px;
+        }
+
+        .mini-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 6px;
+        }
+
+        .mini-tag {
+            border-radius: 999px;
+            padding: 3px 8px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            font-size: 11px;
+        }
+
+        .onboarding-footer {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .footer-left {
+            font-size: 11px;
+            color: rgba(148, 163, 184, 0.9);
+        }
+
+        .footer-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            border-radius: 999px;
+            padding: 9px 16px;
+            font-size: 13px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border-color: rgba(148, 163, 184, 0.5);
+            color: rgba(226, 232, 240, 0.9);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #ec4899, #6366f1);
+            color: #f9fafb;
+            border-color: transparent;
+            box-shadow: 0 5px 18px rgba(59, 130, 246, 0.5);
+        }
+
+        .btn-primary:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        @media (max-width: 768px) {
+            .onboarding-card {
+                padding: 20px 18px 18px;
+            }
+            .step.active {
+                flex-direction: column;
+            }
+            .step-side {
+                order: -1;
+            }
+            .onboarding-body {
+                min-height: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="onboarding-shell">
+        <div class="onboarding-card">
+            <div class="onboarding-header">
+                <div>
+                    <div class="onboarding-title">
+                        <span class="icon">🎛️</span>
+                        <span>Welcome, {{ user_name }} — let’s set up your venue</span>
+                    </div>
+                    <div class="onboarding-subtitle">
+                        This quick wizard runs only once and shows you how to stream, manage QR codes, and control your queue.
+                    </div>
+                </div>
+                <div class="onboarding-steps">
+                    <span class="step-pill" id="pill-1">Step 1 · Overview</span>
+                    <span class="step-pill" id="pill-2">Step 2 · QR & Tables</span>
+                    <span class="step-pill" id="pill-3">Step 3 · Dashboard Tour</span>
+                </div>
+            </div>
+
+            <div class="onboarding-body">
+                <!-- Step 1: High-level overview -->
+                <div class="step active" id="step-1">
+                    <div class="step-main">
+                        <h2>How whatsthat works in your venue</h2>
+                        <p>Every venue gets three core pieces: a guest QR, a live stream page, and a powerful queue that keeps the music flowing.</p>
+                        <ul class="info-list">
+                            <li>• Guests scan a **QR code** at the bar or tables to request songs.</li>
+                            <li>• Your **Live Music Stream** page plays AI‑generated music for the room in real time.</li>
+                            <li>• A smart **queue** shows what’s generating, what’s ready, and what already played.</li>
+                        </ul>
+                        <p style="margin-top: 12px;">Next, we’ll decide how you want QR codes to work in your room.</p>
+                    </div>
+                    <div class="step-side">
+                        <strong style="display:block; margin-bottom:6px;">You’ll learn where to:</strong>
+                        <ul class="info-list">
+                            <li>• Open the **Venues dashboard** to manage everything.</li>
+                            <li>• Start the **Live Music Stream** on your sound system device.</li>
+                            <li>• Change **Allowed Genres** and **Custom Stream Instructions** in Settings.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Step 2: QR and table tracking choice -->
+                <div class="step" id="step-2">
+                    <div class="step-main">
+                        <h2>How do you want QR codes to work?</h2>
+                        <p>Pick how you want to track requests in your venue. You can change this later in your settings and tables.</p>
+
+                        <div class="choice-group">
+                            <div class="choice-card" id="choice-single" onclick="selectQrMode('single')">
+                                <div class="choice-radio">
+                                    <input type="radio" name="qrMode" value="single" id="qr-single">
+                                </div>
+                                <div>
+                                    <div class="choice-title">Single QR for the whole venue (no table tracking)</div>
+                                    <div class="choice-desc">
+                                        Use one QR code everywhere — bar, stage, doors. Fast to print and post. You’ll see requests for the room, but not which table they came from.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="choice-card" id="choice-tables" onclick="selectQrMode('tables')">
+                                <div class="choice-radio">
+                                    <input type="radio" name="qrMode" value="tables" id="qr-tables">
+                                </div>
+                                <div>
+                                    <div class="choice-title">Table tracking with unique QR per table</div>
+                                    <div class="choice-desc">
+                                        Give each table its own QR. Requests are logged per table so you can see exactly who requested what and reward the best spenders.
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="step-side">
+                        <strong style="display:block; margin-bottom:6px;">What this changes</strong>
+                        <p>We’ll use this choice when we help you create your first venue and when you add tables later:</p>
+                        <ul class="info-list" style="margin-top:8px;">
+                            <li>• **Single QR**: One printable QR you can copy as many times as you want.</li>
+                            <li>• **Table QR**: Each table gets its own printable QR + tracking in your dashboard.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- Step 3: Dashboard / tour preview -->
+                <div class="step" id="step-3">
+                    <div class="step-main">
+                        <h2>What you’ll see on your dashboard</h2>
+                        <p>Here’s how to find everything once we send you into the full dashboard.</p>
+                        <div class="mini-dashboard">
+                            <div class="mini-row">
+                                <span class="mini-tag">Venues</span>
+                                <span style="font-size:12px;">· Manage your venue name, stats, tables, and QR codes.</span>
+                            </div>
+                            <div class="mini-row">
+                                <span class="mini-tag">Stream</span>
+                                <span style="font-size:12px;">· Opens the Live Music Stream player. Use this on the device plugged into your speakers.</span>
+                            </div>
+                            <div class="mini-row">
+                                <span class="mini-tag">Settings</span>
+                                <span style="font-size:12px;">· Set Allowed Genres, Explicit/Non-Explicit, and Custom Stream Instructions.</span>
+                            </div>
+                            <div class="mini-row">
+                                <span class="mini-tag">QR Codes</span>
+                                <span style="font-size:12px;">· Inside each venue card, look for the “QR Codes” section for printable codes and links.</span>
+                            </div>
+                        </div>
+                        <p style="margin-top:12px;">On your first visit we’ll highlight these areas so you can click around with arrows and tooltips.</p>
+                    </div>
+                    <div class="step-side">
+                        <strong style="display:block; margin-bottom:6px;">Next up: your real dashboard</strong>
+                        <p>When you click **Finish & Go To My Dashboard**, we’ll:</p>
+                        <ul class="info-list" style="margin-top:8px;">
+                            <li>• Remember your QR/table preference for this account.</li>
+                            <li>• Drop you into the Venues page we’ve been wiring up.</li>
+                        </ul>
+                        <p style="margin-top:8px;">From there, you can create your first venue, print QR codes, and start streaming live music.</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="onboarding-footer">
+                <div class="footer-left">
+                    <span id="step-indicator">Step 1 of 3</span> · You can always tweak settings and QR choices later.
+                </div>
+                <div class="footer-actions">
+                    <button class="btn btn-secondary" type="button" onclick="skipOnboarding()">Skip for now</button>
+                    <button class="btn btn-primary" type="button" id="nextBtn" onclick="handleNext()">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+        let selectedQrMode = null;
+
+        function updateStepUI() {
+            for (let i = 1; i <= 3; i++) {
+                const stepEl = document.getElementById(`step-${i}`);
+                const pillEl = document.getElementById(`pill-${i}`);
+                if (stepEl) stepEl.classList.toggle('active', i === currentStep);
+                if (pillEl) pillEl.classList.toggle('active', i === currentStep);
+            }
+            const indicator = document.getElementById('step-indicator');
+            const nextBtn = document.getElementById('nextBtn');
+            indicator.textContent = `Step ${currentStep} of 3`;
+            if (currentStep === 3) {
+                nextBtn.textContent = 'Finish & Go To My Dashboard';
+            } else {
+                nextBtn.textContent = 'Next';
+            }
+        }
+
+        function selectQrMode(mode) {
+            selectedQrMode = mode;
+            const single = document.getElementById('choice-single');
+            const tables = document.getElementById('choice-tables');
+            const rSingle = document.getElementById('qr-single');
+            const rTables = document.getElementById('qr-tables');
+            if (mode === 'single') {
+                single.classList.add('selected');
+                tables.classList.remove('selected');
+                rSingle.checked = true;
+            } else {
+                tables.classList.add('selected');
+                single.classList.remove('selected');
+                rTables.checked = true;
+            }
+        }
+
+        async function completeOnboarding(skip = false) {
+            try {
+                const payload = skip ? {} : { qr_mode: selectedQrMode };
+                const resp = await fetch('/onboarding/complete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                if (resp.ok) {
+                    const data = await resp.json().catch(() => null);
+                    const redirectUrl = (data && data.redirect) || '/venues';
+                    window.location.href = redirectUrl;
+                } else {
+                    window.location.href = '/venues';
+                }
+            } catch (e) {
+                console.error('Error completing onboarding:', e);
+                window.location.href = '/venues';
+            }
+        }
+
+        function handleNext() {
+            if (currentStep === 2 && !selectedQrMode) {
+                alert('Please choose how you want QR codes to work before continuing.');
+                return;
+            }
+            if (currentStep < 3) {
+                currentStep += 1;
+                updateStepUI();
+            } else {
+                completeOnboarding(false);
+            }
+        }
+
+        function skipOnboarding() {
+            completeOnboarding(true);
+        }
+
+        updateStepUI();
+    </script>
+</body>
+</html>
+

@@ -461,12 +461,15 @@ def load_users():
                 traceback.print_exc()
     
     # Always add hardwired admin account
+    admin_existing = users.get(ADMIN_EMAIL, {})
     users[ADMIN_EMAIL] = {
         'email': ADMIN_EMAIL,
-        'name': 'Admin',
-        'password_hash': hash_password(ADMIN_PASSWORD),
-        'created_at': datetime.now().isoformat(),
-        'is_admin': True
+        'name': admin_existing.get('name') or 'Admin',
+        'password_hash': admin_existing.get('password_hash') or hash_password(ADMIN_PASSWORD),
+        'created_at': admin_existing.get('created_at') or datetime.now().isoformat(),
+        'is_admin': True,
+        # Admins skip the end-user onboarding wizard
+        'onboarding_completed': True
     }
     
     return users
@@ -1823,6 +1826,45 @@ def show_qr():
     return render_template('qr.html', url=base_url)
 
 
+@app.route('/onboarding', methods=['GET'])
+@require_login
+def onboarding():
+    """First-time setup wizard for non-admin users."""
+    user_email = session.get('user_id')
+    global users
+    users = load_users()
+    user_record = users.get(user_email, {})
+
+    # Admins and users who already completed onboarding go straight to venues
+    if user_record.get('is_admin', False) or user_record.get('onboarding_completed', False):
+        return redirect(url_for('venues'))
+
+    base_url = get_base_url() or ''
+    return render_template('onboarding.html', base_url=base_url, user_name=session.get('user_name', 'User'))
+
+
+@app.route('/onboarding/complete', methods=['POST'])
+@require_login
+def onboarding_complete():
+    """Mark onboarding as completed and store QR preference."""
+    user_email = session.get('user_id')
+    data = request.get_json() or {}
+    qr_mode = data.get('qr_mode')
+
+    global users
+    users = load_users()
+    if user_email in users:
+        users[user_email]['onboarding_completed'] = True
+        if qr_mode in ('single', 'tables'):
+            users[user_email]['default_qr_mode'] = qr_mode
+        save_users(users)
+
+    redirect_url = url_for('venues')
+    if request.is_json:
+        return jsonify({'success': True, 'redirect': redirect_url})
+    return redirect(redirect_url)
+
+
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     """User signup page"""
@@ -1857,7 +1899,11 @@ def signup():
             'email': email,
             'name': name or email.split('@')[0],
             'password_hash': password_hash,
-            'created_at': datetime.now().isoformat()
+            'created_at': datetime.now().isoformat(),
+            # New users should go through the guided setup wizard on first login
+            'onboarding_completed': False,
+            # Preference for how QR codes should work by default ('single' or 'tables')
+            'default_qr_mode': None
         }
         print(f"🔐 Creating user '{email}' with password hash: {password_hash[:20]}...")
         print(f"   Users dict now has {len(users)} user(s): {list(users.keys())}")
@@ -1882,15 +1928,17 @@ def signup():
         # Mark session as modified to ensure it's saved
         session.modified = True
         
+        # After signup, send non-admins into onboarding wizard first
+        target = 'venues' if users[email].get('is_admin', False) else 'onboarding'
         if request.is_json:
-            redirect_url = '/venues'
+            redirect_url = url_for(target)
             return jsonify({
                 'success': True, 
                 'message': 'Account created successfully',
                 'redirect': redirect_url
             })
         
-        return redirect(url_for('venues'))
+        return redirect(url_for(target))
     
     return render_template('signup.html')
 
@@ -1953,13 +2001,18 @@ def login():
         # Mark session as modified to ensure it's saved
         session.modified = True
         
+        # Decide where to send the user: onboarding wizard for first-time non-admins, venues otherwise
+        user_record = users.get(email, {})
+        should_onboard = (not user_record.get('is_admin', False)) and (not user_record.get('onboarding_completed', False))
+        target = 'onboarding' if should_onboard else 'venues'
+
         if request.is_json:
             return jsonify({
                 'success': True, 
                 'message': 'Logged in successfully',
-                'redirect': '/venues'
+                'redirect': url_for(target)
             })
-        return redirect(url_for('venues'))
+        return redirect(url_for(target))
     
     return render_template('login.html')
 
@@ -1989,6 +2042,12 @@ def venues():
         return render_template('admin_venues.html', base_url=base_url, user_name=session.get('user_name', 'User'), is_admin=True, user_venue_ids=all_venue_ids)
     else:
         # Normal user sees only their venue
+        # If they haven't completed onboarding, send them through the wizard first.
+        global users
+        users = load_users()
+        user_record = users.get(user_email, {})
+        if not user_record.get('onboarding_completed', False):
+            return redirect(url_for('onboarding'))
         # RELOAD data before checking to ensure we have latest
         load_data()
         user_venue_ids = venue_owners.get(user_email, [])
