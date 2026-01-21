@@ -3243,9 +3243,6 @@
         // Store scroll position to prevent jumping
         function switchSetupSection(hideSection, showSection) {
             if (hideSection && showSection) {
-                // Store current scroll position
-                const scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
-                
                 // Hide current section
                 hideSection.style.display = 'none';
                 hideSection.classList.remove('active');
@@ -3254,10 +3251,14 @@
                 showSection.style.display = 'block';
                 showSection.classList.add('active');
                 
-                // Restore scroll position immediately to prevent jumping
-                requestAnimationFrame(() => {
-                    window.scrollTo(0, scrollPosition);
-                });
+                // Scroll smoothly to the top of the new section
+                setTimeout(() => {
+                    const sectionTop = showSection.getBoundingClientRect().top + window.pageYOffset;
+                    window.scrollTo({
+                        top: sectionTop - 100, // Offset by 100px to account for navbar
+                        behavior: 'smooth'
+                    });
+                }, 50);
             }
         }
 
