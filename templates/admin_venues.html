@@ -1466,7 +1466,7 @@
     </div>
 
     <!-- Tutorial Overlay (Step-by-step guide) -->
-    <div id="tutorialOverlay" style="position: fixed; inset: 0; z-index: 4000; display: none; pointer-events: none;">
+    <div id="tutorialOverlay" style="position: fixed; inset: 0; z-index: 4000; display: none; pointer-events: none; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);">
         <div id="tutorialHighlight" style="position: absolute; border: 3px solid rgba(255, 20, 147, 0.8); border-radius: 12px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 20, 147, 0.6); pointer-events: none; transition: all 0.3s ease;"></div>
         <div id="tutorialPopup" style="position: absolute; background: rgba(15, 23, 42, 0.98); border-radius: 16px; padding: 20px 24px; max-width: 320px; box-shadow: 0 20px 60px rgba(0,0,0,0.9); border: 2px solid rgba(255, 20, 147, 0.6); pointer-events: auto; opacity: 0; transform: scale(0.9); transition: opacity 0.3s ease, transform 0.3s ease;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
@@ -2600,13 +2600,23 @@
         ];
 
         function startTutorial() {
-            // Check if tutorial was already completed
-            if (sessionStorage.getItem('tutorialCompleted') === 'true') {
+            // Check if tutorial was already completed (only skip if explicitly marked)
+            // Allow tutorial to run on first onboarding completion
+            const wasCompleted = sessionStorage.getItem('tutorialCompleted') === 'true';
+            const onboardingJustCompleted = sessionStorage.getItem('showDashboardExplanation') === null && !wasCompleted;
+            
+            if (wasCompleted && !onboardingJustCompleted) {
+                console.log('Tutorial already completed, skipping');
                 return;
             }
             
+            console.log('Starting tutorial...', { wasCompleted, onboardingJustCompleted });
             currentTutorialStep = 0;
-            showTutorialStep(0);
+            
+            // Small delay to ensure DOM is ready
+            setTimeout(() => {
+                showTutorialStep(0);
+            }, 300);
         }
 
         function showTutorialStep(stepIndex) {
@@ -2616,13 +2626,59 @@
             }
 
             const step = tutorialSteps[stepIndex];
+            
+            // Special handling for stream-related steps - ensure stream section is open
+            if (step.selector.includes('stream') && !step.selector.includes('streamToggleBtn')) {
+                const streamSection = document.getElementById('streamSection');
+                if (streamSection && streamSection.style.display === 'none') {
+                    // Open stream section first
+                    toggleStreamSection();
+                    // Wait a bit for it to open, then try again
+                    setTimeout(() => {
+                        showTutorialStep(stepIndex);
+                    }, 500);
+                    return;
+                }
+            }
+            
+            // Special handling for add table - ensure venue is expanded
+            if (step.selector.includes('add-table-form')) {
+                const firstVenueCard = document.querySelector('.venue-card:first-child');
+                if (firstVenueCard && !firstVenueCard.classList.contains('expanded')) {
+                    // Expand the first venue card
+                    firstVenueCard.click();
+                    // Wait a bit for it to expand, then try again
+                    setTimeout(() => {
+                        showTutorialStep(stepIndex);
+                    }, 500);
+                    return;
+                }
+            }
+            
             const element = document.querySelector(step.selector);
             
             // Check if element exists and is visible
-            if (!element || element.offsetParent === null) {
-                // Element not found or not visible, skip to next step
+            if (!element) {
+                console.log(`Tutorial step ${stepIndex + 1}: Element not found for selector: ${step.selector}`);
+                // Element not found, wait a bit longer and try again, or skip
                 setTimeout(() => {
-                    showTutorialStep(stepIndex + 1);
+                    const retryElement = document.querySelector(step.selector);
+                    if (!retryElement) {
+                        // Still not found, skip to next step
+                        console.log(`Skipping step ${stepIndex + 1}: ${step.title}`);
+                        showTutorialStep(stepIndex + 1);
+                    } else {
+                        // Found it, show this step
+                        showTutorialStep(stepIndex);
+                    }
+                }, 1000);
+                return;
+            }
+            
+            if (element.offsetParent === null) {
+                // Element exists but not visible, wait and retry
+                setTimeout(() => {
+                    showTutorialStep(stepIndex);
                 }, 500);
                 return;
             }
@@ -2635,7 +2691,12 @@
             const tutorialStepCount = document.getElementById('tutorialStepCount');
             const tutorialNextBtn = document.getElementById('tutorialNextBtn');
 
-            if (!tutorialOverlay || !tutorialHighlight || !tutorialPopup) return;
+            if (!tutorialOverlay || !tutorialHighlight || !tutorialPopup) {
+                console.error('Tutorial overlay elements not found!', { tutorialOverlay, tutorialHighlight, tutorialPopup });
+                return;
+            }
+            
+            console.log(`Showing tutorial step ${stepIndex + 1}: ${step.title}`, { element, selector: step.selector });
 
             // Update text
             tutorialTitle.textContent = step.title;
