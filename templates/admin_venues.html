@@ -1666,12 +1666,20 @@
                             <div class="qr-box">
                                 <h4>📱 General Submission QR</h4>
                                 <img src="${venueData.submit_qr}" alt="Submit QR">
-                                <code>${venueData.submit_url}</code>
+                                <div style="margin-top: 10px;">
+                                    <a href="${venueData.submit_url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; color: #61dafb; text-decoration: underline; word-break: break-all;">
+                                        ${venueData.submit_url}
+                                    </a>
+                                </div>
                             </div>
                             <div class="qr-box">
                                 <h4>🎵 Venue Stream QR</h4>
                                 <img src="${venueData.stream_qr}" alt="Stream QR">
-                                <code>${venueData.stream_url}</code>
+                                <div style="margin-top: 10px;">
+                                    <a href="${venueData.stream_url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; color: #61dafb; text-decoration: underline; word-break: break-all;">
+                                        ${venueData.stream_url}
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     </div>
