@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #1A1C1E;
+            background: transparent;
             min-height: 100vh;
             color: white;
             position: relative;
@@ -63,145 +63,166 @@
             }
         }
 
-        /* Navbar */
+        /* Navbar - Hidden */
         .navbar {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
+            display: none;
+        }
+
+        .main-layout {
+            display: flex;
+            gap: 24px;
+            margin-top: 20px;
+            min-height: calc(100vh - 20px);
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 300px;
+            flex-shrink: 0;
+            position: sticky;
+            top: 20px;
+            height: calc(100vh - 40px);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-menu {
             background: rgba(26, 28, 30, 0.95);
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
-            padding: 16px 40px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 0;
+            position: relative;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            height: 100%;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
-            z-index: 1000;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            flex-direction: column;
         }
 
-        .navbar-logo {
-            height: 70px;
+        .sidebar-header {
+            padding: 24px 20px;
+            background: rgba(26, 28, 30, 0.5);
+            border-radius: 20px 20px 0 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sidebar-header img {
+            height: 60px;
             width: auto;
             max-height: 100%;
             object-fit: contain;
         }
 
-        .navbar-links {
-            display: flex;
-            align-items: center;
-            gap: 32px;
-            list-style: none;
-            margin: 0;
-            padding: 0;
-        }
-
-        .navbar-links a {
-            color: rgba(255, 255, 255, 0.8);
-            text-decoration: none;
-            font-size: 15px;
-            font-weight: 500;
-            transition: color 0.2s;
-        }
-
-        .navbar-links a:hover {
-            color: white;
-        }
-
-        .navbar-cta {
-            padding: 10px 24px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border: none;
-            border-radius: 8px;
-            color: white;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            transition: all 0.2s;
-        }
-
-        .navbar-cta:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
-        }
-
-        /* Sidebar */
-        .sidebar {
-            position: fixed;
-            left: 0;
-            top: 86px;
-            width: 280px;
-            height: calc(100vh - 86px);
-            background: rgba(26, 28, 30, 0.95);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border-right: 1px solid rgba(255, 255, 255, 0.1);
-            overflow-y: auto;
-            z-index: 100;
-        }
-
-        .sidebar-menu {
+        .sidebar-section {
             padding: 20px;
         }
 
-        .sidebar-section {
-            margin-bottom: 30px;
+        .sidebar-section:last-child {
+            border-radius: 0 0 20px 20px;
+            margin-top: auto;
         }
 
         .sidebar-section-title {
-            font-size: 12px;
+            font-size: 11px;
+            font-weight: 800;
+            color: rgba(255, 255, 255, 0.4);
             text-transform: uppercase;
-            letter-spacing: 1px;
-            color: rgba(255, 255, 255, 0.5);
-            margin-bottom: 12px;
-            font-weight: 600;
+            letter-spacing: 1.5px;
+            margin-bottom: 16px;
+            padding: 0 4px;
         }
 
         .sidebar-button {
+            width: 100%;
+            padding: 16px 18px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            margin-bottom: 10px;
+            text-align: left;
             display: flex;
             align-items: center;
-            gap: 12px;
-            width: 100%;
-            padding: 12px 16px;
-            background: transparent;
-            border: none;
-            border-radius: 10px;
-            color: rgba(255, 255, 255, 0.8);
-            font-size: 15px;
-            font-weight: 500;
-            cursor: pointer;
-            transition: all 0.2s;
+            gap: 14px;
             text-decoration: none;
-            margin-bottom: 6px;
+            position: relative;
+            box-shadow: none;
+            outline: none;
+            filter: none;
+        }
+
+        .sidebar-button:last-child {
+            margin-bottom: 0;
         }
 
         .sidebar-button:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.12);
+            transform: translateX(6px);
             color: white;
+            box-shadow: none;
+            filter: none;
         }
 
         .sidebar-button.active {
-            background: rgba(102, 126, 234, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.15);
             color: white;
+            box-shadow: none;
+            filter: none;
         }
 
         .sidebar-button-icon {
-            font-size: 20px;
-            width: 24px;
-            text-align: center;
+            font-size: 22px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            flex-shrink: 0;
+            transition: all 0.3s;
+            box-shadow: none;
+            filter: none;
+        }
+
+        .sidebar-button-icon img {
+            width: 40px;
+            height: 40px;
+            object-fit: contain;
+            display: block;
+        }
+
+        .sidebar-button:hover .sidebar-button-icon,
+        .sidebar-button.active .sidebar-button-icon {
+            background: rgba(255, 255, 255, 0.12);
+            box-shadow: none;
+            filter: none;
+        }
+
+        .sidebar-button-text {
+            flex: 1;
+            font-weight: 600;
         }
 
         /* Main Content */
         .main-content {
-            margin-left: 280px;
-            padding: 120px 40px 40px;
-            min-height: 100vh;
+            flex: 1;
+            min-width: 0;
         }
 
         .container {
-            max-width: 900px;
-            margin: 0 auto;
+            position: relative;
+            z-index: 1;
+            padding-bottom: 40px;
         }
 
         h1 {
@@ -381,61 +402,72 @@
         .select-all-buttons button:hover {
             background: rgba(255, 255, 255, 0.15);
         }
+
+        @media (max-width: 768px) {
+            .main-layout {
+                flex-direction: column;
+                margin-top: 20px;
+            }
+
+            .sidebar {
+                width: 100%;
+                position: relative;
+                top: 0;
+                max-height: none;
+                margin-bottom: 20px;
+            }
+
+            .sidebar-menu {
+                padding: 16px;
+            }
+
+            .sidebar-button {
+                padding: 12px 14px;
+                font-size: 14px;
+            }
+        }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <img src="/img/logo.png" alt="whatsthat logo" class="navbar-logo">
-        <ul class="navbar-links">
-            <li><a href="/venues">Venues</a></li>
-            {% if user_name %}
-            <li><a href="#" style="color: rgba(255,255,255,0.6);">Welcome, {{ user_name }}</a></li>
-            {% endif %}
-        </ul>
-        {% if user_name %}
-        <a href="/logout" class="navbar-cta">Logout</a>
-        {% else %}
-        <a href="/login" class="navbar-cta">Login</a>
-        {% endif %}
-    </nav>
-
     <!-- Content Background Wrapper -->
     <div class="content-background-wrapper">
         <img src="/img/background.gif" alt="Background animation">
     </div>
 
-    <!-- Sidebar -->
-    <aside class="sidebar">
-        <div class="sidebar-menu">
-            <div class="sidebar-section">
-                <div class="sidebar-section-title">Navigation</div>
-                <a href="/venues" class="sidebar-button">
-                    <span class="sidebar-button-icon"><img src="/img/venues.png" alt="Venues" style="width: 40px; height: 40px; object-fit: contain;"></span>
-                    <span class="sidebar-button-text">Venues</span>
-                </a>
-                <a href="/settings" class="sidebar-button active">
-                    <span class="sidebar-button-icon">⚙️</span>
-                    <span class="sidebar-button-text">Settings</span>
-                </a>
-                {% if is_admin %}
-                <a href="/admin/genres" class="sidebar-button">
-                    <span class="sidebar-button-icon">🎵</span>
-                    <span class="sidebar-button-text">Genre Control</span>
-                </a>
-                {% endif %}
+    <div class="main-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-menu">
+                <div class="sidebar-header">
+                    <img src="/img/logo.png" alt="whatsthat logo">
+                </div>
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Navigation</div>
+                    <a href="/venues" class="sidebar-button">
+                        <span class="sidebar-button-icon"><img src="/img/venues.png" alt="Venues" style="width: 40px; height: 40px; object-fit: contain;"></span>
+                        <span class="sidebar-button-text">Venues</span>
+                    </a>
+                    <a href="/settings" class="sidebar-button active">
+                        <span class="sidebar-button-icon">⚙️</span>
+                        <span class="sidebar-button-text">Settings</span>
+                    </a>
+                    {% if is_admin %}
+                    <a href="/admin/genres" class="sidebar-button">
+                        <span class="sidebar-button-icon">🎵</span>
+                        <span class="sidebar-button-text">Genre Control</span>
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="sidebar-section">
+                    <a href="/logout" class="sidebar-button">
+                        <span class="sidebar-button-icon">🚪</span>
+                        <span class="sidebar-button-text">Logout</span>
+                    </a>
+                </div>
             </div>
-            <div class="sidebar-section">
-                <a href="/logout" class="sidebar-button">
-                    <span class="sidebar-button-icon">🚪</span>
-                    <span class="sidebar-button-text">Logout</span>
-                </a>
-            </div>
-        </div>
-    </aside>
+        </aside>
 
-    <!-- Main Content -->
-    <div class="main-content">
+        <div class="main-content">
         <div class="container">
             <h1>⚙️ Settings</h1>
             <p style="color: rgba(255,255,255,0.7); margin-bottom: 40px; font-size: 16px;">Configure genre preferences and content settings for your venue.</p>
@@ -487,6 +519,7 @@
                     💾 Save Settings
                 </button>
             </div>
+        </div>
         </div>
     </div>
 
@@ -582,4 +615,7 @@
     </script>
 </body>
 </html>
+
+
+
 
