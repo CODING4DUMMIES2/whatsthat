@@ -1254,6 +1254,27 @@
             color: white;
         }
 
+        .table-name-input {
+            background: rgba(255,255,255,0.1);
+            border: 1px solid rgba(255,255,255,0.2);
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: white;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: text;
+            width: auto;
+            min-width: 150px;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+
+        .table-name-input:focus {
+            outline: 2px solid rgba(255, 20, 147, 0.8);
+            outline-offset: 2px;
+            border-color: rgba(255, 20, 147, 0.8);
+            background: rgba(255, 255, 255, 0.15);
+        }
+
         .table-qr {
             text-align: center;
             margin-top: 16px;
@@ -2421,7 +2442,14 @@
                     tablesContainer.innerHTML = venueData.tables.map((table, idx) => `
                         <div class="table-item">
                             <div class="table-item-header" style="display:flex; justify-content:space-between; align-items:center;">
-                                <div class="table-item-name">Table ${idx + 1}: ${table.name}</div>
+                                <input type="text" 
+                                       class="table-name-input" 
+                                       value="${table.name || `Table ${idx + 1}`}" 
+                                       data-table-id="${table.table_id}"
+                                       data-venue-id="${venueData.venue_id}"
+                                       onclick="event.stopPropagation();"
+                                       onblur="updateTableName('${venueData.venue_id}', '${table.table_id}', this.value)"
+                                       onkeypress="if(event.key==='Enter') { this.blur(); }">
                             </div>
                             <div class="table-qr" style="margin-top:10px; display:flex; flex-direction:column; gap:8px; align-items:flex-start;">
                                 <img src="${table.qr_code}" alt="Table QR" style="width:120px; height:120px; border-radius:10px; background:#020617;">
@@ -2633,6 +2661,37 @@
             }
         }
 
+        async function updateTableName(venueId, tableId, newName) {
+            const trimmedName = newName.trim();
+            
+            if (!trimmedName) {
+                // Restore original name if empty
+                loadTables(venueId);
+                return;
+            }
+            
+            try {
+                const response = await fetch(`/venue/${venueId}/table/${tableId}/update`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ name: trimmedName })
+                });
+
+                const data = await response.json();
+                if (!data.success) {
+                    console.error('Error updating table name:', data.error || 'Failed to update table name');
+                    // Reload to restore original name
+                    loadTables(venueId);
+                }
+            } catch (error) {
+                console.error('Error updating table name:', error);
+                // Reload to restore original name
+                loadTables(venueId);
+            }
+        }
+
         function toggleSection(sectionId, header) {
             const section = document.getElementById(sectionId);
             const toggle = header.querySelector('.section-toggle');
@@ -2665,7 +2724,14 @@
                         tablesContainer.innerHTML = data.tables.map((table, idx) => `
                             <div class="table-item">
                                 <div class="table-item-header" style="display:flex; justify-content:space-between; align-items:center;">
-                                    <div class="table-item-name">Table ${idx + 1}: ${table.name}</div>
+                                    <input type="text" 
+                                           class="table-name-input" 
+                                           value="${table.name || `Table ${idx + 1}`}" 
+                                           data-table-id="${table.table_id}"
+                                           data-venue-id="${venueId}"
+                                           onclick="event.stopPropagation();"
+                                           onblur="updateTableName('${venueId}', '${table.table_id}', this.value)"
+                                           onkeypress="if(event.key==='Enter') { this.blur(); }">
                                 </div>
                                 <div class="table-qr" style="margin-top:10px; display:flex; flex-direction:column; gap:8px; align-items:flex-start;">
                                     <img src="${table.qr_code}" alt="Table QR" style="width:120px; height:120px; border-radius:10px; background:#020617;">

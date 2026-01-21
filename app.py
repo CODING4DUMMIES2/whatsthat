@@ -2552,6 +2552,45 @@ def get_venue_tables(venue_id):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@app.route('/venue/<venue_id>/table/<table_id>/update', methods=['POST'])
+@require_login
+def update_table_name(venue_id, table_id):
+    """Update a table's name"""
+    try:
+        user_email = session.get('user_id')
+        is_admin = session.get('is_admin', False)
+        
+        # Check if user owns this venue or is admin
+        if not is_admin:
+            user_venues = venue_owners.get(user_email, [])
+            if venue_id not in user_venues:
+                return jsonify({'success': False, 'error': 'Venue not found'}), 404
+        
+        if venue_id not in venue_metadata:
+            return jsonify({'success': False, 'error': 'Venue not found'}), 404
+        
+        if venue_id not in venue_tables or table_id not in venue_tables[venue_id]:
+            return jsonify({'success': False, 'error': 'Table not found'}), 404
+        
+        data = request.get_json()
+        new_name = data.get('name', '').strip()
+        
+        if not new_name:
+            return jsonify({'success': False, 'error': 'Table name cannot be empty'}), 400
+        
+        # Update the table name
+        venue_tables[venue_id][table_id]['name'] = new_name
+        save_data()
+        
+        return jsonify({
+            'success': True,
+            'table_id': table_id,
+            'name': new_name
+        })
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+
 @app.route('/venue/<venue_id>/table/<table_id>/submit')
 def table_submit(venue_id, table_id):
     """Submission page for a specific table"""
