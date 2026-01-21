@@ -550,6 +550,7 @@
             margin-bottom: 15px;
             padding-bottom: 15px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
         }
 
         .venue-card:not(.expanded) .venue-name-input {
@@ -562,6 +563,7 @@
             pointer-events: auto;
             width: 100%;
             cursor: text;
+            text-align: center;
         }
 
         .venue-card:not(.expanded) .venue-name-input:focus {
@@ -1535,6 +1537,10 @@
                 const data = await response.json();
                 
                 if (data.venue_id) {
+                    // Ensure the name from the input is used
+                    if (name && name.trim()) {
+                        data.name = name.trim();
+                    }
                     addVenueCard(data);
                     document.getElementById('venueName').value = '';
                     document.getElementById('numTables').value = '0';
@@ -1594,7 +1600,7 @@
                     <input type="text" 
                            class="venue-name-input" 
                            id="venue-name-${venueData.venue_id}" 
-                           value="${venueData.name || venueData.venue_id}"
+                           value="${venueData.name || 'Venue Name'}"
                            placeholder="Venue Name"
                            onclick="event.stopPropagation();">
                 </div>
@@ -1603,7 +1609,7 @@
                         <input type="text" 
                                class="venue-name-input" 
                                id="venue-name-${venueData.venue_id}" 
-                               value="${venueData.name || venueData.venue_id}"
+                               value="${venueData.name || 'Venue Name'}"
                                placeholder="Venue Name">
                         <button onclick="updateVenueName('${venueData.venue_id}')" style="padding: 12px 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; cursor: pointer; font-weight: 600; transition: all 0.2s;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">Save</button>
                     </div>
