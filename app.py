@@ -2121,6 +2121,10 @@ def signup():
     prefill_venue_name = request.args.get('venue_name', '').strip()
     prefill_email = request.args.get('email', '').strip()
     prefill_name = request.args.get('name', '').strip()
+    if prefill_venue_name:
+        # Stash for onboarding wizard to use as the default venue name
+        session['initial_venue_name'] = prefill_venue_name
+        session['prefill_venue_name'] = prefill_venue_name
     return render_template('signup.html', prefill_venue_name=prefill_venue_name, prefill_email=prefill_email, prefill_name=prefill_name)
 
 
@@ -2222,6 +2226,7 @@ def venues():
         users = load_users()
         user_record = users.get(user_email, {})
         show_onboarding = not user_record.get('onboarding_completed', False)
+        initial_venue_name = session.get('initial_venue_name') or session.get('prefill_venue_name') or session.get('user_name', 'My Venue')
         # RELOAD data before checking to ensure we have latest
         load_data()
         user_venue_ids = venue_owners.get(user_email, [])
@@ -2244,7 +2249,7 @@ def venues():
             venue_id = str(uuid.uuid4())[:8]
             all_genres = ['country', 'rap', 'rock', 'pop', 'jazz', 'lofi', 'electronic', 'r&b', 'metal', 'classical']
             venue_metadata[venue_id] = {
-                'name': f"{session.get('user_name', 'User')}'s Venue",
+                'name': initial_venue_name,
                 'created_at': datetime.now().isoformat(),
                 'logo_path': None,
                 'qr_background': None,
@@ -2265,7 +2270,8 @@ def venues():
             user_name=session.get('user_name', 'User'),
             is_admin=False,
             user_venue_ids=user_venue_ids,
-            show_onboarding=show_onboarding
+            show_onboarding=show_onboarding,
+            initial_venue_name=initial_venue_name
         )
 
 
