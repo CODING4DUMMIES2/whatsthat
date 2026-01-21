@@ -656,6 +656,23 @@
             padding-bottom: 15px;
             border-bottom: 1px solid rgba(255, 255, 255, 0.1);
             text-align: center;
+            position: relative;
+        }
+
+        .click-to-expand-hint {
+            position: absolute;
+            top: 0;
+            right: 0;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.7);
+            font-weight: 500;
+            text-transform: lowercase;
+            letter-spacing: 0.5px;
+            pointer-events: none;
+        }
+
+        .venue-card.expanded .click-to-expand-hint {
+            display: none;
         }
 
         .venue-card:not(.expanded) .venue-name-input {
@@ -3071,6 +3088,7 @@
                            value="${venueData.name || 'Venue Name'}"
                            placeholder="Venue Name"
                            onclick="event.stopPropagation();">
+                    <span class="click-to-expand-hint">click to expand</span>
                 </div>
                 <div class="venue-header-section">
                     <div class="venue-name-section">
@@ -3305,10 +3323,21 @@
                         if (nameInput) {
                             const compactDiv = document.createElement('div');
                             compactDiv.className = 'venue-name-compact';
-                            compactDiv.innerHTML = nameInput.outerHTML;
+                            compactDiv.innerHTML = nameInput.outerHTML + '<span class="click-to-expand-hint">click to expand</span>';
                             const newInput = compactDiv.querySelector('.venue-name-input');
                             newInput.onclick = function(e) { e.stopPropagation(); };
                             card.insertBefore(compactDiv, card.firstChild);
+                        }
+                    }
+                    
+                    // Ensure hint text exists even if compact div already exists
+                    if (!card.querySelector('.click-to-expand-hint')) {
+                        const compactDiv = card.querySelector('.venue-name-compact');
+                        if (compactDiv) {
+                            const hintSpan = document.createElement('span');
+                            hintSpan.className = 'click-to-expand-hint';
+                            hintSpan.textContent = 'click to expand';
+                            compactDiv.appendChild(hintSpan);
                         }
                     }
 
