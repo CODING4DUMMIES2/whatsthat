@@ -1275,7 +1275,7 @@ def serve_image(filename):
         if not os.path.exists(file_path):
             print(f"   ❌ File not found! Listing directory: {os.listdir(IMG_DIR) if os.path.exists(IMG_DIR) else 'IMG_DIR does not exist'}")
             return jsonify({'error': f'Image not found: {filename}'}), 404
-        return send_from_directory(IMG_DIR, filename)
+    return send_from_directory(IMG_DIR, filename)
     except Exception as e:
         import traceback
         error_msg = f"Error serving image {filename}: {str(e)}\n{traceback.format_exc()}"
@@ -1353,23 +1353,23 @@ def music_callback():
             )
             # Extract song title if available
             song_title = first_track.get("title") or first_track.get("song_name") or ""
-
+            
             # Update title cache if we have one
             if song_title and task_id:
-                song_titles[task_id] = song_title
+                    song_titles[task_id] = song_title
 
             # If this task belongs to a venue, update or create the queue entry
-            if task_id in task_to_venue:
-                venue_id = task_to_venue[task_id]
+                    if task_id in task_to_venue:
+                        venue_id = task_to_venue[task_id]
                 if venue_id not in venue_queues:
                     venue_queues[venue_id] = []
                 queue = venue_queues[venue_id]
                 existing = next((s for s in queue if s.get('task_id') == task_id), None)
                 if not existing:
                     existing = {
-                        'task_id': task_id,
+                            'task_id': task_id,
                         'title': song_titles.get(task_id) or song_title or 'Custom Song',
-                        'timestamp': datetime.now().isoformat(),
+                            'timestamp': datetime.now().isoformat(),
                         'added_at': datetime.now().strftime("%H:%M:%S"),
                         'status': 'generating'
                     }
@@ -1384,16 +1384,16 @@ def music_callback():
                 # Once we have either a stream URL or a final audio URL, stop polling this task.
                 if (stream_url or audio_url) and task_id in task_to_venue:
                     print(f"✅ Callback complete for task {task_id}, stopping polling (stream_url={bool(stream_url)}, audio_url={bool(audio_url)})")
-                    del task_to_venue[task_id]
-
+                        del task_to_venue[task_id]
+                    
                 save_data()
 
-            # Update table request status if this was from a table
-            for table_id, requests in table_requests.items():
-                for req in requests:
-                    if req['task_id'] == task_id:
-                        req['status'] = 'completed'
-                        print(f"✅ Marked table {table_id} request as completed")
+                    # Update table request status if this was from a table
+                    for table_id, requests in table_requests.items():
+                        for req in requests:
+                            if req['task_id'] == task_id:
+                                req['status'] = 'completed'
+                                print(f"✅ Marked table {table_id} request as completed")
                         save_data()  # Save updated table request status
 
         return jsonify({'success': True}), 200
@@ -1563,7 +1563,7 @@ def call_suno_generate_music(prompt: str, venue_id: str = None, table_id: str = 
     try:
         # Use provided genre, or detect from message, or leave empty
         if not genre:
-            genre = detect_genre(prompt)
+        genre = detect_genre(prompt)
             print(f"   Detected genre: {genre}")
         
         # Get venue settings for explicit content
@@ -1586,7 +1586,7 @@ def call_suno_generate_music(prompt: str, venue_id: str = None, table_id: str = 
             else:
                 final_prompt += " Use clean, non-explicit lyrics only."
             print(f"   Explicit content setting: {'explicit' if explicit_content else 'non-explicit'}")
-        
+
         final_prompt = final_prompt[:500]  # non-custom mode prompt limit
         print(f"   Final prompt: {final_prompt}")
 
@@ -2219,7 +2219,14 @@ def venues():
         all_venue_ids = list(venue_metadata.keys())
         print(f"🔍 Admin user - loading all {len(all_venue_ids)} venues: {all_venue_ids}")
         base_url = get_base_url() or ''
-        return render_template('admin_venues.html', base_url=base_url, user_name=session.get('user_name', 'User'), is_admin=True, user_venue_ids=all_venue_ids)
+        return render_template(
+            'admin_venues.html',
+            base_url=base_url,
+            user_name=session.get('user_name', 'User'),
+            is_admin=True,
+            user_venue_ids=all_venue_ids,
+            venue_metadata=venue_metadata
+        )
     else:
         # Normal user sees only their venue; onboarding wizard (if any) is shown as a modal on top of this page.
         global users
@@ -2271,7 +2278,8 @@ def venues():
             is_admin=False,
             user_venue_ids=user_venue_ids,
             show_onboarding=show_onboarding,
-            initial_venue_name=initial_venue_name
+            initial_venue_name=initial_venue_name,
+            venue_metadata=venue_metadata
         )
 
 
@@ -2899,12 +2907,12 @@ if __name__ == '__main__':
     debug = os.environ.get('FLASK_ENV') == 'development'
     
     if debug:
-        local_ip = get_local_ip()
-        print(f"\n{'='*60}")
-        print("Server starting...")
-        print(f"Local access: http://127.0.0.1:{port}")
-        print(f"Network access: http://{local_ip}:{port}")
-        print(f"QR Code: http://{local_ip}:{port}/qr")
-        print(f"{'='*60}\n")
+    local_ip = get_local_ip()
+    print(f"\n{'='*60}")
+    print("Server starting...")
+    print(f"Local access: http://127.0.0.1:{port}")
+    print(f"Network access: http://{local_ip}:{port}")
+    print(f"QR Code: http://{local_ip}:{port}/qr")
+    print(f"{'='*60}\n")
     
     app.run(debug=debug, host='0.0.0.0', port=port)

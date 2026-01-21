@@ -1472,7 +1472,8 @@
                                 <option value="">Select venue</option>
                                 {% if user_venue_ids %}
                                     {% for venue_id in user_venue_ids %}
-                                        <option value="{{ venue_id }}">{{ venue_metadata[venue_id].name or 'Venue ' ~ venue_id }}</option>
+                                        {% set meta = venue_metadata.get(venue_id, {}) if venue_metadata is defined else {} %}
+                                        <option value="{{ venue_id }}">{{ meta.get('name', 'Venue ' ~ venue_id) }}</option>
                                     {% endfor %}
                                 {% endif %}
                             </select>
