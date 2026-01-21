@@ -2593,19 +2593,23 @@
                 selector: 'a[href="/settings"]',
                 title: 'Access Settings',
                 text: 'Click this button to access settings where you can control genres, explicit content filters, and type custom rules or guidelines for music generation.',
-                position: 'right'
+                position: 'right',
+                navigate: true,
+                navigateUrl: '/settings'
+            },
+            {
+                selector: '#customInstructions',
+                title: 'Custom Music Generation Rules',
+                text: 'Type specific rules or guidelines in this textarea (e.g., "No songs about breakups" or "Only country music") to control what music gets generated for your venue.',
+                position: 'bottom',
+                page: 'settings'
             },
             {
                 selector: '#createVenueSection',
                 title: 'Create More Venues',
                 text: 'Use this section to create additional venues. Each venue has its own tables, QR codes, and stream.',
-                position: 'bottom'
-            },
-            {
-                selector: 'a[href="/settings"]',
-                title: 'Custom Music Generation Rules',
-                text: 'After clicking Settings, look for the "Custom Stream Instructions" textarea. Type specific rules or guidelines here (e.g., "No songs about breakups" or "Only country music") to control what music gets generated for your venue.',
-                position: 'right'
+                position: 'bottom',
+                page: 'venues'
             }
         ];
 
@@ -2630,7 +2634,10 @@
             
             console.log('=== STARTING TUTORIAL ===');
             console.log('Tutorial steps:', tutorialSteps.length);
-            currentTutorialStep = 0;
+            // Only reset to 0 if not resuming from navigation
+            if (currentTutorialStep === undefined || currentTutorialStep === null) {
+                currentTutorialStep = 0;
+            }
             
             // Make sure overlay exists and is visible
             const overlay = document.getElementById('tutorialOverlay');
@@ -2638,7 +2645,7 @@
                 console.error('Tutorial overlay not found in DOM!');
                 return;
             }
-            console.log('Tutorial overlay found:', overlay);
+            console.log('Tutorial overlay found:', overlay, 'Starting at step:', currentTutorialStep);
             
             // Add scroll prevention
             window.addEventListener('wheel', preventScroll, { passive: false });
@@ -2647,12 +2654,12 @@
             
             // Ensure DOM is ready and elements are loaded
             setTimeout(() => {
-                console.log('Calling showTutorialStep(0)...');
+                console.log(`Calling showTutorialStep(${currentTutorialStep})...`);
                 // Force overlay to be visible first
                 overlay.style.display = 'block';
                 overlay.style.visibility = 'visible';
                 overlay.style.zIndex = '4000';
-                showTutorialStep(0);
+                showTutorialStep(currentTutorialStep);
             }, 500);
         }
 
@@ -2675,6 +2682,30 @@
             }, 15000);
 
             const step = tutorialSteps[stepIndex];
+            
+            // Handle navigation steps
+            if (step.navigate && step.navigateUrl) {
+                console.log(`Navigating to ${step.navigateUrl} for step ${stepIndex + 1}`);
+                // Store tutorial state before navigation
+                sessionStorage.setItem('tutorialStepAfterNav', stepIndex + 1);
+                sessionStorage.setItem('tutorialInProgress', 'true');
+                window.location.href = step.navigateUrl;
+                return;
+            }
+            
+            // Check if we're on the correct page
+            if (step.page) {
+                const currentPath = window.location.pathname;
+                const expectedPath = step.page === 'settings' ? '/settings' : '/venues';
+                if (currentPath !== expectedPath) {
+                    console.log(`Wrong page for step ${stepIndex + 1}, expected ${expectedPath}, got ${currentPath}`);
+                    // Navigate to correct page
+                    sessionStorage.setItem('tutorialStepAfterNav', stepIndex);
+                    sessionStorage.setItem('tutorialInProgress', 'true');
+                    window.location.href = expectedPath;
+                    return;
+                }
+            }
             
             // Special handling for stream-related steps - ensure stream section is open
             if (step.selector.includes('stream') && !step.selector.includes('streamToggleBtn')) {
@@ -2845,15 +2876,17 @@
             document.body.style.overflow = 'hidden';
             document.documentElement.style.overflow = 'hidden';
             
+            // Hide highlight initially to prevent jumping
+            tutorialHighlight.style.display = 'none';
+            tutorialHighlight.style.opacity = '0';
+            
             // Scroll element into view first, then position highlight
             element.scrollIntoView({ behavior: 'smooth', block: 'center', inline: 'center' });
             
-            // Wait for scroll to complete, then position highlight
+            // Wait for scroll to complete, then position highlight smoothly
             setTimeout(() => {
                 // Recalculate element position after scroll
                 const rect = element.getBoundingClientRect();
-                const scrollX = window.scrollX || window.pageXOffset;
-                const scrollY = window.scrollY || window.pageYOffset;
 
                 // Position highlight using fixed positioning (relative to viewport)
                 tutorialHighlight.style.position = 'fixed';
@@ -2861,28 +2894,16 @@
                 tutorialHighlight.style.top = (rect.top - 12) + 'px';
                 tutorialHighlight.style.width = (rect.width + 24) + 'px';
                 tutorialHighlight.style.height = (rect.height + 24) + 'px';
+                
+                // Show highlight smoothly
                 tutorialHighlight.style.display = 'block';
-                tutorialHighlight.style.opacity = '1';
+                setTimeout(() => {
+                    tutorialHighlight.style.opacity = '1';
+                }, 50);
                 
                 // Update popup position based on new rect
                 updateTutorialPopupPosition(step, rect, stepIndex);
             }, 600);
-            
-            // Initial positioning (will be updated after scroll)
-            const initialRect = element.getBoundingClientRect();
-            const initialScrollX = window.scrollX || window.pageXOffset;
-            const initialScrollY = window.scrollY || window.pageYOffset;
-            
-            tutorialHighlight.style.position = 'fixed';
-            tutorialHighlight.style.left = (initialRect.left - 12) + 'px';
-            tutorialHighlight.style.top = (initialRect.top - 12) + 'px';
-            tutorialHighlight.style.width = (initialRect.width + 24) + 'px';
-            tutorialHighlight.style.height = (initialRect.height + 24) + 'px';
-            tutorialHighlight.style.display = 'block';
-            tutorialHighlight.style.opacity = '1';
-            
-            // Position popup initially
-            updateTutorialPopupPosition(step, initialRect, stepIndex);
         }
         
         function updateTutorialPopupPosition(step, rect, stepIndex) {
@@ -3108,6 +3129,21 @@
                 setTimeout(() => {
                     showDashboardExplanation();
                 }, 500);
+            }
+            
+            // Check if tutorial should resume after navigation
+            if (sessionStorage.getItem('tutorialInProgress') === 'true') {
+                const stepAfterNav = sessionStorage.getItem('tutorialStepAfterNav');
+                if (stepAfterNav !== null) {
+                    sessionStorage.removeItem('tutorialInProgress');
+                    sessionStorage.removeItem('tutorialStepAfterNav');
+                    // Wait for page to fully load, then resume tutorial
+                    setTimeout(() => {
+                        currentTutorialStep = parseInt(stepAfterNav);
+                        console.log('Resuming tutorial at step:', currentTutorialStep);
+                        startTutorial();
+                    }, 1000);
+                }
             }
             
             // Onboarding wizard disabled - keeping code for future restructuring
