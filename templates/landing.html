@@ -65,7 +65,7 @@
         .faq-section,
         .cta-section {
             position: relative;
-            z-index: 1;
+            z-index: 0;
         }
 
 
@@ -118,8 +118,9 @@
             margin: 0 auto;
             padding: 0 20px;
             position: relative;
-            z-index: 1;
+            z-index: 0;
             padding-top: 80px;
+            isolation: isolate;
         }
 
         .hero {
@@ -1132,7 +1133,7 @@
             width: 100%;
             box-sizing: border-box;
             min-height: 629px;
-            z-index: 1;
+            z-index: 0;
         }
 
         .setup-content-wrapper::before {
@@ -1765,7 +1766,7 @@
             border-radius: 24px;
             position: relative;
             text-align: center;
-            z-index: 1;
+            z-index: 0;
         }
 
         .venue-types-section::before {
@@ -2007,7 +2008,7 @@
             border-radius: 24px;
             position: relative;
             overflow: hidden;
-            z-index: 1;
+            z-index: 0;
         }
 
         .setup-strip::before {
@@ -2149,7 +2150,7 @@
             overflow: visible;
             cursor: pointer;
             transition: all 0.3s;
-            z-index: 1;
+            z-index: 0;
         }
 
         .faq-item::before {
@@ -2409,21 +2410,21 @@
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <nav class="navbar">
-        <img src="/img/logo.png" alt="whatsthat logo" class="navbar-logo">
-        <ul class="navbar-links">
-            <li><a href="#home">Home</a></li>
-            <li><a href="#features">Features</a></li>
-            <li><a href="#pricing">Pricing</a></li>
-            <li><a href="#about">About</a></li>
-            <li><a href="#contact">Contact</a></li>
-        </ul>
-        <div style="display: flex; gap: 12px; align-items: center;">
-            <a href="/login" style="padding: 10px 24px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 15px; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.8)'">Login</a>
-            <a href="/signup" class="navbar-cta">Sign Up</a>
-        </div>
-    </nav>
+        <!-- Navbar -->
+        <nav class="navbar">
+            <img src="/img/logo.png" alt="whatsthat logo" class="navbar-logo">
+            <ul class="navbar-links">
+                <li><a href="#home">Home</a></li>
+                <li><a href="#features">Features</a></li>
+                <li><a href="#pricing">Pricing</a></li>
+                <li><a href="#about">About</a></li>
+                <li><a href="#contact">Contact</a></li>
+            </ul>
+            <div style="display: flex; gap: 12px; align-items: center;">
+                <a href="/login" style="padding: 10px 24px; color: rgba(255,255,255,0.8); text-decoration: none; font-size: 15px; font-weight: 500; transition: color 0.2s;" onmouseover="this.style.color='white'" onmouseout="this.style.color='rgba(255,255,255,0.8)'">Login</a>
+                <a href="/signup" class="navbar-cta">Sign Up</a>
+            </div>
+        </nav>
 
     <div class="container">
         <!-- Hero Section -->
