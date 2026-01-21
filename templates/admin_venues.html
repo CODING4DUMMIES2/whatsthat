@@ -1103,11 +1103,11 @@
                 </div>
                 <div class="sidebar-section">
                     <div class="sidebar-section-title">Navigation</div>
-                    <a href="/venues" class="sidebar-button active">
+                    <button class="sidebar-button active" onclick="showVenuesSection()" id="venuesToggleBtn">
                         <span class="sidebar-button-icon"><img src="/img/venues.png" alt="Venues" style="width: 40px; height: 40px; object-fit: contain;"></span>
                         <span class="sidebar-button-text">Venues</span>
                         <span class="sidebar-button-badge" id="venue-count-badge">0</span>
-                    </a>
+                    </button>
                     <button class="sidebar-button" onclick="toggleStreamSection()" id="streamToggleBtn">
                         <span class="sidebar-button-icon"><img src="/img/songs.png" alt="Stream" style="width: 40px; height: 40px; object-fit: contain;"></span>
                         <span class="sidebar-button-text">Stream</span>
@@ -1818,23 +1818,68 @@
         let streamAutoplayEnabled = false;
         const streamPlayedSongs = new Set();
 
+        function showVenuesSection() {
+            const streamSection = document.getElementById('streamSection');
+            const venuesList = document.getElementById('venuesList');
+            const streamBtn = document.getElementById('streamToggleBtn');
+            const venuesBtn = document.getElementById('venuesToggleBtn');
+            
+            // Show venues list
+            if (venuesList) {
+                venuesList.style.display = 'block';
+            }
+            // Hide stream section
+            if (streamSection) {
+                streamSection.style.display = 'none';
+            }
+            // Update button states
+            if (streamBtn) {
+                streamBtn.classList.remove('active');
+            }
+            if (venuesBtn) {
+                venuesBtn.classList.add('active');
+            }
+        }
+
         function toggleStreamSection() {
             const section = document.getElementById('streamSection');
             const content = document.getElementById('streamContent');
             const toggle = document.getElementById('streamToggle');
             const btn = document.getElementById('streamToggleBtn');
+            const venuesList = document.getElementById('venuesList');
+            const venuesBtn = document.getElementById('venuesToggleBtn');
             
-            if (section.style.display === 'none') {
+            if (section.style.display === 'none' || !btn.classList.contains('active')) {
+                // Show stream section
                 section.style.display = 'block';
                 content.style.display = 'block';
                 toggle.textContent = '▼';
                 btn.classList.add('active');
+                // Hide venues list
+                if (venuesList) {
+                    venuesList.style.display = 'none';
+                }
+                // Update venues button state
+                if (venuesBtn) {
+                    venuesBtn.classList.remove('active');
+                }
                 if (currentVenueId || (isAdmin && document.querySelectorAll('.venue-card').length > 0)) {
                     initializeStreamPlayer();
                 }
             } else {
-                content.style.display = content.style.display === 'none' ? 'block' : 'none';
-                toggle.textContent = content.style.display === 'none' ? '▶' : '▼';
+                // Hide stream section
+                section.style.display = 'none';
+                content.style.display = 'none';
+                toggle.textContent = '▶';
+                btn.classList.remove('active');
+                // Show venues list
+                if (venuesList) {
+                    venuesList.style.display = 'block';
+                }
+                // Update venues button state
+                if (venuesBtn) {
+                    venuesBtn.classList.add('active');
+                }
             }
         }
 
