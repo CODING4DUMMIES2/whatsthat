@@ -2566,7 +2566,7 @@
                 selector: '.add-table-form button, .add-table-form input[type="text"]',
                 title: 'Add Tables',
                 text: 'Click here to add a table or multiple tables. Type a table name and click "Add Table". Each table gets its own printable QR code for tracking requests.',
-                position: 'top'
+                position: 'bottom'
             },
             {
                 selector: '.qr-box:first-child a, .qr-section .qr-box a',
@@ -2917,20 +2917,44 @@
             const tutorialHighlight = document.getElementById('tutorialHighlight');
             const tutorialPopup = document.getElementById('tutorialPopup');
             
+            console.log('Ending tutorial, cleaning up highlights...');
+            
+            // Hide popup
             if (tutorialPopup) {
                 tutorialPopup.style.opacity = '0';
                 tutorialPopup.style.transform = 'scale(0.9)';
             }
+            
+            // Hide highlight immediately
+            if (tutorialHighlight) {
+                tutorialHighlight.style.display = 'none';
+                tutorialHighlight.style.opacity = '0';
+            }
 
             setTimeout(() => {
+                // Hide overlay
                 if (tutorialOverlay) {
                     tutorialOverlay.style.display = 'none';
+                    tutorialOverlay.style.visibility = 'hidden';
                 }
+                
                 // Remove highlight from all elements
                 document.querySelectorAll('[style*="z-index: 4001"]').forEach(el => {
                     el.style.zIndex = '';
                     el.style.position = '';
+                    el.style.transition = '';
                 });
+                
+                // Also remove any inline styles that might have been added
+                document.querySelectorAll('.venue-card, .add-table-form, .qr-box, #streamToggleBtn, #streamVenueSelect, a[href="/settings"], #createVenueSection').forEach(el => {
+                    if (el.style.zIndex === '4001') {
+                        el.style.zIndex = '';
+                        el.style.position = '';
+                        el.style.transition = '';
+                    }
+                });
+                
+                console.log('Tutorial cleanup complete');
             }, 300);
         }
 
