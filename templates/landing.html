@@ -2663,17 +2663,17 @@
                         <div class="setup-navigation">
                             <div class="setup-back-button">
                                 <button onclick="scrollToPreviousSetup()" aria-label="Previous step">Prev</button>
-                            </div>
+                    </div>
                             <div class="setup-next-button">
                                 <button onclick="scrollToNextSetup()" aria-label="Next step">Next →</button>
-                            </div>
+                </div>
                             <div class="setup-download-button">
                                 <button onclick="downloadSetupGuide()" aria-label="Download Setup Guide">Download Setup Guide</button>
-                            </div>
                         </div>
                     </div>
                     </div>
-                        </div>
+                </div>
+                    </div>
 
         <!-- Set Your Music Rules Section -->
         <div class="keepsake-section setup-section-2" id="setupSection2">
@@ -2694,13 +2694,13 @@
                         <div class="checklist-item">
                             <div class="checklist-number">2</div>
                             <div class="checklist-text">Set explicit or non-explicit lyrics</div>
-                    </div>
+                        </div>
                         <div class="checklist-item">
                             <div class="checklist-number">3</div>
                             <div class="checklist-text">Save your venue settings</div>
+                    </div>
                 </div>
                         </div>
-                    </div>
                     </div>
             <div class="setup-navigation-wrapper">
                 <div class="setup-navigation">
@@ -2973,6 +2973,7 @@
         let currentDemoId = null;
         let currentVenueName = null;
         let demoInteractionCount = 0;
+        let currentDemoCity = null;
         let queueCheckInterval = null;
 
         // Demo form is now in hero section, no modal needed
@@ -3013,9 +3014,13 @@
                 if (data.success) {
                     currentDemoId = data.demo_id;
                     currentVenueName = venueName;
+                    currentDemoCity = city;
                     
                     // Show demo experience
                     showDemoExperience(data);
+                    
+                    // Ask server for an AI prompt suggestion about their venue
+                    fetchDemoPromptSuggestion();
                     
                     // Start polling queue
                     startQueuePolling();
@@ -3050,6 +3055,44 @@
                 document.getElementById('demoExperience').scrollIntoView({ behavior: 'smooth', block: 'start' });
             }, 100);
                 }
+
+        // Ask backend for an AI-generated Suno prompt suggestion about this venue
+        async function fetchDemoPromptSuggestion() {
+            try {
+                const resp = await fetch(`/demo/${currentDemoId}/suggest-prompt`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        venue_name: currentVenueName,
+                        city: currentDemoCity
+                    })
+                });
+                if (!resp.ok) return;
+                const data = await resp.json();
+                if (!data.success || !data.prompt) return;
+                const input = document.getElementById('demoSongInput');
+                const helperId = 'demoPromptHelper';
+                let helper = document.getElementById(helperId);
+                
+                // Create a "Use AI prompt" helper below the input
+                if (!helper && input) {
+                    helper = document.createElement('button');
+                    helper.id = helperId;
+                    helper.type = 'button';
+                    helper.className = 'cta-button';
+                    helper.style.width = '100%';
+                    helper.style.marginTop = '8px';
+                    helper.style.fontSize = '14px';
+                    helper.textContent = 'Use AI prompt about my venue';
+                    helper.onclick = () => {
+                        input.value = data.prompt;
+                    };
+                    input.parentNode.appendChild(helper);
+                }
+            } catch (e) {
+                console.error('Error fetching demo prompt suggestion:', e);
+            }
+        }
 
         // Submit Demo Song
         async function submitDemoSong() {
@@ -3320,9 +3363,9 @@
             if (backButtonWrapper) {
                 if (currentSetupSlide === 0) {
                     backButtonWrapper.style.display = 'none';
-                } else {
+            } else {
                     backButtonWrapper.style.display = 'block';
-                }
+            }
             }
         }
 

@@ -167,6 +167,8 @@ os.makedirs(VENUE_QR_CODES_DIR, exist_ok=True)
 SUNO_API_BASE = "https://api.sunoapi.org"
 # Use environment variable for API key (more secure)
 SUNO_API_KEY = os.environ.get("SUNO_API_KEY", "71eeeb5e47a6c71175731530f6b2635a")
+# Google Places API (optional, used for demo venue profiling)
+GOOGLE_PLACES_API_KEY = os.environ.get("GOOGLE_PLACES_API_KEY")
 
 # Get base URL from current request
 def get_base_url():
@@ -682,6 +684,146 @@ def demo_get_queue(demo_id):
         print(f"❌ Error getting demo queue: {e}")
         traceback.print_exc()
         return jsonify({'success': False, 'error': str(e)}), 500
+
+
+def fetch_venue_profile_from_google(name: str, city: str):
+    """
+    Use Google Places Text Search + Details to build a small venue profile.
+    Only used for the landing-page demo; fails soft if API key is missing.
+    """
+    if not GOOGLE_PLACES_API_KEY:
+        print("⚠️ GOOGLE_PLACES_API_KEY not set, skipping venue profile lookup")
+        return None
+
+    try:
+        query = f"{name}, {city}".strip()
+        text_url = "https://maps.googleapis.com/maps/api/place/textsearch/json"
+        params = {"query": query, "key": GOOGLE_PLACES_API_KEY}
+        resp = requests.get(text_url, params=params, timeout=8)
+        if resp.status_code != 200:
+            print(f"⚠️ Google Text Search HTTP {resp.status_code}: {resp.text[:200]}")
+            return None
+        data = resp.json()
+        results = data.get("results") or []
+        if not results:
+            print("⚠️ Google Text Search returned no results")
+            return None
+        first = results[0]
+        place_id = first.get("place_id")
+        if not place_id:
+            return None
+
+        details_url = "https://maps.googleapis.com/maps/api/place/details/json"
+        d_params = {
+            "place_id": place_id,
+            "key": GOOGLE_PLACES_API_KEY,
+            "fields": "name,formatted_address,website,types,rating,user_ratings_total,reviews,editorial_summary"
+        }
+        d_resp = requests.get(details_url, params=d_params, timeout=8)
+        if d_resp.status_code != 200:
+            print(f"⚠️ Google Details HTTP {d_resp.status_code}: {d_resp.text[:200]}")
+            return None
+        d_data = d_resp.json()
+        result = d_data.get("result") or {}
+
+        profile = {
+            "name": result.get("name") or name,
+            "formatted_address": result.get("formatted_address") or city,
+            "website": result.get("website"),
+            "types": result.get("types", []),
+            "rating": result.get("rating"),
+            "user_ratings_total": result.get("user_ratings_total"),
+            "editorial_summary": (result.get("editorial_summary") or {}).get("overview"),
+            "reviews": []
+        }
+        for r in (result.get("reviews") or [])[:5]:
+            profile["reviews"].append({
+                "author_name": r.get("author_name"),
+                "rating": r.get("rating"),
+                "text": r.get("text"),
+            })
+        return profile
+    except Exception as e:
+        print(f"⚠️ Error fetching venue profile from Google: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+
+def generate_demo_prompt_with_gpt(profile: dict, fallback_name: str):
+    """
+    Use GPT to write a fun Suno prompt for the landing-page demo, based on venue profile.
+    """
+    if not OPENAI_API_KEY:
+        print("⚠️ OPENAI_API_KEY not set, cannot generate demo prompt")
+        return None
+    try:
+        venue_name = profile.get("name") or fallback_name
+        prompt_instructions = (
+            "You are writing a short creative prompt for an AI music generator (Suno) for a bar/venue demo.\n"
+            "Write ONE energetic sentence that describes a fun song about this venue, its vibe, and guests.\n"
+            "Do NOT mention Suno, AI, or that this is a demo. Just a natural song idea.\n"
+            "Maximum 140 characters.\n\n"
+            f"Venue profile JSON:\n{json.dumps(profile, ensure_ascii=False)}\n\n"
+            f"Return ONLY the prompt text, no quotes, no extra explanation."
+        )
+        headers = {
+            "Authorization": f"Bearer {OPENAI_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        payload = {
+            "model": "gpt-3.5-turbo",
+            "messages": [
+                {"role": "system", "content": "You write short, punchy song prompts for an AI music generator."},
+                {"role": "user", "content": prompt_instructions}
+            ],
+            "temperature": 0.7,
+            "max_tokens": 80
+        }
+        resp = requests.post("https://api.openai.com/v1/chat/completions", headers=headers, json=payload, timeout=10)
+        if resp.status_code != 200:
+            print(f"⚠️ GPT prompt API HTTP {resp.status_code}: {resp.text[:200]}")
+            return None
+        data = resp.json()
+        content = (data.get("choices") or [{}])[0].get("message", {}).get("content", "") or ""
+        suggestion = content.strip().strip('"').strip("'")
+        if not suggestion:
+            return None
+        if len(suggestion) > 160:
+            suggestion = suggestion[:157].rsplit(" ", 1)[0] + "..."
+        return suggestion
+    except Exception as e:
+        print(f"⚠️ Error generating demo prompt with GPT: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+
+@app.route('/demo/<demo_id>/suggest-prompt', methods=['POST'])
+def demo_suggest_prompt(demo_id):
+    """
+    Landing-page helper: build a venue profile and suggest a Suno prompt.
+    """
+    try:
+        data = request.get_json() or {}
+        load_data()
+        meta = venue_metadata.get(demo_id, {})
+        venue_name = data.get("venue_name") or meta.get("name", f"Venue {demo_id}")
+        city = data.get("city") or meta.get("city", "")
+
+        profile = fetch_venue_profile_from_google(venue_name, city) if (venue_name and city) else None
+        suggestion = generate_demo_prompt_with_gpt(profile or {"name": venue_name, "city": city}, venue_name)
+
+        return jsonify({
+            "success": True,
+            "prompt": suggestion or "",
+            "profile": profile
+        })
+    except Exception as e:
+        import traceback
+        print(f"❌ Error in demo_suggest_prompt: {e}")
+        traceback.print_exc()
+        return jsonify({"success": False, "error": str(e)}), 500
 
 
 @app.route('/venue/create', methods=['POST'])
