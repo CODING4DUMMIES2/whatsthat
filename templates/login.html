@@ -302,7 +302,9 @@
             <p>Log in to manage your venues</p>
 
             {% if error %}
-            <div class="error-message">{{ error }}</div>
+            <div class="error-message" id="serverError">{{ error }}</div>
+            {% else %}
+            <div class="error-message" id="serverError" style="display: none;"></div>
             {% endif %}
 
             <form id="loginForm">
@@ -335,6 +337,13 @@
     <script>
         const form = document.getElementById('loginForm');
         const submitBtn = document.getElementById('submitBtn');
+        const errorBox = document.getElementById('serverError');
+
+        function showError(message) {
+            if (!errorBox) return;
+            errorBox.textContent = message || 'Something went wrong. Please try again.';
+            errorBox.style.display = 'block';
+        }
 
         form.addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -342,8 +351,13 @@
             const email = document.getElementById('email').value.trim();
             const password = document.getElementById('password').value.trim();
 
+            if (errorBox) {
+                errorBox.style.display = 'none';
+                errorBox.textContent = '';
+            }
+
             if (!email || !password) {
-                alert('Please fill in email and password');
+                showError('Please fill in email and password');
                 return;
             }
 
@@ -370,18 +384,18 @@
                         // Redirect based on user type
                         window.location.href = data.redirect || '/venues';
                     } else {
-                        alert('Error: ' + (data.error || 'Failed to login'));
+                        showError(data.error || 'Failed to login');
                         submitBtn.disabled = false;
                         submitBtn.textContent = 'Log In';
                     }
                 } else {
                     const data = await response.json();
-                    alert('Error: ' + (data.error || 'Invalid email or password'));
+                    showError(data.error || 'Invalid email or password');
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Log In';
                 }
             } catch (error) {
-                alert('Error: ' + error.message);
+                showError(error.message || 'Unexpected error while logging in');
                 submitBtn.disabled = false;
                 submitBtn.textContent = 'Log In';
             }
