@@ -1688,6 +1688,14 @@
             'onb-qr-preview': {
                 title: 'QR Codes in Setup',
                 body: 'Based on your choice we generate either one room QR or a QR for each table, and give you quick print and download buttons for all of them.'
+            },
+            'venue-collapse': {
+                title: 'Collapse Venue Card',
+                body: 'Minimizes this venue card to show only the name and stats, hiding all the detailed sections like tables and QR codes. Click again to expand it back.'
+            },
+            'stream-qr-smart-tv': {
+                title: 'Venue Stream QR',
+                body: 'Open this URL on a Smart TV or display screen connected to your sound system. The stream queue will automatically show upcoming songs and play them when ready.'
             }
         };
 
@@ -2109,16 +2117,8 @@
             }
 
             const card = document.createElement('div');
-            card.className = 'venue-card';
+            card.className = 'venue-card expanded';
             card.id = `venue-${venueData.venue_id}`;
-            card.onclick = function(e) {
-                // Don't expand if clicking on interactive elements
-                if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.closest('button') || e.target.closest('input')) {
-                    return;
-                }
-                // Toggle expanded state
-                this.classList.toggle('expanded');
-            };
             card.innerHTML = `
                 <div class="venue-name-compact">
                     <input type="text" 
@@ -2141,6 +2141,10 @@
                         </button>
                     </div>
                     <div class="venue-actions">
+                        <button onclick="toggleVenueCard('${venueData.venue_id}')" style="padding: 12px 20px; background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); border-radius: 8px; color: white; cursor: pointer; font-weight: 600; transition: all 0.2s; margin-right: 12px;" onmouseover="this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.background='rgba(255,255,255,0.1)'">
+                            Collapse
+                            <span class="help-icon" onclick="showHelp(event, 'venue-collapse')">?</span>
+                        </button>
                         <button onclick="window.location.href='/venue/${venueData.venue_id}/live-tables'" 
                                 style="padding: 12px 24px; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); border: none; border-radius: 8px; color: white; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: 0 4px 15px rgba(255, 20, 147, 0.4);" 
                                 onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(255, 20, 147, 0.5)'" 
@@ -2211,19 +2215,25 @@
                                 <h4>📱 General Submission QR</h4>
                                 <img src="${venueData.submit_qr}" alt="Submit QR">
                                 <div style="margin-top: 10px;">
-                                    <a href="${venueData.submit_url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; color: #61dafb; text-decoration: underline; word-break: break-all;">
+                                    <a href="${venueData.submit_url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; color: #61dafb; text-decoration: underline; word-break: break-all;" onclick="event.stopPropagation();">
                                         ${venueData.submit_url}
                                     </a>
                                 </div>
                             </div>
                             <div class="qr-box">
-                                <h4>🎵 Venue Stream QR</h4>
+                                <h4>
+                                    🎵 Venue Stream QR
+                                    <span class="help-icon" onclick="showHelp(event, 'stream-qr-smart-tv')">?</span>
+                                </h4>
                                 <img src="${venueData.stream_qr}" alt="Stream QR">
                                 <div style="margin-top: 10px;">
-                                    <a href="${venueData.stream_url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; color: #61dafb; text-decoration: underline; word-break: break-all;">
+                                    <a href="${venueData.stream_url}" target="_blank" rel="noopener noreferrer" style="display: inline-block; color: #61dafb; text-decoration: underline; word-break: break-all;" onclick="event.stopPropagation();">
                                         ${venueData.stream_url}
                                     </a>
                                 </div>
+                                <p style="margin-top: 12px; font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.5;">
+                                    Open this URL on a Smart TV or display screen connected to your sound system to show the live stream queue and play songs automatically.
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -2293,6 +2303,17 @@
             }, 100);
         }
 
+        function toggleVenueCard(venueId) {
+            const card = document.getElementById(`venue-${venueId}`);
+            if (card) {
+                card.classList.toggle('expanded');
+                const btn = card.querySelector('.venue-actions button');
+                if (btn && btn.textContent.includes('Collapse')) {
+                    btn.textContent = card.classList.contains('expanded') ? 'Collapse' : 'Expand';
+                }
+            }
+        }
+
         // Update quick links on page load
         function attachVenueCardHandlers() {
             const venueCards = document.querySelectorAll('.venue-card');
@@ -2300,14 +2321,6 @@
                 // Only attach if not already attached
                 if (!card.hasAttribute('data-handler-attached')) {
                     card.setAttribute('data-handler-attached', 'true');
-                    card.onclick = function(e) {
-                        // Don't expand if clicking on interactive elements
-                        if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.tagName === 'A' || e.target.closest('button') || e.target.closest('input') || e.target.closest('a')) {
-                            return;
-                        }
-                        // Toggle expanded state
-                        this.classList.toggle('expanded');
-                    };
                     
                     // Add compact name if not present
                     if (!card.querySelector('.venue-name-compact')) {
