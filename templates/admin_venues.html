@@ -1429,19 +1429,19 @@
     </div>
 
     <!-- Onboarding modal overlay (first-time setup) -->
-    <div id="onboardingOverlay" style="position: fixed; inset: 0; background: radial-gradient(circle at top, rgba(15,23,42,0.96), rgba(3,7,18,0.98)); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); display: none; align-items: center; justify-content: center; z-index: 2000;">
+    <div id="onboardingOverlay" style="position: fixed; inset: 0; background: radial-gradient(circle at top, rgba(15,23,42,0.88), rgba(3,7,18,0.92)); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); display: none; align-items: center; justify-content: center; z-index: 2000;">
         <div style="max-width: 960px; width: 100%; padding: 28px 20px;">
             <div style="position: relative; border-radius: 20px; padding: 26px 26px 20px; background: rgba(15,23,42,0.96); box-shadow: 0 30px 80px rgba(0,0,0,0.9); border: 1px solid rgba(167,139,250,0.6); overflow: hidden;">
                 <div style="position:absolute; inset:-2px; border-radius:22px; padding:2px; background:linear-gradient(120deg, rgba(236,72,153,0.7), rgba(129,140,248,0.9), rgba(56,189,248,0.7)); -webkit-mask:linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite:xor; mask-composite:exclude; opacity:0.8; pointer-events:none;"></div>
                 <div style="position:relative; z-index:1;">
                     <div style="display:flex; justify-content:space-between; align-items:flex-start; gap:16px; margin-bottom:18px;">
                         <div>
-                            <div style="font-size:22px; font-weight:800; display:flex; align-items:center; gap:10px;">
+                            <div style="font-size:24px; font-weight:800; display:flex; align-items:center; gap:10px;">
                                 <span style="width:32px; height:32px; border-radius:999px; background:radial-gradient(circle at 30% 20%, #f97316, #ec4899 55%, #6366f1 100%); display:flex; align-items:center; justify-content:center; font-size:18px;">🎛️</span>
                                 <span>Welcome, {{ user_name }} — quick tour of your venue</span>
                             </div>
-                            <div style="font-size:13px; color:rgba(226,232,240,0.7); margin-top:4px;">
-                                This runs only once. We’ll show you how to stream, use QR codes, and where to change your settings.
+                            <div style="font-size:14px; color:rgba(226,232,240,0.78); margin-top:4px;">
+                                This runs only once. We’ll show you how to stream, use QR codes, name your venue, and where to change your settings.
                             </div>
                         </div>
                         <div style="display:flex; gap:8px; align-items:center;">
@@ -1453,15 +1453,19 @@
 
                     <div id="onb-step-1" style="display:flex; gap:18px; margin-top:8px;">
                         <div style="flex:2;">
-                            <h2 style="font-size:20px; margin-bottom:8px;">How this dashboard fits into your venue</h2>
-                            <p style="font-size:14px; color:rgba(226,232,240,0.85); margin-bottom:6px;">
+                            <h2 style="font-size:21px; margin-bottom:10px;">How this dashboard fits into your venue</h2>
+                            <p style="font-size:15px; color:rgba(226,232,240,0.9); margin-bottom:8px;">
                                 You’ll use this screen to create venues, print QR codes, and watch the live queue while music streams in your room.
                             </p>
-                            <ul style="margin-top:10px; font-size:13px; color:rgba(226,232,240,0.9); padding-left:18px;">
-                                <li>Guests scan **QR codes** to request songs from their phone.</li>
-                                <li>Your **Live Music Stream** tab is what you open on the device plugged into your speakers.</li>
-                                <li>The **queue cards** below show tables, queue size, and total requests.</li>
+                            <ul style="margin-top:10px; font-size:14px; color:rgba(226,232,240,0.92); padding-left:20px; line-height:1.6;">
+                                <li>Guests scan QR codes to request songs from their phone.</li>
+                                <li>The Live Music Stream tab is what you open on the device plugged into your speakers.</li>
+                                <li>The cards below show tables, queue size, and total requests.</li>
                             </ul>
+                            <div style="margin-top:16px;">
+                                <label for="onb-venue-name" style="display:block; font-size:13px; margin-bottom:6px; color:rgba(226,232,240,0.9);">Venue name to use for this setup</label>
+                                <input id="onb-venue-name" type="text" value="{{ user_name }}'s Venue" style="width:100%; padding:10px 12px; border-radius:10px; border:1px solid rgba(148,163,184,0.6); background:rgba(15,23,42,0.9); color:#E5E7EB; font-size:14px;">
+                            </div>
                         </div>
                         <div style="flex:1.4; border-radius:14px; border:1px dashed rgba(148,163,184,0.5); padding:12px 12px 10px; background:radial-gradient(circle at top left, rgba(129,140,248,0.22), rgba(15,23,42,0.95)); font-size:12px;">
                             <strong style="display:block; margin-bottom:6px;">Quick map of the left sidebar</strong>
@@ -1475,16 +1479,16 @@
 
                     <div id="onb-step-2" style="display:none; gap:18px; margin-top:8px;">
                         <div style="flex:2;">
-                            <h2 style="font-size:20px; margin-bottom:8px;">Choose how QR codes should work</h2>
-                            <p style="font-size:14px; color:rgba(226,232,240,0.85); margin-bottom:6px;">
+                            <h2 style="font-size:21px; margin-bottom:8px;">Choose how QR codes should work</h2>
+                            <p style="font-size:15px; color:rgba(226,232,240,0.9); margin-bottom:6px;">
                                 Decide if you want one QR for the whole room or unique QR codes per table with tracking.
                             </p>
                             <div style="margin-top:14px; display:grid; gap:10px;">
                                 <div id="onb-choice-single" style="border-radius:12px; border:1px solid rgba(148,163,184,0.7); padding:10px 12px; display:flex; gap:10px; align-items:flex-start; cursor:pointer; background:rgba(15,23,42,0.8);" onclick="onbSelectQrMode('single')">
                                     <div style="margin-top:3px;"><input type="radio" name="onbQrMode" value="single" id="onb-qr-single"></div>
                                     <div>
-                                        <div style="font-size:14px; font-weight:600;">Single QR for the whole venue</div>
-                                        <div style="font-size:12px; color:rgba(226,232,240,0.85); margin-top:3px;">
+                                        <div style="font-size:15px; font-weight:600;">Single QR for the whole venue</div>
+                                        <div style="font-size:13px; color:rgba(226,232,240,0.9); margin-top:4px;">
                                             One QR you can print and post everywhere. Simple setup, no per-table tracking — just one shared request line.
                                         </div>
                                     </div>
@@ -1492,9 +1496,20 @@
                                 <div id="onb-choice-tables" style="border-radius:12px; border:1px solid rgba(148,163,184,0.7); padding:10px 12px; display:flex; gap:10px; align-items:flex-start; cursor:pointer; background:rgba(15,23,42,0.8);" onclick="onbSelectQrMode('tables')">
                                     <div style="margin-top:3px;"><input type="radio" name="onbQrMode" value="tables" id="onb-qr-tables"></div>
                                     <div>
-                                        <div style="font-size:14px; font-weight:600;">Table tracking with unique QR per table</div>
-                                        <div style="font-size:12px; color:rgba(226,232,240,0.85); margin-top:3px;">
+                                        <div style="font-size:15px; font-weight:600;">Table tracking with unique QR per table</div>
+                                        <div style="font-size:13px; color:rgba(226,232,240,0.9); margin-top:4px;">
                                             Each table gets its own printable QR. Requests are logged per table so you know exactly who requested what.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div id="onb-qr-preview" style="display:none; margin-top:12px; border-radius:12px; border:1px solid rgba(148,163,184,0.7); padding:10px 12px; background:rgba(15,23,42,0.95);">
+                                    <div style="font-size:13px; margin-bottom:6px; color:rgba(226,232,240,0.9);">Your first QR code (ready to print or download)</div>
+                                    <div style="display:flex; gap:16px; align-items:center; flex-wrap:wrap;">
+                                        <img id="onb-qr-img" src="" alt="Venue QR" style="width:140px; height:140px; border-radius:10px; background:#020617;">
+                                        <div style="flex:1; min-width:180px;">
+                                            <button type="button" onclick="onbPrintQr()" style="display:block; width:100%; margin-bottom:6px; border-radius:999px; padding:8px 14px; font-size:13px; border:1px solid transparent; background:linear-gradient(135deg,#FF1493,#8B2BE2); color:#f9fafb; cursor:pointer;">Print QR</button>
+                                            <button type="button" onclick="onbDownloadQr()" style="display:block; width:100%; border-radius:999px; padding:8px 14px; font-size:13px; border:1px solid rgba(148,163,184,0.7); background:transparent; color:rgba(226,232,240,0.95); cursor:pointer;">Download PNG</button>
                                         </div>
                                     </div>
                                 </div>
@@ -1511,8 +1526,8 @@
 
                     <div id="onb-step-3" style="display:none; gap:18px; margin-top:8px;">
                         <div style="flex:2;">
-                            <h2 style="font-size:20px; margin-bottom:8px;">Next: click through your live dashboard</h2>
-                            <p style="font-size:14px; color:rgba(226,232,240,0.85); margin-bottom:6px;">
+                            <h2 style="font-size:21px; margin-bottom:8px;">Next: click through your live dashboard</h2>
+                            <p style="font-size:15px; color:rgba(226,232,240,0.9); margin-bottom:6px;">
                                 When this window closes you’ll be looking at this same dashboard for real — with live cards and controls.
                             </p>
                             <div style="margin-top:10px; border-radius:12px; border:1px solid rgba(148,163,184,0.6); padding:10px 12px; background:radial-gradient(circle at top left, rgba(129,140,248,0.25), rgba(15,23,42,0.98)); font-size:12px;">
@@ -1558,6 +1573,10 @@
         const userVenueIds = {{ user_venue_ids|tojson if user_venue_ids else '[]' }};
         const currentVenueId = userVenueIds.length > 0 ? userVenueIds[0] : null;
         const showOnboarding = {{ 'true' if show_onboarding else 'false' if show_onboarding is not none else 'false' }};
+        let onbStep = 1;
+        let onbQrMode = null;
+        let onbCreatedVenue = null;
+        let onbQrUrl = null;
 
         // Central help text registry so every "?" in the app can explain itself.
         const helpTexts = {
@@ -1686,10 +1705,6 @@
             }, 0);
         }
 
-        // In-dashboard onboarding modal logic
-        let onbStep = 1;
-        let onbQrMode = null;
-
         function onbUpdateUI() {
             for (let i = 1; i <= 3; i++) {
                 const s = document.getElementById(`onb-step-${i}`);
@@ -1722,6 +1737,52 @@
                 if (cs) cs.classList.remove('selected');
                 if (rT) rT.checked = true;
             }
+
+            // Once a mode is chosen, create the venue (if not already) and show its QR
+            onbEnsureVenueAndQr();
+        }
+
+        async function onbEnsureVenueAndQr() {
+            if (onbCreatedVenue || !onbQrMode) return;
+            try {
+                const nameInput = document.getElementById('onb-venue-name');
+                const venueName = (nameInput && nameInput.value.trim()) || '{{ user_name }}\'s Venue';
+                const numTables = onbQrMode === 'tables' ? 4 : 0;
+                const resp = await fetch('/venue/create', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: venueName, num_tables: numTables })
+                });
+                if (!resp.ok) return;
+                const data = await resp.json();
+                onbCreatedVenue = data;
+                if (onbQrMode === 'tables' && data.tables && data.tables.length > 0) {
+                    onbQrUrl = data.tables[0].qr_code;
+                } else {
+                    onbQrUrl = data.submit_qr;
+                }
+                const img = document.getElementById('onb-qr-img');
+                const box = document.getElementById('onb-qr-preview');
+                if (img && onbQrUrl) img.src = onbQrUrl;
+                if (box && onbQrUrl) box.style.display = 'block';
+            } catch (e) {
+                console.error('Error creating venue for onboarding:', e);
+            }
+        }
+
+        function onbPrintQr() {
+            if (!onbQrUrl) return;
+            window.open(onbQrUrl, '_blank');
+        }
+
+        function onbDownloadQr() {
+            if (!onbQrUrl) return;
+            const a = document.createElement('a');
+            a.href = onbQrUrl;
+            a.download = 'venue-qr.png';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
 
         async function onbComplete(skip = false) {

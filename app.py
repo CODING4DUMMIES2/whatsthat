@@ -2056,8 +2056,8 @@ def venues():
                 user_venue_ids.append(venue_id)
                 save_data()  # Save the fix
         print(f"   ✅ Final user_venue_ids: {user_venue_ids}")
-        if not user_venue_ids:
-            # If no venue exists (shouldn't happen after signup, but handle it)
+        if not user_venue_ids and not show_onboarding:
+            # If no venue exists and onboarding is already complete, auto-create a default venue
             import uuid
             venue_id = str(uuid.uuid4())[:8]
             all_genres = ['country', 'rap', 'rock', 'pop', 'jazz', 'lofi', 'electronic', 'r&b', 'metal', 'classical']
