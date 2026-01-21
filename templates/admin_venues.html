@@ -2390,12 +2390,25 @@
             proceedToDashboard();
         }
 
-        function proceedToDashboard() {
+        async function proceedToDashboard() {
             const logoUploadScreen = document.getElementById('logoUploadScreen');
             const logoUploadSquare = document.getElementById('logoUploadSquare');
             const logoUploadText = document.getElementById('logoUploadText');
             const logoSkipBtn = document.getElementById('logoSkipBtn');
             const mainLayout = document.getElementById('mainLayout');
+            
+            // Mark onboarding as complete before reloading
+            try {
+                await fetch('/onboarding/complete', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({})
+                });
+            } catch (error) {
+                console.error('Error marking onboarding complete:', error);
+            }
             
             // Fade out logo upload screen
             if (logoUploadSquare && logoUploadText) {
