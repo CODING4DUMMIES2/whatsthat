@@ -13,7 +13,7 @@
 
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: transparent;
+            background: #0f172a;
             min-height: 100vh;
             color: white;
             position: relative;
@@ -1466,8 +1466,8 @@
     </div>
 
     <!-- Tutorial Overlay (Step-by-step guide) -->
-    <div id="tutorialOverlay" style="position: fixed; inset: 0; z-index: 4000; display: none; pointer-events: none; background: rgba(0, 0, 0, 0.4); backdrop-filter: blur(2px); -webkit-backdrop-filter: blur(2px);">
-        <div id="tutorialHighlight" style="position: absolute; border: 3px solid rgba(255, 20, 147, 0.8); border-radius: 12px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.7), 0 0 30px rgba(255, 20, 147, 0.6); pointer-events: none; transition: all 0.3s ease;"></div>
+    <div id="tutorialOverlay" style="position: fixed; inset: 0; z-index: 4000; display: none; pointer-events: none; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(1px); -webkit-backdrop-filter: blur(1px);">
+        <div id="tutorialHighlight" style="position: absolute; border: 4px solid rgba(255, 20, 147, 1); border-radius: 12px; box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5), 0 0 40px rgba(255, 20, 147, 0.8), inset 0 0 20px rgba(255, 20, 147, 0.3); pointer-events: none; transition: all 0.3s ease; z-index: 4001;"></div>
         <div id="tutorialPopup" style="position: absolute; background: rgba(15, 23, 42, 0.98); border-radius: 16px; padding: 20px 24px; max-width: 320px; box-shadow: 0 20px 60px rgba(0,0,0,0.9); border: 2px solid rgba(255, 20, 147, 0.6); pointer-events: auto; opacity: 0; transform: scale(0.9); transition: opacity 0.3s ease, transform 0.3s ease;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px;">
                 <h3 id="tutorialTitle" style="font-size: 18px; font-weight: 800; margin: 0; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; flex: 1;">
@@ -2764,16 +2764,17 @@
             tutorialOverlay.style.opacity = '1';
             tutorialOverlay.style.zIndex = '4000';
 
-            // Get element position
+            // Get element position (getBoundingClientRect is relative to viewport)
             const rect = element.getBoundingClientRect();
             const scrollX = window.scrollX || window.pageXOffset;
             const scrollY = window.scrollY || window.pageYOffset;
 
-            // Position highlight around element
-            tutorialHighlight.style.left = (rect.left + scrollX - 8) + 'px';
-            tutorialHighlight.style.top = (rect.top + scrollY - 8) + 'px';
-            tutorialHighlight.style.width = (rect.width + 16) + 'px';
-            tutorialHighlight.style.height = (rect.height + 16) + 'px';
+            // Position highlight around element (use viewport coordinates + scroll)
+            tutorialHighlight.style.left = (rect.left + scrollX - 12) + 'px';
+            tutorialHighlight.style.top = (rect.top + scrollY - 12) + 'px';
+            tutorialHighlight.style.width = (rect.width + 24) + 'px';
+            tutorialHighlight.style.height = (rect.height + 24) + 'px';
+            tutorialHighlight.style.display = 'block';
 
             // Position popup based on step.position
             let popupLeft, popupTop;
@@ -2856,10 +2857,11 @@
                 tutorialPopup.style.top = finalPopupTop + 'px';
                 
                 // Update highlight position
-                tutorialHighlight.style.left = (newRect.left + newScrollX - 8) + 'px';
-                tutorialHighlight.style.top = (newRect.top + newScrollY - 8) + 'px';
-                tutorialHighlight.style.width = (newRect.width + 16) + 'px';
-                tutorialHighlight.style.height = (newRect.height + 16) + 'px';
+                tutorialHighlight.style.left = (newRect.left + newScrollX - 12) + 'px';
+                tutorialHighlight.style.top = (newRect.top + newScrollY - 12) + 'px';
+                tutorialHighlight.style.width = (newRect.width + 24) + 'px';
+                tutorialHighlight.style.height = (newRect.height + 24) + 'px';
+                tutorialHighlight.style.display = 'block';
                 
                 // Make sure overlay is visible
                 tutorialOverlay.style.display = 'block';
@@ -2884,6 +2886,7 @@
         }
 
         function nextTutorialStep() {
+            console.log('nextTutorialStep called, current step:', currentTutorialStep);
             const tutorialPopup = document.getElementById('tutorialPopup');
             if (tutorialPopup) {
                 tutorialPopup.style.opacity = '0';
@@ -2892,7 +2895,13 @@
 
             setTimeout(() => {
                 currentTutorialStep++;
-                showTutorialStep(currentTutorialStep);
+                console.log('Moving to step:', currentTutorialStep);
+                if (currentTutorialStep >= tutorialSteps.length) {
+                    console.log('Tutorial complete, ending...');
+                    endTutorial();
+                } else {
+                    showTutorialStep(currentTutorialStep);
+                }
             }, 300);
         }
 
