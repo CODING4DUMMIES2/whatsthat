@@ -53,6 +53,50 @@
             }
         }
 
+        function resetStreamPlayerState() {
+            if (streamQueueCheckInterval) {
+                clearInterval(streamQueueCheckInterval);
+                streamQueueCheckInterval = null;
+            }
+            streamPlayedSongs.clear();
+            isStreamPlaying = false;
+            streamAutoplayEnabled = false;
+            const audio = document.getElementById('currentAudioStream');
+            if (audio) {
+                audio.pause();
+                audio.removeAttribute('src');
+                audio.load();
+            }
+            const queueList = document.getElementById('queueListStream');
+            if (queueList) {
+                queueList.innerHTML = '<div style="text-align: center; padding: 20px; color: rgba(255,255,255,0.5);">No songs in queue</div>';
+            }
+            const queueCount = document.getElementById('queueCountStream');
+            if (queueCount) {
+                queueCount.textContent = '0 songs';
+            }
+            const statusText = document.getElementById('statusTextStream');
+            if (statusText) {
+                statusText.textContent = 'Waiting for songs...';
+            }
+            const indicator = document.getElementById('statusIndicatorStream');
+            if (indicator) {
+                indicator.className = 'status-indicator-stream waiting';
+            }
+            const startBtn = document.getElementById('startQueueBtnStream');
+            if (startBtn) {
+                startBtn.style.display = 'inline-block';
+            }
+        }
+
+        function onStreamVenueChange(venueId) {
+            if (!venueId) return;
+            currentStreamVenueId = venueId;
+            currentVenueId = venueId;
+            resetStreamPlayerState();
+            initializeStreamPlayer();
+        }
+
         /* Shimmer/Sweep Effect - Light traveling around border */
         @keyframes shimmer {
             0% {
@@ -1420,7 +1464,19 @@
                                 <span class="help-icon" onclick="showHelp(event, 'section-live-stream')">?</span>
                             </span>
                         </h2>
-                        <span class="section-toggle" id="streamToggle">▼</span>
+                        <div id="streamVenueSelector" style="display:flex; align-items:center; gap:6px;" onclick="event.stopPropagation();">
+                            <label for="streamVenueSelect" style="font-size:12px; color:rgba(226,232,240,0.85);">Venue:</label>
+                            <select id="streamVenueSelect"
+                                    onchange="onStreamVenueChange(this.value)"
+                                    style="padding:6px 12px; border-radius:999px; border:1px solid rgba(248,250,252,0.3); background:linear-gradient(135deg,#FF1493 0%,#8B2BE2 100%); color:#F9FAFB; font-size:13px; font-weight:600; cursor:pointer; outline:none;">
+                                <option value="">Select venue</option>
+                                {% if user_venue_ids %}
+                                    {% for venue_id in user_venue_ids %}
+                                        <option value="{{ venue_id }}">{{ venue_metadata[venue_id].name or 'Venue ' ~ venue_id }}</option>
+                                    {% endfor %}
+                                {% endif %}
+                            </select>
+                        </div>
                     </div>
                     <div class="stream-content" id="streamContent">
                         <div class="now-playing-stream" id="nowPlayingStream">
@@ -2632,6 +2688,7 @@
         let streamAudioElement = null;
         let streamAutoplayEnabled = false;
         const streamPlayedSongs = new Set();
+        let currentStreamVenueId = null;
 
         function showVenuesSection() {
             const streamSection = document.getElementById('streamSection');
@@ -2738,7 +2795,6 @@
         function toggleStreamSection() {
             const section = document.getElementById('streamSection');
             const content = document.getElementById('streamContent');
-            const toggle = document.getElementById('streamToggle');
             const btn = document.getElementById('streamToggleBtn');
             const venuesList = document.getElementById('venuesList');
             const createVenueSection = document.getElementById('createVenueSection');
@@ -2748,7 +2804,6 @@
                 // Show stream section
                 section.style.display = 'block';
                 content.style.display = 'block';
-                toggle.textContent = '▼';
                 btn.classList.add('active');
                 // Hide venues list
                 if (venuesList) {
@@ -2769,7 +2824,6 @@
                 // Hide stream section
                 section.style.display = 'none';
                 content.style.display = 'none';
-                toggle.textContent = '▶';
                 btn.classList.remove('active');
                 // Show venues list
                 if (venuesList) {
@@ -2787,10 +2841,17 @@
         }
 
         function initializeStreamPlayer() {
-            const venueId = currentVenueId || (isAdmin ? getFirstVenueId() : null);
+            const venueId = currentStreamVenueId || currentVenueId || (isAdmin ? getFirstVenueId() : null);
             if (!venueId) {
                 document.getElementById('statusTextStream').textContent = 'No venue available';
                 return;
+            }
+            currentStreamVenueId = venueId;
+            
+            // Sync dropdown selection
+            const select = document.getElementById('streamVenueSelect');
+            if (select && venueId) {
+                select.value = venueId;
             }
             
             // Start button click handler
@@ -2798,10 +2859,11 @@
             if (startBtn && !startBtn.hasAttribute('data-listener')) {
                 startBtn.setAttribute('data-listener', 'true');
                 startBtn.addEventListener('click', function() {
+                    if (!currentStreamVenueId) return;
                     streamAutoplayEnabled = true;
                     this.style.display = 'none';
                     document.getElementById('statusTextStream').textContent = 'Queue Active - Waiting for songs...';
-                    startStreamQueuePolling(venueId);
+                    startStreamQueuePolling(currentStreamVenueId);
                 });
             }
         }
@@ -2816,7 +2878,11 @@
 
 
         function startStreamQueuePolling(venueId) {
-            if (streamQueueCheckInterval) return;
+            if (!venueId) return;
+            if (streamQueueCheckInterval) {
+                clearInterval(streamQueueCheckInterval);
+                streamQueueCheckInterval = null;
+            }
             streamQueueCheckInterval = setInterval(() => checkStreamQueue(venueId), 3000);
             checkStreamQueue(venueId);
         }
