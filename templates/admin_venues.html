@@ -2557,6 +2557,7 @@
 
         // Tutorial system
         let currentTutorialStep = 0;
+        let tutorialStuckTimeout = null;
         const tutorialSteps = [
             {
                 selector: '.venue-card:first-child',
@@ -2660,6 +2661,18 @@
                 endTutorial();
                 return;
             }
+            
+            // Clear any existing stuck timeout
+            if (tutorialStuckTimeout) {
+                clearTimeout(tutorialStuckTimeout);
+                tutorialStuckTimeout = null;
+            }
+            
+            // Set a safety timeout - if tutorial is stuck for 15 seconds, auto-advance
+            tutorialStuckTimeout = setTimeout(() => {
+                console.warn(`Tutorial appears stuck on step ${stepIndex + 1}, auto-advancing...`);
+                nextTutorialStep();
+            }, 15000);
 
             const step = tutorialSteps[stepIndex];
             
@@ -2712,11 +2725,24 @@
             }
             
             if (element.offsetParent === null) {
-                // Element exists but not visible, wait and retry
-                setTimeout(() => {
-                    showTutorialStep(stepIndex);
-                }, 500);
+                // Element exists but not visible, wait and retry (with max retries)
+                let retryCount = (element.dataset.tutorialRetryCount || 0);
+                if (retryCount < 3) {
+                    element.dataset.tutorialRetryCount = retryCount + 1;
+                    setTimeout(() => {
+                        showTutorialStep(stepIndex);
+                    }, 500);
+                } else {
+                    // Max retries reached, show fallback
+                    console.log(`Element not visible after retries for step ${stepIndex + 1}, showing fallback`);
+                    showTutorialStepFallback(stepIndex, step);
+                }
                 return;
+            }
+            
+            // Reset retry count if element is found and visible
+            if (element.dataset.tutorialRetryCount) {
+                delete element.dataset.tutorialRetryCount;
             }
             
             // Element found and visible - proceed with showing tutorial step
@@ -2746,16 +2772,29 @@
             
             tutorialOverlay.style.display = 'block';
             tutorialOverlay.style.pointerEvents = 'auto';
+            tutorialPopup.style.position = 'fixed';
             tutorialPopup.style.left = '50%';
             tutorialPopup.style.top = '50%';
             tutorialPopup.style.transform = 'translate(-50%, -50%)';
             tutorialPopup.style.opacity = '1';
+            
+            // Hide highlight since element not found
+            const tutorialHighlight = document.getElementById('tutorialHighlight');
+            if (tutorialHighlight) {
+                tutorialHighlight.style.display = 'none';
+            }
             
             // Block all interactions with the main layout
             const mainLayout = document.getElementById('mainLayout');
             if (mainLayout) {
                 mainLayout.style.pointerEvents = 'none';
                 mainLayout.style.userSelect = 'none';
+            }
+            
+            // Clear stuck timeout since step displayed
+            if (tutorialStuckTimeout) {
+                clearTimeout(tutorialStuckTimeout);
+                tutorialStuckTimeout = null;
             }
         }
         
@@ -2890,6 +2929,12 @@
             setTimeout(() => {
                 tutorialPopup.style.opacity = '1';
                 tutorialPopup.style.transform = 'scale(1)';
+                
+                // Clear stuck timeout since step displayed successfully
+                if (tutorialStuckTimeout) {
+                    clearTimeout(tutorialStuckTimeout);
+                    tutorialStuckTimeout = null;
+                }
             }, 50);
             
             console.log(`Tutorial step ${stepIndex + 1} popup positioned:`, { 
@@ -2906,6 +2951,13 @@
 
         function nextTutorialStep() {
             console.log('nextTutorialStep called, current step:', currentTutorialStep);
+            
+            // Clear stuck timeout
+            if (tutorialStuckTimeout) {
+                clearTimeout(tutorialStuckTimeout);
+                tutorialStuckTimeout = null;
+            }
+            
             const tutorialPopup = document.getElementById('tutorialPopup');
             if (tutorialPopup) {
                 tutorialPopup.style.opacity = '0';
@@ -2914,12 +2966,23 @@
 
             setTimeout(() => {
                 currentTutorialStep++;
-                console.log('Moving to step:', currentTutorialStep);
+                console.log('Moving to step:', currentTutorialStep, 'of', tutorialSteps.length);
                 if (currentTutorialStep >= tutorialSteps.length) {
                     console.log('Tutorial complete, ending...');
                     endTutorial();
                 } else {
-                    showTutorialStep(currentTutorialStep);
+                    try {
+                        showTutorialStep(currentTutorialStep);
+                    } catch (error) {
+                        console.error('Error showing tutorial step:', error);
+                        // If there's an error, skip to next step or end tutorial
+                        if (currentTutorialStep + 1 >= tutorialSteps.length) {
+                            endTutorial();
+                        } else {
+                            currentTutorialStep++;
+                            showTutorialStep(currentTutorialStep);
+                        }
+                    }
                 }
             }, 300);
         }
