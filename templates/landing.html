@@ -1348,22 +1348,7 @@
             transform: translateX(-3px) scale(1.02);
         }
 
-        /* Setup Sections – wizard style (only active one is visible) */
-        .setup-section-1,
-        .setup-section-2,
-        .setup-section-3,
-        .setup-section-4 {
-            display: none;
-        }
-
-        .setup-section-1.active,
-        .setup-section-2.active,
-        .setup-section-3.active,
-        .setup-section-4.active {
-            display: block;
-        }
-        
-        /* Container for setup sections */
+        /* Setup Sections – stacked vertically (no hiding to avoid disappearing bugs) */
         .setup-sections-container {
             position: relative;
         }
@@ -2643,7 +2628,7 @@
         <!-- Setup Sections Container -->
         <div class="setup-sections-container">
         <!-- Create Your Venue Section -->
-        <div class="keepsake-section setup-section-1 active" id="setupSection1">
+        <div class="keepsake-section setup-section-1" id="setupSection1">
             <div class="setup-content-wrapper">
                 <div class="setup-image-container">
                     <img src="/img/setup-screenshot.png" alt="Setup Screenshot" style="width: 100%; height: auto; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);">
@@ -3238,13 +3223,9 @@
         // Old generateSong function removed - no longer needed in demo mode
 
         function switchSetupSection(hideSection, showSection) {
-            if (hideSection && showSection) {
-                // Hide current section (by class only)
-                hideSection.classList.remove('active');
-                
-                // Show new section
-                showSection.classList.add('active');
-                // No scrolling, no inline display changes
+            if (showSection) {
+                // No hiding at all – just scroll the next section into view
+                showSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
         }
 
