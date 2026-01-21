@@ -608,6 +608,7 @@
             display: flex;
             flex-direction: column;
             justify-content: flex-start;
+            cursor: pointer;
         }
 
         .venue-card.expanded {
@@ -2499,7 +2500,17 @@
                         }
                     }
 
-                    // Cards only expand/collapse via the Collapse button, not by clicking the card itself
+                    // Clicking the card (non-interactive area) EXPANDS it, but never collapses.
+                    const venueId = card.id.replace('venue-', '');
+                    card.addEventListener('click', function(e) {
+                        // Ignore clicks on interactive elements inside the card
+                        if (e.target.closest('button') || e.target.closest('a') || e.target.closest('input') || e.target.closest('textarea')) {
+                            return;
+                        }
+                        if (!card.classList.contains('expanded')) {
+                            toggleVenueCard(venueId); // only expand on card click
+                        }
+                    });
                 }
             });
         }
