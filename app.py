@@ -1202,7 +1202,7 @@ def music_callback():
                 # We don't download full audio files here; this is a pure streaming player.
                 # Once we have either a stream URL or a final audio URL, stop polling this task.
                 if (stream_url or audio_url) and task_id in task_to_venue:
-                    print(f\"✅ Callback complete for task {task_id}, stopping polling (stream_url={bool(stream_url)}, audio_url={bool(audio_url)})\")
+                    print(f"✅ Callback complete for task {task_id}, stopping polling (stream_url={bool(stream_url)}, audio_url={bool(audio_url)})")
                     del task_to_venue[task_id]
 
                 save_data()
