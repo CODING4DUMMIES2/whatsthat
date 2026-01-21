@@ -1392,6 +1392,42 @@
         </div>
     </div>
 
+    <!-- Logo Upload Screen (After Venue Name) -->
+    <div id="logoUploadScreen" style="position: fixed; inset: 0; z-index: 3000; display: none; align-items: center; justify-content: center;">
+        <div id="logoUploadSquare" style="background: rgba(15, 23, 42, 0.95); border-radius: 24px; padding: 48px 56px; max-width: 600px; width: 90%; box-shadow: 0 40px 110px rgba(0,0,0,0.85); border: 1px solid rgba(167,139,250,0.3); position: relative; opacity: 0; transform: scale(0.9); transition: opacity 0.8s ease-out, transform 0.8s ease-out;">
+            <div style="position: absolute; top: 24px; left: 24px;">
+                <img src="/img/logo.png" alt="whatsthat logo" style="width: 48px; height: 48px; object-fit: contain;">
+            </div>
+            <div id="logoUploadText" style="margin-top: 60px; text-align: center; opacity: 0; transition: opacity 1.2s ease-out 0.4s;">
+                <h2 style="font-size: 28px; font-weight: 800; margin: 0 0 16px 0; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    Upload your logo for custom QR codes
+                </h2>
+                <p style="font-size: 16px; color: rgba(255,255,255,0.7); margin: 0 0 32px 0;">
+                    Add your logo to personalize your QR codes (optional)
+                </p>
+                <div style="margin-bottom: 24px;">
+                    <input type="file" 
+                           id="logoUploadInput" 
+                           accept="image/*" 
+                           style="display: none;"
+                           onchange="handleLogoPreview(event)">
+                    <label for="logoUploadInput" style="display: inline-block; padding: 14px 32px; background: rgba(255,255,255,0.1); border: 2px dashed rgba(255,255,255,0.3); border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; width: 100%; text-align: center;" onmouseover="this.style.borderColor='rgba(255, 20, 147, 0.8)'; this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.3)'; this.style.background='rgba(255,255,255,0.1)'">
+                        Choose Logo File
+                    </label>
+                    <div id="logoPreviewContainer" style="display: none; margin-top: 24px;">
+                        <img id="logoPreviewImg" src="" alt="Logo Preview" style="max-width: 200px; max-height: 200px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2); margin-bottom: 16px;">
+                        <button id="logoSaveBtn" onclick="saveLogo()" style="padding: 12px 28px; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); border: none; border-radius: 12px; color: white; font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(255, 20, 147, 0.4); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(255, 20, 147, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(255, 20, 147, 0.4)'">
+                            Save Logo
+                        </button>
+                    </div>
+                </div>
+                <button id="logoSkipBtn" onclick="skipLogo()" style="padding: 14px 32px; background: transparent; border: 2px solid rgba(255,255,255,0.3); border-radius: 12px; color: white; font-size: 18px; font-weight: 700; cursor: pointer; transition: all 0.2s; opacity: 0; transition: opacity 1.2s ease-out 0.8s, transform 0.2s; width: 100%;" onmouseover="this.style.borderColor='rgba(255,255,255,0.5)'; this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.3)'; this.style.background='transparent'">
+                    Skip
+                </button>
+            </div>
+        </div>
+    </div>
+
     <div class="main-layout" id="mainLayout">
         <!-- Sidebar -->
         <aside class="sidebar">
@@ -1789,6 +1825,7 @@
         let onbQrMode = null;
         let onbCreatedVenue = null;
         let onbQrUrl = null;
+        let createdVenueId = null; // Store venue ID created during onboarding
 
         // Central help text registry so every "?" in the app can explain itself.
         const helpTexts = {
@@ -2143,20 +2180,12 @@
             // Check if user already has venues
             const hasVenues = userVenueIds && userVenueIds.length > 0;
             
-            if (prefilledName && !hasVenues) {
-                // Prefilled name - ask if they want to change it
-                venueNamePrompt.textContent = 'Is this your venue name?';
-                venueNameDisplay.textContent = prefilledName;
-                venueNameDisplay.style.display = 'inline';
-                venueNameSubtext.style.display = 'block';
-                venueNameInput.value = prefilledName;
-                venueNameInput.placeholder = 'Change venue name (optional)';
-            } else if (hasVenues) {
+            if (hasVenues) {
                 // User already has venues - skip this step
                 submitVenueName();
                 return;
             } else {
-                // No prefilled name - ask them to type it
+                // Always ask them to type it (don't auto-populate)
                 venueNamePrompt.textContent = "What's your venue name?";
                 venueNameDisplay.style.display = 'none';
                 venueNameSubtext.style.display = 'none';
@@ -2228,9 +2257,9 @@
             // If no venue name provided and no prefilled, use default
             const finalVenueName = venueName || '{{ initial_venue_name }}' || '{{ user_name }}\'s Venue' || 'My Venue';
             
-            // Create venue with this name if needed
-            try {
-                if (!userVenueIds || userVenueIds.length === 0) {
+            // Create venue with this name if needed, then show logo upload screen
+            if (!userVenueIds || userVenueIds.length === 0) {
+                try {
                     const response = await fetch('/venue/create', {
                         method: 'POST',
                         headers: {
@@ -2242,15 +2271,20 @@
                         })
                     });
                     
-                    if (!response.ok) {
-                        console.error('Error creating venue');
+                    if (response.ok) {
+                        const data = await response.json();
+                        // Store the new venue ID for logo upload
+                        if (data.venue_id) {
+                            createdVenueId = data.venue_id;
+                            userVenueIds.push(data.venue_id);
+                        }
                     }
+                } catch (error) {
+                    console.error('Error creating venue:', error);
                 }
-            } catch (error) {
-                console.error('Error creating venue:', error);
             }
             
-            // Fade out venue name screen
+            // Fade out venue name screen and show logo upload screen
             if (venueNameSquare && venueNameText) {
                 venueNameSquare.style.opacity = '0';
                 venueNameSquare.style.transform = 'scale(0.95)';
@@ -2259,15 +2293,128 @@
                     venueNameSubmitBtn.style.opacity = '0';
                 }
                 
-                // Show main layout after fade out
+                // Show logo upload screen after fade out
                 setTimeout(() => {
                     if (venueNameScreen) {
                         venueNameScreen.style.display = 'none';
                     }
+                    showLogoUploadScreen();
+                }, 600);
+            }
+        }
+
+        function showLogoUploadScreen() {
+            const logoUploadScreen = document.getElementById('logoUploadScreen');
+            const logoUploadSquare = document.getElementById('logoUploadSquare');
+            const logoUploadText = document.getElementById('logoUploadText');
+            const logoSkipBtn = document.getElementById('logoSkipBtn');
+            
+            if (!logoUploadScreen || !logoUploadSquare || !logoUploadText) return;
+            
+            // Show logo upload screen
+            logoUploadScreen.style.display = 'flex';
+            
+            // Animate square easing in
+            setTimeout(() => {
+                logoUploadSquare.style.opacity = '1';
+                logoUploadSquare.style.transform = 'scale(1)';
+            }, 100);
+            
+            // Animate text fading in
+            setTimeout(() => {
+                logoUploadText.style.opacity = '1';
+            }, 500);
+            
+            // Animate skip button fading in
+            if (logoSkipBtn) {
+                setTimeout(() => {
+                    logoSkipBtn.style.opacity = '1';
+                }, 800);
+            }
+        }
+
+        function handleLogoPreview(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const previewContainer = document.getElementById('logoPreviewContainer');
+                    const previewImg = document.getElementById('logoPreviewImg');
+                    if (previewContainer && previewImg) {
+                        previewImg.src = e.target.result;
+                        previewContainer.style.display = 'block';
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function saveLogo() {
+            const logoInput = document.getElementById('logoUploadInput');
+            
+            if (!logoInput || !logoInput.files || !logoInput.files[0]) {
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('logo', logoInput.files[0]);
+            
+            try {
+                // Get venue ID - use created venue ID if available, otherwise use first venue
+                const venueId = createdVenueId || (userVenueIds && userVenueIds.length > 0 ? userVenueIds[0] : null);
+                
+                if (venueId) {
+                    const response = await fetch(`/venue/${venueId}/upload-logo`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (response.ok) {
+                        // Logo saved, proceed to dashboard
+                        proceedToDashboard();
+                    } else {
+                        console.error('Error saving logo');
+                        proceedToDashboard();
+                    }
+                } else {
+                    // No venue yet, just proceed (logo will be saved after reload)
+                    proceedToDashboard();
+                }
+            } catch (error) {
+                console.error('Error saving logo:', error);
+                proceedToDashboard();
+            }
+        }
+
+        function skipLogo() {
+            proceedToDashboard();
+        }
+
+        function proceedToDashboard() {
+            const logoUploadScreen = document.getElementById('logoUploadScreen');
+            const logoUploadSquare = document.getElementById('logoUploadSquare');
+            const logoUploadText = document.getElementById('logoUploadText');
+            const logoSkipBtn = document.getElementById('logoSkipBtn');
+            const mainLayout = document.getElementById('mainLayout');
+            
+            // Fade out logo upload screen
+            if (logoUploadSquare && logoUploadText) {
+                logoUploadSquare.style.opacity = '0';
+                logoUploadSquare.style.transform = 'scale(0.95)';
+                logoUploadText.style.opacity = '0';
+                if (logoSkipBtn) {
+                    logoSkipBtn.style.opacity = '0';
+                }
+                
+                // Show main layout after fade out
+                setTimeout(() => {
+                    if (logoUploadScreen) {
+                        logoUploadScreen.style.display = 'none';
+                    }
                     if (mainLayout) {
                         mainLayout.style.display = 'flex';
                     }
-                    // Reload to show the new venue
+                    // Reload to show the new venue and logo
                     window.location.reload();
                 }, 600);
             }
