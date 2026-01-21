@@ -3192,11 +3192,16 @@
         let currentDemoAudio = null;
         
         function playDemoSong(filename) {
-            // Stop any currently playing audio
+            // Stop any currently playing demo song
             if (currentDemoAudio) {
                 currentDemoAudio.pause();
                 currentDemoAudio = null;
-        }
+            }
+
+            // Pause background music while the demo song is playing
+            if (typeof backgroundAudio !== 'undefined' && backgroundAudio && !backgroundAudio.paused) {
+                backgroundAudio.pause();
+            }
 
             // Create new audio element and play
             const audioUrl = `/audio/${filename}`;
@@ -3214,9 +3219,12 @@
                 alert('Error loading audio file. The song may still be generating.');
             };
             
-            // Update button state when audio ends
+            // When the demo song finishes, resume the background music
             currentDemoAudio.onended = function() {
                 currentDemoAudio = null;
+                if (typeof backgroundAudio !== 'undefined' && backgroundAudio && backgroundAudio.paused) {
+                    backgroundAudio.play().catch(() => {});
+                }
             };
         }
 
