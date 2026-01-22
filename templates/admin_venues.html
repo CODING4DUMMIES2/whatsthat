@@ -2945,43 +2945,67 @@
                         const venueInfoResponse = await fetch(`/venue/${venueId}/info`);
                         if (venueInfoResponse.ok) {
                             const venueInfo = await venueInfoResponse.json();
+                            console.log('Venue info response:', venueInfo);
                             if (venueInfo.success) {
                                 // Update QR code images in the venue card without page refresh
                                 const timestamp = Date.now();
                                 const venueCard = document.getElementById(`venue-${venueId}`);
+                                console.log('Venue card element:', venueCard);
                                 if (venueCard) {
                                     // Find and update submit QR image
                                     const submitQrImg = venueCard.querySelector('img[alt="Submit QR"]');
+                                    console.log('Submit QR img element:', submitQrImg, 'New src:', venueInfo.submit_qr);
                                     if (submitQrImg && venueInfo.submit_qr) {
-                                        submitQrImg.src = venueInfo.submit_qr + '?t=' + timestamp;
+                                        const newSrc = venueInfo.submit_qr + (venueInfo.submit_qr.includes('?') ? '&' : '?') + 't=' + timestamp;
+                                        submitQrImg.src = newSrc;
                                         submitQrImg.onload = () => {
-                                            console.log('Submit QR updated');
+                                            console.log('Submit QR updated successfully');
                                         };
+                                        submitQrImg.onerror = () => {
+                                            console.error('Failed to load submit QR:', newSrc);
+                                        };
+                                    } else {
+                                        console.warn('Submit QR img not found or no submit_qr in response');
                                     }
                                     
                                     // Find and update stream QR image
                                     const streamQrImg = venueCard.querySelector('img[alt="Stream QR"]');
+                                    console.log('Stream QR img element:', streamQrImg, 'New src:', venueInfo.stream_qr);
                                     if (streamQrImg && venueInfo.stream_qr) {
-                                        streamQrImg.src = venueInfo.stream_qr + '?t=' + timestamp;
+                                        const newSrc = venueInfo.stream_qr + (venueInfo.stream_qr.includes('?') ? '&' : '?') + 't=' + timestamp;
+                                        streamQrImg.src = newSrc;
                                         streamQrImg.onload = () => {
-                                            console.log('Stream QR updated');
+                                            console.log('Stream QR updated successfully');
                                         };
+                                        streamQrImg.onerror = () => {
+                                            console.error('Failed to load stream QR:', newSrc);
+                                        };
+                                    } else {
+                                        console.warn('Stream QR img not found or no stream_qr in response');
                                     }
                                     
                                     // Update table QR codes
                                     if (venueInfo.tables && venueInfo.tables.length > 0) {
                                         const tablesContainer = document.getElementById(`tables-${venueId}`);
+                                        console.log('Tables container:', tablesContainer);
                                         if (tablesContainer) {
                                             const tableQrImages = tablesContainer.querySelectorAll('.table-qr img');
+                                            console.log('Found table QR images:', tableQrImages.length);
                                             venueInfo.tables.forEach((table, idx) => {
                                                 if (tableQrImages[idx] && table.qr_code) {
-                                                    tableQrImages[idx].src = table.qr_code + '?t=' + timestamp;
+                                                    const newSrc = table.qr_code + (table.qr_code.includes('?') ? '&' : '?') + 't=' + timestamp;
+                                                    tableQrImages[idx].src = newSrc;
+                                                    console.log(`Updated table ${idx} QR:`, newSrc);
                                                 }
                                             });
                                         }
                                     }
+                                } else {
+                                    console.error('Venue card not found for venue:', venueId);
                                 }
                             }
+                        } else {
+                            console.error('Failed to fetch venue info:', venueInfoResponse.status);
                         }
                         
                         if (statusText) statusText.textContent = 'Saved! QR codes updated.';

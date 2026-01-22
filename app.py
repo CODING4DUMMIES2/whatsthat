@@ -1040,19 +1040,29 @@ def get_venue_info(venue_id):
     stream_url = f"{base_url}/venue/{venue_id}/stream"
     
     # Get stored QR codes or generate new ones
-    submit_qr = metadata.get('submit_qr_path')
-    stream_qr = metadata.get('stream_qr_path')
+    submit_qr_path = metadata.get('submit_qr_path')
+    stream_qr_path = metadata.get('stream_qr_path')
     
     # If QR codes don't exist, generate them
-    if not submit_qr:
-        submit_qr = _generate_qr_with_logo_background(venue_id, submit_url, 'submit')
-        venue_metadata[venue_id]['submit_qr_path'] = submit_qr
-    if not stream_qr:
-        stream_qr = _generate_qr_with_logo_background(venue_id, stream_url, 'stream')
-        venue_metadata[venue_id]['stream_qr_path'] = stream_qr
+    if not submit_qr_path:
+        submit_qr_path = _generate_qr_with_logo_background(venue_id, submit_url, 'submit')
+        venue_metadata[venue_id]['submit_qr_path'] = submit_qr_path
+    if not stream_qr_path:
+        stream_qr_path = _generate_qr_with_logo_background(venue_id, stream_url, 'stream')
+        venue_metadata[venue_id]['stream_qr_path'] = stream_qr_path
     
-    if submit_qr or stream_qr:
+    if submit_qr_path or stream_qr_path:
         save_data()
+    
+    # Ensure paths are in correct format (should already be /venue-qr-codes/filename.png)
+    submit_qr = submit_qr_path if submit_qr_path else f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={submit_url}"
+    stream_qr = stream_qr_path if stream_qr_path else f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={stream_url}"
+    
+    # Update table QR codes in the response
+    for table in tables_list:
+        if table.get('qr_code'):
+            # qr_code should already be a path like /venue-qr-codes/filename.png
+            pass
     
     return jsonify({
         'success': True,
@@ -1063,8 +1073,8 @@ def get_venue_info(venue_id):
         'tables': tables_list,
         'submit_url': submit_url,
         'stream_url': stream_url,
-        'submit_qr': submit_qr or f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={submit_url}",
-        'stream_qr': stream_qr or f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={stream_url}"
+        'submit_qr': submit_qr,
+        'stream_qr': stream_qr
     })
 
 
