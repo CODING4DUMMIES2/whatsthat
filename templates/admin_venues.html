@@ -1514,17 +1514,13 @@
                 </div>
                 
                 <div id="customQrResults" style="display: none; margin-top: 24px;">
-                    <h3 style="font-size: 20px; font-weight: 700; margin: 0 0 16px 0; color: white;">Generated QR Codes:</h3>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
-                        <div style="text-align: center;">
-                            <p style="font-size: 14px; color: rgba(255,255,255,0.7); margin-bottom: 8px;">Submit QR</p>
-                            <img id="customQrSubmitResult" src="" alt="Submit QR" style="max-width: 100%; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2);">
-                        </div>
-                        <div style="text-align: center;">
-                            <p style="font-size: 14px; color: rgba(255,255,255,0.7); margin-bottom: 8px;">Stream QR</p>
-                            <img id="customQrStreamResult" src="" alt="Stream QR" style="max-width: 100%; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2);">
-                        </div>
+                    <h3 style="font-size: 20px; font-weight: 700; margin: 0 0 16px 0; color: white; text-align: center;">Preview:</h3>
+                    <div style="text-align: center; margin-bottom: 24px;">
+                        <img id="customQrPreviewResult" src="" alt="QR Code Preview" style="max-width: 100%; max-height: 500px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2);">
                     </div>
+                    <button id="customQrSaveBtn" onclick="saveGeminiBackground()" style="padding: 14px 32px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border: none; border-radius: 12px; color: white; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4); transition: all 0.2s; width: 100%;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(40, 167, 69, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(40, 167, 69, 0.4)'">
+                        Save Background & Apply to All QR Codes
+                    </button>
                 </div>
                 
                 <button id="customQrGenerateBtn" onclick="generateCustomQrCodes()" style="padding: 14px 32px; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); border: none; border-radius: 12px; color: white; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(255, 20, 147, 0.4); transition: all 0.2s; width: 100%; margin-top: 24px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(255, 20, 147, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(255, 20, 147, 0.4)'">
@@ -2638,6 +2634,7 @@
             document.getElementById('customQrLogoPreview').style.display = 'none';
             document.getElementById('customQrLogoInput').value = '';
             document.getElementById('customQrNotification').style.display = 'none';
+            document.getElementById('customQrSaveBtn').style.display = 'block';
             
             // Load venues into select
             const select = document.getElementById('customQrVenueSelect');
@@ -2788,43 +2785,32 @@
                     }
                 }
                 
-                // Wait a moment for processing
-                await new Promise(resolve => setTimeout(resolve, 2000));
+                // Generate preview background (doesn't save yet)
+                if (statusText) statusText.textContent = 'Generating preview background...';
                 
-                // Fetch updated venue info to get new QR codes
-                let venueData = null;
-                try {
-                    const venueResponse = await fetch(`/venue/${venueId}/info`);
-                    if (venueResponse.ok) {
-                        const venueResult = await venueResponse.json();
-                        if (venueResult.success) {
-                            venueData = venueResult;
-                        }
-                    }
-                } catch (error) {
-                    console.error('Error fetching venue info:', error);
-                }
+                const previewResponse = await fetch(`/venue/${venueId}/generate-background-preview`, {
+                    method: 'POST'
+                });
                 
-                if (venueData) {
-                    if (statusText) statusText.textContent = 'Complete!';
-                    
-                    // Show results
-                    if (results) {
-                        const submitImg = document.getElementById('customQrSubmitResult');
-                        const streamImg = document.getElementById('customQrStreamResult');
+                if (previewResponse.ok) {
+                    const previewResult = await previewResponse.json();
+                    if (previewResult.success && previewResult.preview_url) {
+                        if (statusText) statusText.textContent = 'Preview generated!';
                         
-                        if (submitImg && venueData.submit_qr) {
-                            submitImg.src = venueData.submit_qr;
+                        // Show single preview
+                        if (results) {
+                            const previewImg = document.getElementById('customQrPreviewResult');
+                            if (previewImg) {
+                                previewImg.src = previewResult.preview_url;
+                            }
+                            results.style.display = 'block';
                         }
-                        if (streamImg && venueData.stream_qr) {
-                            streamImg.src = venueData.stream_qr;
-                        }
-                        
-                        results.style.display = 'block';
+                    } else {
+                        throw new Error(previewResult.error || 'Failed to generate preview');
                     }
                 } else {
-                    showCustomQrNotification('QR codes generated but could not load preview. Check your venues page.', false);
-                    if (statusText) statusText.textContent = 'Complete!';
+                    const error = await previewResponse.json().catch(() => ({}));
+                    throw new Error(error.error || 'Failed to generate preview');
                 }
                 
             } catch (error) {
@@ -2834,6 +2820,57 @@
             } finally {
                 if (generatingStatus) generatingStatus.style.display = 'none';
                 if (generateBtn) generateBtn.disabled = false;
+            }
+        }
+
+        async function saveGeminiBackground() {
+            const venueSelect = document.getElementById('customQrVenueSelect');
+            const saveBtn = document.getElementById('customQrSaveBtn');
+            const statusText = document.getElementById('customQrStatusText');
+            const generatingStatus = document.getElementById('customQrGeneratingStatus');
+            
+            if (!venueSelect || !venueSelect.value) {
+                showCustomQrNotification('Please select a venue', true);
+                return;
+            }
+            
+            const venueId = venueSelect.value;
+            
+            // Show generating status
+            if (generatingStatus) generatingStatus.style.display = 'block';
+            if (statusText) statusText.textContent = 'Saving background and regenerating all QR codes...';
+            if (saveBtn) saveBtn.disabled = true;
+            
+            try {
+                const saveResponse = await fetch(`/venue/${venueId}/save-gemini-background`, {
+                    method: 'POST'
+                });
+                
+                if (saveResponse.ok) {
+                    const result = await saveResponse.json();
+                    if (result.success) {
+                        if (statusText) statusText.textContent = 'Saved! Refreshing dashboard...';
+                        
+                        // Wait a moment then refresh
+                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        
+                        // Close modal and refresh page
+                        hideCustomQrInterface();
+                        window.location.reload();
+                    } else {
+                        throw new Error(result.error || 'Failed to save background');
+                    }
+                } else {
+                    const error = await saveResponse.json().catch(() => ({}));
+                    throw new Error(error.error || 'Failed to save background');
+                }
+            } catch (error) {
+                console.error('Error saving background:', error);
+                showCustomQrNotification(`Error: ${error.message}`, true);
+                if (statusText) statusText.textContent = `Error: ${error.message}`;
+            } finally {
+                if (generatingStatus) generatingStatus.style.display = 'none';
+                if (saveBtn) saveBtn.disabled = false;
             }
         }
 

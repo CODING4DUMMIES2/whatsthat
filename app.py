@@ -3260,6 +3260,116 @@ def download_logs():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/venue/<venue_id>/generate-background-preview', methods=['POST'])
+@require_login
+def generate_background_preview(venue_id):
+    """Generate a preview background image for testing (doesn't save to venue)"""
+    print(f"🎨 [BG_PREVIEW] Generating preview background for venue: {venue_id}")
+    
+    try:
+        if venue_id not in venue_metadata:
+            return jsonify({'success': False, 'error': 'Venue not found'}), 404
+        
+        venue = venue_metadata[venue_id]
+        if not venue.get('logo_path'):
+            return jsonify({'success': False, 'error': 'No logo found for venue'}), 400
+        
+        logo_path = os.path.join(VENUE_LOGOS_DIR, venue['logo_path'])
+        if not os.path.exists(logo_path):
+            return jsonify({'success': False, 'error': 'Logo file not found'}), 404
+        
+        # Generate preview background (temporary, not saved)
+        try:
+            bg_img = gemini_make_sticker_background_from_logo(
+                logo_path=logo_path,
+                top_text="Scan me",
+                bottom_text="Scan me",
+                size_px=1024,
+                model="gemini-2.5-flash-image",
+            )
+            
+            # Generate a sample QR code to overlay
+            base_url = get_base_url()
+            sample_url = f"{base_url}/venue/{venue_id}/submit"
+            qr = qrcode.QRCode(
+                version=1,
+                error_correction=qrcode.constants.ERROR_CORRECT_H,
+                box_size=10,
+                border=4,
+            )
+            qr.add_data(sample_url)
+            qr.make(fit=True)
+            qr_img = qr.make_image(fill_color="black", back_color="white").convert("RGBA")
+            
+            # Overlay QR on background
+            final_img = overlay_qr_center_on_sticker(
+                background=bg_img,
+                qr_img=qr_img,
+                qr_scale=0.40,
+                plate_padding=36,
+                plate_radius=30,
+                add_shadow=True,
+            )
+            
+            # Save as temporary preview file
+            import uuid
+            preview_filename = f"{venue_id}_preview_{uuid.uuid4().hex[:8]}.png"
+            preview_path = os.path.join(VENUE_QR_CODES_DIR, preview_filename)
+            final_img.save(preview_path, 'PNG')
+            
+            return jsonify({
+                'success': True,
+                'preview_url': f'/venue-qr-codes/{preview_filename}',
+                'message': 'Preview generated successfully'
+            })
+            
+        except Exception as e:
+            print(f"❌ [BG_PREVIEW] Error: {e}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({'success': False, 'error': str(e)}), 500
+            
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/venue/<venue_id>/save-gemini-background', methods=['POST'])
+@require_login
+def save_gemini_background(venue_id):
+    """Save the preview background and regenerate all QR codes for the venue"""
+    print(f"💾 [SAVE_BG] Saving Gemini background for venue: {venue_id}")
+    
+    try:
+        if venue_id not in venue_metadata:
+            return jsonify({'success': False, 'error': 'Venue not found'}), 404
+        
+        venue = venue_metadata[venue_id]
+        if not venue.get('logo_path'):
+            return jsonify({'success': False, 'error': 'No logo found for venue'}), 400
+        
+        logo_path = os.path.join(VENUE_LOGOS_DIR, venue['logo_path'])
+        if not os.path.exists(logo_path):
+            return jsonify({'success': False, 'error': 'Logo file not found'}), 404
+        
+        # Generate and save the background
+        bg_img = _generate_venue_gemini_background(venue_id)
+        if not bg_img:
+            return jsonify({'success': False, 'error': 'Failed to generate background'}), 500
+        
+        # Regenerate all QR codes with the saved background
+        _regenerate_venue_qr_codes(venue_id)
+        
+        return jsonify({
+            'success': True,
+            'message': 'Background saved and all QR codes regenerated'
+        })
+        
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 @app.route('/venue/<venue_id>/process-logo-with-gemini', methods=['POST'])
 @require_login
 def process_logo_with_gemini(venue_id):
@@ -3468,7 +3578,7 @@ def _generate_qr_with_logo_background(venue_id, qr_data, qr_type='submit'):
             final_img = overlay_qr_center_on_sticker(
                 background=bg_img,
                 qr_img=qr_img,
-                qr_scale=0.52,
+                qr_scale=0.40,  # Smaller QR code (40% instead of 52%)
                 plate_padding=36,
                 plate_radius=30,
                 add_shadow=True,
