@@ -1518,9 +1518,14 @@
                     <div style="text-align: center; margin-bottom: 24px;">
                         <img id="customQrPreviewResult" src="" alt="QR Code Preview" style="max-width: 100%; max-height: 500px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2);">
                     </div>
-                    <button id="customQrSaveBtn" onclick="saveGeminiBackground()" style="padding: 14px 32px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border: none; border-radius: 12px; color: white; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4); transition: all 0.2s; width: 100%;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(40, 167, 69, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(40, 167, 69, 0.4)'">
-                        Save Background & Apply to All QR Codes
-                    </button>
+                    <div style="display: flex; gap: 12px; width: 100%;">
+                        <button id="customQrRegenerateBtn" onclick="regeneratePreview()" style="flex: 1; padding: 14px 32px; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); border: none; border-radius: 12px; color: white; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(255, 20, 147, 0.4); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(255, 20, 147, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(255, 20, 147, 0.4)'">
+                            Regenerate
+                        </button>
+                        <button id="customQrSaveBtn" onclick="saveGeminiBackground()" style="flex: 1; padding: 14px 32px; background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border: none; border-radius: 12px; color: white; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(40, 167, 69, 0.4); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(40, 167, 69, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(40, 167, 69, 0.4)'">
+                            Save Background & Apply to All QR Codes
+                        </button>
+                    </div>
                 </div>
                 
                 <button id="customQrGenerateBtn" onclick="generateCustomQrCodes()" style="padding: 14px 32px; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); border: none; border-radius: 12px; color: white; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(255, 20, 147, 0.4); transition: all 0.2s; width: 100%; margin-top: 24px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(255, 20, 147, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(255, 20, 147, 0.4)'">
@@ -2634,7 +2639,10 @@
             document.getElementById('customQrLogoPreview').style.display = 'none';
             document.getElementById('customQrLogoInput').value = '';
             document.getElementById('customQrNotification').style.display = 'none';
-            document.getElementById('customQrSaveBtn').style.display = 'block';
+            const saveBtn = document.getElementById('customQrSaveBtn');
+            const regenerateBtn = document.getElementById('customQrRegenerateBtn');
+            if (saveBtn) saveBtn.disabled = false;
+            if (regenerateBtn) regenerateBtn.disabled = false;
             
             // Load venues into select
             const select = document.getElementById('customQrVenueSelect');
@@ -2820,6 +2828,63 @@
             } finally {
                 if (generatingStatus) generatingStatus.style.display = 'none';
                 if (generateBtn) generateBtn.disabled = false;
+            }
+        }
+
+        async function regeneratePreview() {
+            const venueSelect = document.getElementById('customQrVenueSelect');
+            const regenerateBtn = document.getElementById('customQrRegenerateBtn');
+            const statusText = document.getElementById('customQrStatusText');
+            const generatingStatus = document.getElementById('customQrGeneratingStatus');
+            const results = document.getElementById('customQrResults');
+            
+            if (!venueSelect || !venueSelect.value) {
+                showCustomQrNotification('Please select a venue', true);
+                return;
+            }
+            
+            const venueId = venueSelect.value;
+            
+            // Hide results, show generating
+            if (results) results.style.display = 'none';
+            if (generatingStatus) generatingStatus.style.display = 'block';
+            if (statusText) statusText.textContent = 'Regenerating preview... This may take 10-30 seconds...';
+            if (regenerateBtn) regenerateBtn.disabled = true;
+            
+            try {
+                // Generate new preview background
+                const previewResponse = await fetch(`/venue/${venueId}/generate-background-preview`, {
+                    method: 'POST'
+                });
+                
+                if (previewResponse.ok) {
+                    const previewResult = await previewResponse.json();
+                    if (previewResult.success && previewResult.preview_url) {
+                        if (statusText) statusText.textContent = 'Preview regenerated!';
+                        
+                        // Show updated preview
+                        if (results) {
+                            const previewImg = document.getElementById('customQrPreviewResult');
+                            if (previewImg) {
+                                // Add timestamp to force refresh
+                                previewImg.src = previewResult.preview_url + '?t=' + Date.now();
+                            }
+                            results.style.display = 'block';
+                        }
+                    } else {
+                        throw new Error(previewResult.error || 'Failed to regenerate preview');
+                    }
+                } else {
+                    const error = await previewResponse.json().catch(() => ({}));
+                    throw new Error(error.error || 'Failed to regenerate preview');
+                }
+            } catch (error) {
+                console.error('Error regenerating preview:', error);
+                showCustomQrNotification(`Error: ${error.message}`, true);
+                if (statusText) statusText.textContent = `Error: ${error.message}`;
+            } finally {
+                if (generatingStatus) generatingStatus.style.display = 'none';
+                if (regenerateBtn) regenerateBtn.disabled = false;
             }
         }
 

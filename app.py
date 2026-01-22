@@ -2953,21 +2953,22 @@ def gemini_make_sticker_background_from_logo(
             traceback.print_exc()
             raise RuntimeError(error_msg)
         
-        # Prompt engineered for: square, print-friendly, center blank, text top+bottom, logo integrated, palette splashes
+        # Prompt engineered for: square, print-friendly, center blank, text top+bottom, logo in top-left, abstract background
         prompt = f"""
 You are designing a PRINTABLE SQUARE sticker background (no QR code).
 Requirements:
 - Output MUST be a square image, {size_px}x{size_px}.
-- Incorporate the provided logo (do not distort it). Place it tastefully (top area or bottom area).
-- Use splashes/gradients/bokeh/ink-like bursts using colors sampled from the logo in negative space.
-- Include clear, readable text ONLY at the very TOP and very BOTTOM.
-  Top text: "{top_text}"
-  Bottom text: "{bottom_text}"
-- Leave the CENTER of the design completely free of any text, icons, or busy details.
-  The center must be a clean empty area reserved for a QR code (high contrast, simple).
-- Style: modern nightlife / premium, high contrast, visually striking, print-ready.
+- Place the provided logo in the TOP LEFT CORNER of the image. Do not distort the logo, keep it clear and visible.
+- Cover the ENTIRE background with abstract designs: flowing lines, geometric shapes, paint splashes, ink bursts, and artistic patterns.
+- Extract the dominant colors from the logo and use those colors throughout the abstract background design.
+- The abstract background should be vibrant and visually striking, covering the whole canvas.
+- Include clear, readable text at the very TOP CENTER: "{top_text}"
+- Include clear, readable text at the very BOTTOM CENTER: "{bottom_text}"
+- Leave the CENTER of the design relatively clear and simple (not completely empty, but less busy) to reserve space for a QR code overlay.
+  The center area should have lower visual density than the edges.
+- Style: modern nightlife / premium, high contrast, visually striking, print-ready, abstract art.
 - DO NOT include any QR code or QR-like patterns.
-- DO NOT add extra words besides the exact top and bottom text.
+- DO NOT add extra words besides the exact top and bottom text specified.
 """
         
         print(f"📝 [GEMINI] Prompt prepared (length: {len(prompt)} chars)")
@@ -3282,8 +3283,8 @@ def generate_background_preview(venue_id):
         try:
             bg_img = gemini_make_sticker_background_from_logo(
                 logo_path=logo_path,
-                top_text="Scan me",
-                bottom_text="Scan me",
+                top_text="Scan Me",
+                bottom_text="To Generate A Custom Song",
                 size_px=1024,
                 model="gemini-2.5-flash-image",
             )
@@ -3466,8 +3467,8 @@ def _generate_venue_gemini_background(venue_id):
         try:
             bg_img = gemini_make_sticker_background_from_logo(
                 logo_path=logo_full_path,
-                top_text="Scan me",  # Generic text that works for all QR types
-                bottom_text="Scan me",  # Generic text that works for all QR types
+                top_text="Scan Me",
+                bottom_text="To Generate A Custom Song",
                 size_px=1024,
                 model="gemini-2.5-flash-image",
             )
