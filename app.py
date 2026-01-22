@@ -2810,21 +2810,39 @@ def upload_venue_logo(venue_id):
         venue_metadata[venue_id]['logo_path'] = logo_filename
         print(f"✅ [LOGO_UPLOAD] Venue metadata updated with logo path")
         
-        # Regenerate QR codes with Gemini (if available) or fallback to simple QR
-        # IMPORTANT: This is synchronous and will wait for all Gemini generation to complete
-        print(f"🔄 [LOGO_UPLOAD] Regenerating QR codes with new logo...")
+        # Generate ONE Gemini background for this venue (will be reused for all QR codes)
+        # IMPORTANT: This is synchronous and will wait for Gemini generation to complete
+        print(f"🔄 [LOGO_UPLOAD] Generating Gemini background for venue...")
         print(f"   Logo path: {logo_path}")
         print(f"   Logo exists: {os.path.exists(logo_path)}")
-        print(f"   ⏳ This may take 10-30 seconds while Gemini generates backgrounds...")
+        print(f"   ⏳ This may take 10-30 seconds while Gemini generates the background...")
         
+        bg_generation_start = datetime.now()
+        try:
+            # Generate the ONE background image for this venue
+            bg_img = _generate_venue_gemini_background(venue_id)
+            bg_generation_duration = (datetime.now() - bg_generation_start).total_seconds()
+            
+            if bg_img:
+                print(f"✅ [LOGO_UPLOAD] Gemini background generated successfully (took {bg_generation_duration:.2f}s)")
+                print(f"   Background will be reused for all QR codes")
+            else:
+                print(f"⚠️  [LOGO_UPLOAD] Gemini background generation failed or skipped (took {bg_generation_duration:.2f}s)")
+        except Exception as bg_error:
+            bg_generation_duration = (datetime.now() - bg_generation_start).total_seconds()
+            error_msg = f"Error generating Gemini background: {bg_error}"
+            print(f"❌ [LOGO_UPLOAD] {error_msg} (took {bg_generation_duration:.2f}s)")
+            import traceback
+            traceback.print_exc()
+        
+        # Now regenerate all QR codes (they will reuse the background if it exists)
+        print(f"🔄 [LOGO_UPLOAD] Regenerating all QR codes with new background...")
         qr_generation_start = datetime.now()
         try:
-            # This function will wait for all Gemini API calls to complete
-            # It generates submit, stream, and all table QR codes synchronously
+            # This will reuse the background we just generated
             _regenerate_venue_qr_codes(venue_id)
             qr_generation_duration = (datetime.now() - qr_generation_start).total_seconds()
             print(f"✅ [LOGO_UPLOAD] QR codes regenerated successfully (took {qr_generation_duration:.2f}s)")
-            print(f"   All Gemini image generation completed")
         except Exception as qr_error:
             qr_generation_duration = (datetime.now() - qr_generation_start).total_seconds()
             error_msg = f"Error regenerating QR codes after logo upload: {qr_error}"
@@ -3296,6 +3314,81 @@ def process_logo_with_gemini(venue_id):
         }), 500
 
 
+def _generate_venue_gemini_background(venue_id):
+    """Generate ONE Gemini background image for a venue and save it for reuse"""
+    print(f"🎨 [BG_GEN] Generating Gemini background for venue: {venue_id}")
+    
+    try:
+        venue = venue_metadata.get(venue_id)
+        if not venue:
+            print(f"❌ [BG_GEN] Venue not found: {venue_id}")
+            return None
+        
+        logo_path = venue.get('logo_path')
+        logo_full_path = os.path.join(VENUE_LOGOS_DIR, logo_path) if logo_path else None
+        
+        if not logo_path or not logo_full_path or not os.path.exists(logo_full_path):
+            print(f"❌ [BG_GEN] Logo not found for venue")
+            return None
+        
+        # Check if Gemini API key is available
+        api_key = os.environ.get("GEMINI_API_KEY") or GEMINI_API_KEY
+        if not api_key:
+            print(f"⚠️  [BG_GEN] GEMINI_API_KEY not configured")
+            return None
+        
+        try:
+            from google import genai
+        except ImportError:
+            print(f"⚠️  [BG_GEN] google-genai not installed")
+            return None
+        
+        # Check if background already exists
+        existing_bg_path = venue.get('gemini_background_path')
+        if existing_bg_path:
+            bg_full_path = os.path.join(VENUE_QR_CODES_DIR, existing_bg_path)
+            if os.path.exists(bg_full_path):
+                print(f"✅ [BG_GEN] Reusing existing background: {existing_bg_path}")
+                return Image.open(bg_full_path).convert("RGBA")
+        
+        # Generate new background - use generic text that works for all QR types
+        print(f"🚀 [BG_GEN] Generating new Gemini background...")
+        try:
+            bg_img = gemini_make_sticker_background_from_logo(
+                logo_path=logo_full_path,
+                top_text="Scan me",  # Generic text that works for all QR types
+                bottom_text="Scan me",  # Generic text that works for all QR types
+                size_px=1024,
+                model="gemini-2.5-flash-image",
+            )
+            print(f"✅ [BG_GEN] Gemini background generated successfully")
+            
+            # Save the background for reuse
+            import uuid
+            bg_filename = f"{venue_id}_gemini_bg_{uuid.uuid4().hex[:8]}.png"
+            bg_path = os.path.join(VENUE_QR_CODES_DIR, bg_filename)
+            bg_img.save(bg_path, 'PNG')
+            
+            # Store in venue metadata
+            venue_metadata[venue_id]['gemini_background_path'] = bg_filename
+            save_data()
+            
+            print(f"✅ [BG_GEN] Background saved: {bg_filename}")
+            return bg_img
+            
+        except Exception as gemini_err:
+            print(f"❌ [BG_GEN] Gemini generation failed: {gemini_err}")
+            import traceback
+            traceback.print_exc()
+            return None
+            
+    except Exception as e:
+        print(f"❌ [BG_GEN] Error generating background: {e}")
+        import traceback
+        traceback.print_exc()
+        return None
+
+
 def _generate_qr_with_logo_background(venue_id, qr_data, qr_type='submit'):
     """Generate QR code with logo as background using Gemini sticker generation"""
     print(f"🎨 [QR_GEN] Generating QR with logo background for venue: {venue_id}, type: {qr_type}")
@@ -3347,35 +3440,12 @@ def _generate_qr_with_logo_background(venue_id, qr_data, qr_type='submit'):
             # No logo or Gemini not available, generate simple QR code
             return _generate_simple_qr_code(qr_data, venue_id, qr_type)
         
-        # Use Gemini to generate sticker background with logo
-        print(f"🚀 [QR_GEN] Starting Gemini sticker generation...")
+        # Get or generate the ONE background for this venue (reused for all QR codes)
+        print(f"🔄 [QR_GEN] Getting venue background (will reuse if exists)...")
+        bg_img = _generate_venue_gemini_background(venue_id)
         
-        # Determine text based on QR type
-        if qr_type == 'submit':
-            top_text = "Scan me to request a song"
-            bottom_text = "Scan me to request a song"
-        elif qr_type == 'table':
-            top_text = "Scan me to request a song"
-            bottom_text = "Scan me to request a song"
-        else:  # stream
-            top_text = "Scan me to view the queue"
-            bottom_text = "Scan me to view the queue"
-        
-        try:
-            # Generate sticker background from logo using Gemini
-            bg_img = gemini_make_sticker_background_from_logo(
-                logo_path=logo_full_path,
-                top_text=top_text,
-                bottom_text=bottom_text,
-                size_px=1024,
-                model="gemini-2.5-flash-image",
-            )
-            print(f"✅ [QR_GEN] Gemini background generated successfully")
-        except Exception as gemini_err:
-            print(f"❌ [QR_GEN] Gemini generation failed: {gemini_err}")
-            import traceback
-            traceback.print_exc()
-            print(f"⚠️  [QR_GEN] Falling back to simple QR code")
+        if not bg_img:
+            print(f"⚠️  [QR_GEN] Could not get Gemini background, falling back to simple QR code")
             return _generate_simple_qr_code(qr_data, venue_id, qr_type)
         
         # Generate the actual QR code
