@@ -563,6 +563,40 @@ def save_users(users):
         import traceback
         traceback.print_exc()
 
+def load_unverified_users():
+    """Load unverified users from file"""
+    unverified = {}
+    if os.path.exists(UNVERIFIED_USERS_FILE):
+        try:
+            with open(UNVERIFIED_USERS_FILE, 'r', encoding='utf-8') as f:
+                unverified = json.load(f)
+        except Exception as e:
+            print(f"❌ Error loading unverified users: {e}")
+    return unverified
+
+def save_unverified_users(unverified):
+    """Save unverified users to file"""
+    os.makedirs(os.path.dirname(UNVERIFIED_USERS_FILE), exist_ok=True)
+    with open(UNVERIFIED_USERS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(unverified, f, indent=2, default=str)
+
+def load_verification_tokens():
+    """Load verification tokens from file"""
+    tokens = {}
+    if os.path.exists(VERIFICATION_TOKENS_FILE):
+        try:
+            with open(VERIFICATION_TOKENS_FILE, 'r', encoding='utf-8') as f:
+                tokens = json.load(f)
+        except Exception as e:
+            print(f"❌ Error loading verification tokens: {e}")
+    return tokens
+
+def save_verification_tokens(tokens):
+    """Save verification tokens to file"""
+    os.makedirs(os.path.dirname(VERIFICATION_TOKENS_FILE), exist_ok=True)
+    with open(VERIFICATION_TOKENS_FILE, 'w', encoding='utf-8') as f:
+        json.dump(tokens, f, indent=2, default=str)
+
 def hash_password(password):
     """Hash a password"""
     return hashlib.sha256(password.encode()).hexdigest()
