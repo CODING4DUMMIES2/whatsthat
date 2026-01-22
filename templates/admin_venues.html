@@ -2944,8 +2944,17 @@
                         // Wait a moment to ensure backend has finished saving
                         await new Promise(resolve => setTimeout(resolve, 500));
                         
+                        // Wait a bit longer to ensure backend has saved everything
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        
                         // Fetch updated venue info to get all QR codes (including tables)
-                        const venueInfoResponse = await fetch(`/venue/${venueId}/info`);
+                        // Add cache busting to the fetch itself
+                        const venueInfoResponse = await fetch(`/venue/${venueId}/info?t=${Date.now()}`, {
+                            cache: 'no-store',
+                            headers: {
+                                'Cache-Control': 'no-cache'
+                            }
+                        });
                         if (venueInfoResponse.ok) {
                             const venueInfo = await venueInfoResponse.json();
                             console.log('Venue info response:', venueInfo);
@@ -2959,7 +2968,10 @@
                                     const submitQrImg = venueCard.querySelector('img[alt="Submit QR"]');
                                     console.log('Submit QR img element:', submitQrImg, 'New src:', venueInfo.submit_qr);
                                     if (submitQrImg && venueInfo.submit_qr) {
-                                        const newSrc = venueInfo.submit_qr + (venueInfo.submit_qr.includes('?') ? '&' : '?') + 't=' + timestamp;
+                                        // Remove any existing query params and add fresh timestamp
+                                        const baseSrc = venueInfo.submit_qr.split('?')[0];
+                                        const newSrc = baseSrc + '?v=' + timestamp;
+                                        console.log('Updating submit QR from', submitQrImg.src, 'to', newSrc);
                                         submitQrImg.src = newSrc;
                                         submitQrImg.onload = () => {
                                             console.log('Submit QR updated successfully');
@@ -2975,7 +2987,9 @@
                                     const streamQrImg = venueCard.querySelector('img[alt="Stream QR"]');
                                     console.log('Stream QR img element:', streamQrImg, 'New src:', venueInfo.stream_qr);
                                     if (streamQrImg && venueInfo.stream_qr) {
-                                        const newSrc = venueInfo.stream_qr + (venueInfo.stream_qr.includes('?') ? '&' : '?') + 't=' + timestamp;
+                                        const baseSrc = venueInfo.stream_qr.split('?')[0];
+                                        const newSrc = baseSrc + '?v=' + timestamp;
+                                        console.log('Updating stream QR from', streamQrImg.src, 'to', newSrc);
                                         streamQrImg.src = newSrc;
                                         streamQrImg.onload = () => {
                                             console.log('Stream QR updated successfully');
@@ -2996,9 +3010,10 @@
                                             console.log('Found table QR images:', tableQrImages.length);
                                             venueInfo.tables.forEach((table, idx) => {
                                                 if (tableQrImages[idx] && table.qr_code) {
-                                                    const newSrc = table.qr_code + (table.qr_code.includes('?') ? '&' : '?') + 't=' + timestamp;
+                                                    const baseSrc = table.qr_code.split('?')[0];
+                                                    const newSrc = baseSrc + '?v=' + timestamp;
+                                                    console.log(`Updating table ${idx} QR from`, tableQrImages[idx].src, 'to', newSrc);
                                                     tableQrImages[idx].src = newSrc;
-                                                    console.log(`Updated table ${idx} QR:`, newSrc);
                                                 }
                                             });
                                         }

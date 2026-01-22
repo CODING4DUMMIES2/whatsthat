@@ -1020,6 +1020,8 @@ def create_venue():
 @app.route('/venue/<venue_id>/info')
 @require_login
 def get_venue_info(venue_id):
+    # Force reload data to ensure we have latest QR codes
+    load_data()
     """Get venue information including metadata"""
     user_email = session.get('user_id')
     is_admin = session.get('is_admin', False)
@@ -3467,8 +3469,12 @@ def save_gemini_background(venue_id):
         # Regenerate all QR codes with the saved background
         _regenerate_venue_qr_codes(venue_id)
         
-        # Reload data to ensure we have the latest
+        # Force reload data from disk to ensure we have the latest
         load_data()
+        
+        # Double-check venue exists after reload
+        if venue_id not in venue_metadata:
+            return jsonify({'success': False, 'error': 'Venue not found after regeneration'}), 404
         
         # Get updated venue info with new QR code URLs (same format as /venue/<id>/info)
         venue = venue_metadata[venue_id]
@@ -3476,13 +3482,14 @@ def save_gemini_background(venue_id):
         submit_qr_path = venue.get('submit_qr_path', '')
         stream_qr_path = venue.get('stream_qr_path', '')
         
+        print(f"🔍 [SAVE_BG] After reload - submit_qr_path={submit_qr_path}, stream_qr_path={stream_qr_path}")
+        
         # Return QR codes in same format as venue info endpoint (just the path, not full URL)
         # The frontend will use these paths directly
         submit_qr = submit_qr_path if submit_qr_path else ""
         stream_qr = stream_qr_path if stream_qr_path else ""
         
         print(f"✅ [SAVE_BG] Returning QR URLs: submit={submit_qr}, stream={stream_qr}")
-        print(f"   Venue metadata after regen: submit_qr_path={submit_qr_path}, stream_qr_path={stream_qr_path}")
         
         return jsonify({
             'success': True,
@@ -3801,6 +3808,7 @@ def _regenerate_venue_qr_codes(venue_id):
         # Store QR code paths in venue metadata
         venue_metadata[venue_id]['submit_qr_path'] = submit_qr
         venue_metadata[venue_id]['stream_qr_path'] = stream_qr
+        print(f"   💾 Stored paths: submit={submit_qr}, stream={stream_qr}")
         
         # Regenerate all existing table QR codes
         if venue_id in venue_tables:
@@ -3813,12 +3821,27 @@ def _regenerate_venue_qr_codes(venue_id):
                     table_qr = _generate_qr_with_logo_background(venue_id, table_submit_url, 'table')
                     if table_qr:
                         venue_tables[venue_id][table_id]['qr_code'] = table_qr
-                        print(f"   ✅ Table {table_id} QR updated")
+                        print(f"   ✅ Table {table_id} QR updated: {table_qr}")
                     else:
                         print(f"   ⚠️  Table {table_id} QR generation failed, keeping existing")
             print(f"   ✅ All table QR codes regenerated")
         
+        # Force save to disk
         save_data()
+        
+        # Verify save worked
+        import time
+        time.sleep(0.1)  # Small delay to ensure file write completes
+        
+        # Reload to verify
+        load_data()
+        if venue_id in venue_metadata:
+            verify_submit = venue_metadata[venue_id].get('submit_qr_path', '')
+            verify_stream = venue_metadata[venue_id].get('stream_qr_path', '')
+            print(f"   ✅ Verified after reload: submit={verify_submit}, stream={verify_stream}")
+            if verify_submit != submit_qr or verify_stream != stream_qr:
+                print(f"   ⚠️  WARNING: Paths don't match after reload!")
+        
         print(f"✅ [REGEN_QR] QR codes regenerated and saved successfully")
         
     except Exception as e:
