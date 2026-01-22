@@ -2820,7 +2820,7 @@ def gemini_make_sticker_background_from_logo(
     top_text: str = "Scan me to generate a custom song",
     bottom_text: str = "Scan me to generate a custom song",
     size_px: int = 1024,
-    model: str = "gemini-2.5-flash-image-preview",
+    model: str = "gemini-2.5-flash-image",
 ) -> Image.Image:
     """
     Generates a square sticker BACKGROUND using Gemini, incorporating the uploaded logo.
@@ -2907,9 +2907,16 @@ Requirements:
         # Generate content: pass prompt + logo image as reference
         try:
             print(f"🚀 [GEMINI] Calling generate_content API...")
+            print(f"   Model: {model}")
+            print(f"   Contents: prompt (len={len(prompt)}) + logo image ({logo_img.size})")
+            
+            # For image generation, we need to specify response_modalities
             response = client.models.generate_content(
                 model=model,
                 contents=[prompt, logo_img],
+                config={
+                    "response_modalities": ["IMAGE", "TEXT"]
+                }
             )
             print(f"✅ [GEMINI] API call completed successfully")
         except Exception as api_err:
@@ -3184,7 +3191,7 @@ def _generate_qr_with_logo_background(venue_id, qr_data, qr_type='submit'):
                 top_text=top_text,
                 bottom_text=bottom_text,
                 size_px=1024,
-                model="gemini-2.5-flash-image-preview",
+                model="gemini-2.5-flash-image",
             )
             print(f"✅ [QR_GEN] Gemini background generated successfully")
         except Exception as gemini_err:
