@@ -2928,11 +2928,10 @@ Requirements:
             print(f"   Contents: prompt (len={len(prompt)}) + logo image ({logo_img.size})")
             
             # For image generation, try different config formats
-            # First try without config (some models work without it)
             response = None
-            config_attempts = []
+            last_error = None
             
-            # Attempt 1: Try with GenerateContentConfig types
+            # Attempt 1: Try with GenerateContentConfig types (preferred)
             try:
                 from google.genai.types import GenerateContentConfig, Modality, ImageConfig
                 config = GenerateContentConfig(
@@ -2948,44 +2947,44 @@ Requirements:
                     contents=[prompt, logo_img],
                     config=config
                 )
-                config_attempts.append("GenerateContentConfig: SUCCESS")
+                print(f"   ✅ GenerateContentConfig succeeded")
             except Exception as e1:
-                config_attempts.append(f"GenerateContentConfig: FAILED - {str(e1)[:100]}")
+                last_error = e1
                 print(f"   ⚠️  GenerateContentConfig failed: {e1}")
                 
-                # Attempt 2: Try with dict format
+                # Attempt 2: Try without config (some API versions don't need it)
                 try:
-                    config = {
-                        "response_modalities": ["IMAGE", "TEXT"]
-                    }
-                    print(f"   Attempt 2: Trying dict format config")
+                    print(f"   Attempt 2: Trying without config parameter")
                     response = client.models.generate_content(
                         model=model,
-                        contents=[prompt, logo_img],
-                        config=config
+                        contents=[prompt, logo_img]
                     )
-                    config_attempts.append("Dict config: SUCCESS")
+                    print(f"   ✅ No config succeeded")
                 except Exception as e2:
-                    config_attempts.append(f"Dict config: FAILED - {str(e2)[:100]}")
-                    print(f"   ⚠️  Dict config failed: {e2}")
+                    last_error = e2
+                    print(f"   ⚠️  No config failed: {e2}")
                     
-                    # Attempt 3: Try without config (some API versions don't need it)
+                    # Attempt 3: Try with dict format as last resort
                     try:
-                        print(f"   Attempt 3: Trying without config parameter")
+                        config = {
+                            "response_modalities": ["IMAGE", "TEXT"]
+                        }
+                        print(f"   Attempt 3: Trying dict format config")
                         response = client.models.generate_content(
                             model=model,
-                            contents=[prompt, logo_img]
+                            contents=[prompt, logo_img],
+                            config=config
                         )
-                        config_attempts.append("No config: SUCCESS")
+                        print(f"   ✅ Dict config succeeded")
                     except Exception as e3:
-                        config_attempts.append(f"No config: FAILED - {str(e3)[:100]}")
+                        last_error = e3
                         print(f"   ❌ All config attempts failed")
-                        raise e3
+                        print(f"   Last error: {e3}")
+                        raise RuntimeError(f"All Gemini API config attempts failed. Last error: {str(e3)}")
             
             if not response:
                 raise RuntimeError("Failed to get response from Gemini API after all attempts")
             
-            print(f"   ✅ Config attempt successful: {[a for a in config_attempts if 'SUCCESS' in a]}")
             print(f"✅ [GEMINI] API call completed successfully")
             print(f"   Response received, checking for image data...")
         except Exception as api_err:
@@ -3041,12 +3040,27 @@ Requirements:
         # If Gemini returns only text, you won't get inline_data
         error_msg = (
             "Gemini returned no image bytes (no inline_data). "
-            "This usually means you read response.text only, or the model/prompt returned text-only."
+            "This usually means the model returned text-only or the response format is unexpected."
         )
         print(f"❌ [GEMINI] {error_msg}")
+        print(f"   Response type: {type(response)}")
         print(f"   Response structure: {response}")
         if hasattr(response, 'text'):
-            print(f"   Response text: {response.text[:500]}")
+            print(f"   Response text: {response.text[:500] if response.text else 'None'}")
+        if hasattr(response, 'candidates'):
+            print(f"   Candidates: {len(response.candidates) if response.candidates else 0}")
+            for idx, cand in enumerate(response.candidates or []):
+                print(f"   Candidate {idx}: {type(cand)}")
+                if hasattr(cand, 'content'):
+                    print(f"     Content: {type(cand.content)}")
+                    if hasattr(cand.content, 'parts'):
+                        print(f"     Parts: {len(cand.content.parts) if cand.content.parts else 0}")
+                        for pidx, part in enumerate(cand.content.parts or []):
+                            print(f"       Part {pidx}: {type(part)}")
+                            if hasattr(part, 'text'):
+                                print(f"         Text: {part.text[:100] if part.text else 'None'}")
+                            if hasattr(part, 'inline_data'):
+                                print(f"         Inline data: {part.inline_data}")
         raise RuntimeError(error_msg)
         
     except Exception as e:
