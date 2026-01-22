@@ -1509,6 +1509,10 @@
                     </div>
                 </div>
                 
+                <div id="customQrNotification" style="display: none; margin-top: 16px; padding: 16px; background: rgba(220, 53, 69, 0.2); border: 2px solid rgba(220, 53, 69, 0.4); border-radius: 12px; color: rgba(255, 255, 255, 0.9); text-align: center; font-size: 14px; font-weight: 600;">
+                    <span id="customQrNotificationText"></span>
+                </div>
+                
                 <div id="customQrResults" style="display: none; margin-top: 24px;">
                     <h3 style="font-size: 20px; font-weight: 700; margin: 0 0 16px 0; color: white;">Generated QR Codes:</h3>
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
@@ -2622,34 +2626,71 @@
         }
 
         // Custom QR Code Interface Functions
-        function showCustomQrInterface() {
+        async function showCustomQrInterface() {
             const modal = document.getElementById('customQrInterface');
             if (!modal) return;
             
             modal.style.display = 'flex';
-            
-            // Load venues into select
-            const select = document.getElementById('customQrVenueSelect');
-            if (select) {
-                select.innerHTML = '<option value="">Select a venue...</option>';
-                if (userVenueIds && userVenueIds.length > 0) {
-                    userVenueIds.forEach(venueId => {
-                        const venue = venuesData[venueId];
-                        if (venue) {
-                            const option = document.createElement('option');
-                            option.value = venueId;
-                            option.textContent = venue.name || `Venue ${venueId}`;
-                            select.appendChild(option);
-                        }
-                    });
-                }
-            }
             
             // Reset UI
             document.getElementById('customQrGeneratingStatus').style.display = 'none';
             document.getElementById('customQrResults').style.display = 'none';
             document.getElementById('customQrLogoPreview').style.display = 'none';
             document.getElementById('customQrLogoInput').value = '';
+            document.getElementById('customQrNotification').style.display = 'none';
+            
+            // Load venues into select
+            const select = document.getElementById('customQrVenueSelect');
+            if (select) {
+                select.innerHTML = '<option value="">Loading venues...</option>';
+                
+                // Try to load from venuesData first
+                let venuesLoaded = false;
+                if (userVenueIds && userVenueIds.length > 0) {
+                    const venues = [];
+                    for (const venueId of userVenueIds) {
+                        // Check if venue is in venuesData
+                        if (typeof venuesData !== 'undefined' && venuesData[venueId]) {
+                            venues.push({
+                                id: venueId,
+                                name: venuesData[venueId].name || `Venue ${venueId}`
+                            });
+                            venuesLoaded = true;
+                        } else {
+                            // Fetch venue info from API
+                            try {
+                                const response = await fetch(`/venue/${venueId}/info`);
+                                if (response.ok) {
+                                    const data = await response.json();
+                                    if (data.success) {
+                                        venues.push({
+                                            id: venueId,
+                                            name: data.name || `Venue ${venueId}`
+                                        });
+                                        venuesLoaded = true;
+                                    }
+                                }
+                            } catch (error) {
+                                console.error(`Error loading venue ${venueId}:`, error);
+                            }
+                        }
+                    }
+                    
+                    if (venues.length > 0) {
+                        select.innerHTML = '<option value="">Select a venue...</option>';
+                        venues.forEach(venue => {
+                            const option = document.createElement('option');
+                            option.value = venue.id;
+                            option.textContent = venue.name;
+                            select.appendChild(option);
+                        });
+                    } else {
+                        select.innerHTML = '<option value="">No venues found</option>';
+                    }
+                } else {
+                    select.innerHTML = '<option value="">No venues found. Create a venue first.</option>';
+                }
+            }
         }
 
         function hideCustomQrInterface() {
@@ -2675,6 +2716,22 @@
             }
         }
 
+        function showCustomQrNotification(message, isError = true) {
+            const notification = document.getElementById('customQrNotification');
+            const notificationText = document.getElementById('customQrNotificationText');
+            if (notification && notificationText) {
+                notificationText.textContent = message;
+                notification.style.display = 'block';
+                notification.style.background = isError ? 'rgba(220, 53, 69, 0.2)' : 'rgba(40, 167, 69, 0.2)';
+                notification.style.borderColor = isError ? 'rgba(220, 53, 69, 0.4)' : 'rgba(40, 167, 69, 0.4)';
+                
+                // Auto-hide after 5 seconds
+                setTimeout(() => {
+                    notification.style.display = 'none';
+                }, 5000);
+            }
+        }
+
         async function generateCustomQrCodes() {
             const venueSelect = document.getElementById('customQrVenueSelect');
             const logoInput = document.getElementById('customQrLogoInput');
@@ -2682,9 +2739,13 @@
             const statusText = document.getElementById('customQrStatusText');
             const results = document.getElementById('customQrResults');
             const generateBtn = document.getElementById('customQrGenerateBtn');
+            const notification = document.getElementById('customQrNotification');
+            
+            // Hide notification
+            if (notification) notification.style.display = 'none';
             
             if (!venueSelect || !venueSelect.value) {
-                alert('Please select a venue');
+                showCustomQrNotification('Please select a venue', true);
                 return;
             }
             
@@ -2756,7 +2817,7 @@
             } catch (error) {
                 console.error('Error generating custom QR codes:', error);
                 if (statusText) statusText.textContent = `Error: ${error.message}`;
-                alert(`Error: ${error.message}`);
+                showCustomQrNotification(`Error: ${error.message}`, true);
             } finally {
                 if (generatingStatus) generatingStatus.style.display = 'none';
                 if (generateBtn) generateBtn.disabled = false;
