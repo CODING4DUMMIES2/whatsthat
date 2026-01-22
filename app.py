@@ -3361,9 +3361,25 @@ def save_gemini_background(venue_id):
         # Regenerate all QR codes with the saved background
         _regenerate_venue_qr_codes(venue_id)
         
+        # Get updated venue info with new QR code URLs (same format as /venue/<id>/info)
+        venue = venue_metadata[venue_id]
+        
+        submit_qr_path = venue.get('submit_qr_path', '')
+        stream_qr_path = venue.get('stream_qr_path', '')
+        
+        # Return QR codes in same format as venue info endpoint (just the path, not full URL)
+        # The frontend will use these paths directly
+        submit_qr = f"/venue-qr-codes/{submit_qr_path}" if submit_qr_path else ""
+        stream_qr = f"/venue-qr-codes/{stream_qr_path}" if stream_qr_path else ""
+        
+        print(f"✅ [SAVE_BG] Returning QR URLs: submit={submit_qr}, stream={stream_qr}")
+        
         return jsonify({
             'success': True,
-            'message': 'Background saved and all QR codes regenerated'
+            'message': 'Background saved and all QR codes regenerated',
+            'submit_qr': submit_qr,
+            'stream_qr': stream_qr,
+            'venue_id': venue_id
         })
         
     except Exception as e:
