@@ -304,6 +304,12 @@
             {% if error %}
             <div class="error-message">{{ error }}</div>
             {% endif %}
+            
+            {% if message %}
+            <div class="error-message" style="background: rgba(40, 167, 69, 0.2); border-color: rgba(40, 167, 69, 0.4); color: rgba(255, 255, 255, 0.9);">
+                {{ message }}
+            </div>
+            {% endif %}
 
             <form id="signupForm">
                 <div class="form-group">
@@ -382,8 +388,18 @@
                 if (response.ok) {
                     const data = await response.json();
                     if (data.success) {
-                        // Redirect will be handled by server based on user type
-                        window.location.href = data.redirect || '/venues';
+                        if (data.requires_verification) {
+                            // Show verification message
+                            errorBox.style.background = 'rgba(40, 167, 69, 0.2)';
+                            errorBox.style.borderColor = 'rgba(40, 167, 69, 0.4)';
+                            errorBox.style.color = 'rgba(255, 255, 255, 0.9)';
+                            errorBox.textContent = data.message || 'Please check your email to verify your account.';
+                            submitBtn.disabled = false;
+                            submitBtn.textContent = 'Sign Up';
+                        } else {
+                            // Redirect will be handled by server based on user type
+                            window.location.href = data.redirect || '/venues';
+                        }
                     } else {
                         errorBox.textContent = data.error || 'Failed to create account.';
                         submitBtn.disabled = false;

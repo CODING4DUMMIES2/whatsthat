@@ -7,7 +7,7 @@ if sys.platform == 'win32':
     sys.stderr = io.TextIOWrapper(sys.stderr.buffer, encoding='utf-8', errors='replace')
 
 from flask import Flask, render_template, request, jsonify, send_from_directory, session, redirect, url_for
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import socket
 import requests
@@ -25,6 +25,10 @@ from sqlalchemy import JSON
 import mimetypes
 import logging
 from logging.handlers import RotatingFileHandler
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import secrets
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production-' + str(hash('whatsthat')))
@@ -476,10 +480,19 @@ print("✅ Application startup complete")
 
 # User authentication storage - MUST use DATA_BASE_DIR for persistence!
 USERS_FILE = os.path.join(DATA_BASE_DIR, "users.json")
+VERIFICATION_TOKENS_FILE = os.path.join(DATA_BASE_DIR, "verification_tokens.json")
+UNVERIFIED_USERS_FILE = os.path.join(DATA_BASE_DIR, "unverified_users.json")
 
 # Hardwired admin credentials
 ADMIN_EMAIL = "admin@whatsthat.com"
 ADMIN_PASSWORD = "admin123"  # Change this in production!
+
+# SMTP Configuration for Google
+SMTP_SERVER = os.environ.get('SMTP_SERVER', 'smtp.gmail.com')
+SMTP_PORT = int(os.environ.get('SMTP_PORT', '587'))
+SMTP_EMAIL = os.environ.get('SMTP_EMAIL', '')
+SMTP_PASSWORD = os.environ.get('SMTP_PASSWORD', '')
+APP_BASE_URL = os.environ.get('APP_BASE_URL', 'http://localhost:8000')
 
 def load_users():
     """Load users from file, with migration from old location"""
@@ -2168,51 +2181,69 @@ def signup():
                 return jsonify({'success': False, 'error': 'Email already registered'}), 400
             return render_template('signup.html', error='Email already registered')
         
-        # Create new user
+        # Check if email is already pending verification
+        unverified = load_unverified_users()
+        if email in unverified:
+            # Resend verification email
+            tokens = load_verification_tokens()
+            if email in tokens:
+                token = tokens[email]['token']
+                send_verification_email(email, token, unverified[email].get('name'))
+                if request.is_json:
+                    return jsonify({
+                        'success': True,
+                        'message': 'Verification email resent. Please check your inbox.',
+                        'requires_verification': True
+                    })
+                return render_template('signup.html', 
+                    message='Verification email resent. Please check your inbox.',
+                    email=email)
+        
+        # Create verification token
+        token = secrets.token_urlsafe(32)
+        expires_at = (datetime.now() + timedelta(hours=24)).isoformat()
+        
+        # Store unverified user
         password_hash = hash_password(password)
-        users[email] = {
+        unverified[email] = {
             'email': email,
             'name': name or email.split('@')[0],
             'password_hash': password_hash,
             'created_at': datetime.now().isoformat(),
-            # New users should go through the guided setup wizard on first login
-            'onboarding_completed': False,
-            # Preference for how QR codes should work by default ('single' or 'tables')
-            'default_qr_mode': None
+            'remember_me': data.get('remember_me', True)
         }
-        print(f"🔐 Creating user '{email}' with password hash: {password_hash[:20]}...")
-        print(f"   Users dict now has {len(users)} user(s): {list(users.keys())}")
-        save_users(users)
-        # Reload to verify it was saved
-        users = load_users()
-        if email in users:
-            print(f"✅ User '{email}' created and saved successfully - verified in file")
-        else:
-            print(f"❌ WARNING: User '{email}' was not found after save! This is a critical error!")
+        save_unverified_users(unverified)
         
-        # Check if user wants to stay logged in
-        remember_me = data.get('remember_me', True)  # Default to True for better UX
+        # Store verification token
+        tokens = load_verification_tokens()
+        tokens[email] = {
+            'token': token,
+            'email': email,
+            'created_at': datetime.now().isoformat(),
+            'expires_at': expires_at
+        }
+        save_verification_tokens(tokens)
         
-        # Log in the user
-        session.permanent = remember_me  # Make session permanent if remember_me is True
-        session['user_id'] = email
-        session['user_name'] = users[email]['name']
-        session['is_admin'] = users[email].get('is_admin', False)
-        session['remember_me'] = remember_me  # Store preference in session
+        # Send verification email
+        email_sent = send_verification_email(email, token, name or email.split('@')[0])
         
-        # Mark session as modified to ensure it's saved
-        session.modified = True
+        if not email_sent:
+            if request.is_json:
+                return jsonify({'success': False, 'error': 'Failed to send verification email. Please try again later.'}), 500
+            return render_template('signup.html', error='Failed to send verification email. Please try again later.')
         
-        # After signup, send everyone to venues; first-time users will see the in-dashboard wizard modal
+        print(f"📧 Verification email sent to '{email}'")
+        
         if request.is_json:
-            redirect_url = url_for('venues')
             return jsonify({
-                'success': True, 
-                'message': 'Account created successfully',
-                'redirect': redirect_url
+                'success': True,
+                'message': 'Please check your email to verify your account.',
+                'requires_verification': True
             })
         
-        return redirect(url_for('venues'))
+        return render_template('signup.html', 
+            message='Please check your email to verify your account. Click the link in the email to complete signup.',
+            email=email)
     
     # Pre-fill from query string when coming from landing-page demo
     prefill_venue_name = request.args.get('venue_name', '').strip()
@@ -2223,6 +2254,71 @@ def signup():
         session['initial_venue_name'] = prefill_venue_name
         session['prefill_venue_name'] = prefill_venue_name
     return render_template('signup.html', prefill_venue_name=prefill_venue_name, prefill_email=prefill_email, prefill_name=prefill_name)
+
+@app.route('/verify-email', methods=['GET'])
+def verify_email():
+    """Verify email address with token"""
+    token = request.args.get('token')
+    
+    if not token:
+        return render_template('signup.html', error='Invalid verification link')
+    
+    tokens = load_verification_tokens()
+    unverified = load_unverified_users()
+    
+    # Find token
+    email = None
+    for email_key, token_data in tokens.items():
+        if token_data.get('token') == token:
+            email = email_key
+            break
+    
+    if not email or email not in unverified:
+        return render_template('signup.html', error='Invalid or expired verification link')
+    
+    # Check if token expired
+    expires_at = datetime.fromisoformat(tokens[email]['expires_at'])
+    if datetime.now() > expires_at:
+        # Remove expired token and unverified user
+        del tokens[email]
+        del unverified[email]
+        save_verification_tokens(tokens)
+        save_unverified_users(unverified)
+        return render_template('signup.html', error='Verification link has expired. Please sign up again.')
+    
+    # Create verified user
+    user_data = unverified[email]
+    users = load_users()
+    users[email] = {
+        'email': email,
+        'name': user_data.get('name', email.split('@')[0]),
+        'password_hash': user_data['password_hash'],
+        'created_at': user_data['created_at'],
+        'onboarding_completed': False,
+        'default_qr_mode': None,
+        'verified': True,
+        'verified_at': datetime.now().isoformat()
+    }
+    save_users(users)
+    
+    # Remove from unverified and tokens
+    del unverified[email]
+    del tokens[email]
+    save_unverified_users(unverified)
+    save_verification_tokens(tokens)
+    
+    # Log in the user
+    remember_me = user_data.get('remember_me', True)
+    session.permanent = remember_me
+    session['user_id'] = email
+    session['user_name'] = users[email]['name']
+    session['is_admin'] = users[email].get('is_admin', False)
+    session['remember_me'] = remember_me
+    session.modified = True
+    
+    print(f"✅ Email verified and account created for '{email}'")
+    
+    return redirect(url_for('venues'))
 
 
 @app.route('/login', methods=['GET', 'POST'])
