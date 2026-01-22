@@ -2791,11 +2791,21 @@
                 // Wait a moment for processing
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 
-                // Reload venue data to get new QR codes
-                await loadVenuesData();
+                // Fetch updated venue info to get new QR codes
+                let venueData = null;
+                try {
+                    const venueResponse = await fetch(`/venue/${venueId}/info`);
+                    if (venueResponse.ok) {
+                        const venueResult = await venueResponse.json();
+                        if (venueResult.success) {
+                            venueData = venueResult;
+                        }
+                    }
+                } catch (error) {
+                    console.error('Error fetching venue info:', error);
+                }
                 
-                const venue = venuesData[venueId];
-                if (venue) {
+                if (venueData) {
                     if (statusText) statusText.textContent = 'Complete!';
                     
                     // Show results
@@ -2803,15 +2813,18 @@
                         const submitImg = document.getElementById('customQrSubmitResult');
                         const streamImg = document.getElementById('customQrStreamResult');
                         
-                        if (submitImg && venue.submit_qr) {
-                            submitImg.src = venue.submit_qr;
+                        if (submitImg && venueData.submit_qr) {
+                            submitImg.src = venueData.submit_qr;
                         }
-                        if (streamImg && venue.stream_qr) {
-                            streamImg.src = venue.stream_qr;
+                        if (streamImg && venueData.stream_qr) {
+                            streamImg.src = venueData.stream_qr;
                         }
                         
                         results.style.display = 'block';
                     }
+                } else {
+                    showCustomQrNotification('QR codes generated but could not load preview. Check your venues page.', false);
+                    if (statusText) statusText.textContent = 'Complete!';
                 }
                 
             } catch (error) {
