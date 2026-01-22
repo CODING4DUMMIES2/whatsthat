@@ -180,25 +180,32 @@ LOG_DIR = os.path.join(DATA_BASE_DIR, "logs")
 os.makedirs(LOG_DIR, exist_ok=True)
 LOG_FILE = os.path.join(LOG_DIR, "app.log")
 
-# Configure logging to file (rotating, max 10MB, keep 5 backups)
-file_handler = RotatingFileHandler(LOG_FILE, maxBytes=10*1024*1024, backupCount=5)
-file_handler.setLevel(logging.DEBUG)
-file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
-file_handler.setFormatter(file_formatter)
+# Create a custom print function that also logs to file
+class FilePrint:
+    def __init__(self, log_file):
+        self.log_file = log_file
+        self.original_print = print
+        
+    def __call__(self, *args, **kwargs):
+        # Original print to console
+        self.original_print(*args, **kwargs)
+        # Also write to file
+        try:
+            with open(self.log_file, 'a', encoding='utf-8', errors='replace') as f:
+                # Format the message
+                message = ' '.join(str(arg) for arg in args)
+                timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                f.write(f"{timestamp} - {message}\n")
+                f.flush()
+        except Exception as e:
+            # Don't break if logging fails
+            pass
 
-# Also log to console
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.INFO)
-console_formatter = logging.Formatter('%(message)s')
-console_handler.setFormatter(console_formatter)
-
-# Get root logger and add handlers
-root_logger = logging.getLogger()
-root_logger.setLevel(logging.DEBUG)
-root_logger.addHandler(file_handler)
-root_logger.addHandler(console_handler)
+# Replace print with our file-printing version
+print = FilePrint(LOG_FILE)
 
 print(f"📝 Logging to file: {LOG_FILE}")
+print(f"📝 Log directory: {LOG_DIR}")
 os.makedirs(MESSAGES_DIR, exist_ok=True)
 os.makedirs(AUDIO_DIR, exist_ok=True)
 os.makedirs(IMG_DIR, exist_ok=True)
@@ -3183,20 +3190,45 @@ def overlay_qr_center_on_sticker(
 def view_logs():
     """View recent application logs"""
     try:
-        lines = request.args.get('lines', 100, type=int)
-        lines = min(lines, 1000)  # Max 1000 lines
+        lines = request.args.get('lines', 200, type=int)
+        lines = min(lines, 2000)  # Max 2000 lines
+        
+        log_content = ""
+        log_file_exists = False
         
         if os.path.exists(LOG_FILE):
-            with open(LOG_FILE, 'r', encoding='utf-8', errors='ignore') as f:
-                all_lines = f.readlines()
-                recent_lines = all_lines[-lines:] if len(all_lines) > lines else all_lines
-                log_content = ''.join(recent_lines)
+            log_file_exists = True
+            try:
+                with open(LOG_FILE, 'r', encoding='utf-8', errors='ignore') as f:
+                    all_lines = f.readlines()
+                    if all_lines:
+                        recent_lines = all_lines[-lines:] if len(all_lines) > lines else all_lines
+                        log_content = ''.join(recent_lines)
+                    else:
+                        log_content = "Log file exists but is empty. No logs written yet.\n\nTry generating a QR code to see logs appear here."
+            except Exception as e:
+                log_content = f"Error reading log file: {str(e)}\n\nLog file path: {LOG_FILE}"
         else:
-            log_content = "Log file not found. Logging may not be initialized yet."
+            log_content = f"Log file not found at: {LOG_FILE}\n\nLog directory: {LOG_DIR}\n\nDirectory exists: {os.path.exists(LOG_DIR)}\n\nTry generating a QR code to create log entries."
         
-        return render_template('debug_logs.html', log_content=log_content, log_file=LOG_FILE)
+        # Add some test content to verify the page works
+        test_message = f"\n\n=== DEBUG INFO ===\n"
+        test_message += f"Log file path: {LOG_FILE}\n"
+        test_message += f"Log file exists: {log_file_exists}\n"
+        test_message += f"Log directory: {LOG_DIR}\n"
+        test_message += f"Directory exists: {os.path.exists(LOG_DIR)}\n"
+        if log_file_exists:
+            try:
+                file_size = os.path.getsize(LOG_FILE)
+                test_message += f"Log file size: {file_size} bytes\n"
+            except:
+                pass
+        
+        return render_template('debug_logs.html', log_content=log_content + test_message, log_file=LOG_FILE)
     except Exception as e:
-        return jsonify({'error': str(e)}), 500
+        import traceback
+        error_details = f"Error in view_logs: {str(e)}\n\n{traceback.format_exc()}"
+        return render_template('debug_logs.html', log_content=error_details, log_file="ERROR")
 
 @app.route('/debug/logs/download', methods=['GET'])
 @require_login
