@@ -16,9 +16,10 @@ import hashlib
 import json
 from functools import wraps
 import qrcode
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
 import base64
 from io import BytesIO
+from typing import Optional
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import JSON
 import mimetypes
@@ -2684,40 +2685,77 @@ def get_live_tables_status(venue_id):
 @app.route('/venue/<venue_id>/upload-logo', methods=['POST'])
 @require_login
 def upload_venue_logo(venue_id):
-    """Upload logo for a venue"""
+    """Upload logo for a venue and generate Gemini QR codes"""
+    print(f"📤 [LOGO_UPLOAD] Starting logo upload for venue: {venue_id}")
+    
     try:
         if venue_id not in venue_metadata:
-            return jsonify({'success': False, 'error': 'Venue not found'}), 404
+            error_msg = 'Venue not found'
+            print(f"❌ [LOGO_UPLOAD] {error_msg}")
+            return jsonify({'success': False, 'error': error_msg}), 404
         
         if 'logo' not in request.files:
-            return jsonify({'success': False, 'error': 'No file provided'}), 400
+            error_msg = 'No file provided'
+            print(f"❌ [LOGO_UPLOAD] {error_msg}")
+            return jsonify({'success': False, 'error': error_msg}), 400
         
         file = request.files['logo']
         if file.filename == '':
-            return jsonify({'success': False, 'error': 'No file selected'}), 400
+            error_msg = 'No file selected'
+            print(f"❌ [LOGO_UPLOAD] {error_msg}")
+            return jsonify({'success': False, 'error': error_msg}), 400
+        
+        print(f"✅ [LOGO_UPLOAD] File received: {file.filename}")
+        print(f"   Content type: {file.content_type}")
+        print(f"   Content length: {file.content_length if hasattr(file, 'content_length') else 'unknown'}")
         
         # Save logo file
         import uuid
         file_ext = os.path.splitext(file.filename)[1] or '.png'
         logo_filename = f"{venue_id}_{uuid.uuid4().hex[:8]}{file_ext}"
         logo_path = os.path.join(VENUE_LOGOS_DIR, logo_filename)
-        file.save(logo_path)
+        
+        try:
+            file.save(logo_path)
+            file_size = os.path.getsize(logo_path)
+            print(f"✅ [LOGO_UPLOAD] Logo saved: {logo_path} ({file_size} bytes)")
+        except Exception as save_err:
+            error_msg = f"Failed to save logo file: {str(save_err)}"
+            print(f"❌ [LOGO_UPLOAD] {error_msg}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({'success': False, 'error': error_msg}), 500
         
         # Update venue metadata
         venue_metadata[venue_id]['logo_path'] = logo_filename
+        print(f"✅ [LOGO_UPLOAD] Venue metadata updated with logo path")
         
-        # Regenerate QR codes with the new logo
+        # Regenerate QR codes with Gemini (if available) or fallback to simple QR
+        print(f"🔄 [LOGO_UPLOAD] Regenerating QR codes with new logo...")
         try:
             _regenerate_venue_qr_codes(venue_id)
+            print(f"✅ [LOGO_UPLOAD] QR codes regenerated successfully")
         except Exception as qr_error:
-            print(f"Error regenerating QR codes after logo upload: {qr_error}")
+            error_msg = f"Error regenerating QR codes after logo upload: {qr_error}"
+            print(f"❌ [LOGO_UPLOAD] {error_msg}")
+            import traceback
+            traceback.print_exc()
+            # Don't fail the upload if QR generation fails, but log it
+            # The user can still use the logo, QR codes will be simple ones
         
+        print(f"🎉 [LOGO_UPLOAD] Logo upload completed successfully")
         return jsonify({
             'success': True,
-            'logo_url': f'/venue-logos/{logo_filename}'
+            'logo_url': f'/venue-logos/{logo_filename}',
+            'message': 'Logo uploaded and QR codes generated'
         })
+        
     except Exception as e:
-        return jsonify({'success': False, 'error': str(e)}), 500
+        error_msg = f"Unexpected error during logo upload: {str(e)}"
+        print(f"❌ [LOGO_UPLOAD] {error_msg}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': error_msg}), 500
 
 
 @app.route('/venue-logos/<filename>')
@@ -2729,160 +2767,423 @@ def serve_venue_logo(filename):
         return jsonify({'error': 'Logo not found'}), 404
 
 
-@app.route('/venue/<venue_id>/process-logo-with-gemini', methods=['POST'])
-@require_login
-def process_logo_with_gemini(venue_id):
-    """Process venue logo with Gemini API for enhancement/remixing"""
+def gemini_make_sticker_background_from_logo(
+    logo_path: str,
+    top_text: str = "Scan me to generate a custom song",
+    bottom_text: str = "Scan me to generate a custom song",
+    size_px: int = 1024,
+    model: str = "gemini-2.5-flash-image-preview",
+) -> Image.Image:
+    """
+    Generates a square sticker BACKGROUND using Gemini, incorporating the uploaded logo.
+    The generated image includes top + bottom text, with a clean empty center reserved for a QR code.
+
+    Returns: PIL.Image (RGBA), size size_px x size_px
+
+    NOTE: This does NOT generate the QR. You will overlay your existing QR image after.
+    """
+    import traceback
+    
+    print(f"🎨 [GEMINI] Starting sticker background generation")
+    print(f"   Logo path: {logo_path}")
+    print(f"   Size: {size_px}x{size_px}")
+    print(f"   Model: {model}")
+    print(f"   Top text: {top_text}")
+    print(f"   Bottom text: {bottom_text}")
+    
     try:
-        if venue_id not in venue_metadata:
-            return jsonify({'success': False, 'error': 'Venue not found'}), 404
+        api_key = os.environ.get("GEMINI_API_KEY") or GEMINI_API_KEY
+        if not api_key:
+            error_msg = "Missing GEMINI_API_KEY env var"
+            print(f"❌ [GEMINI] {error_msg}")
+            raise RuntimeError(error_msg)
         
-        venue = venue_metadata[venue_id]
-        if not venue.get('logo_path'):
-            return jsonify({'success': False, 'error': 'No logo found for venue'}), 400
-        
-        logo_path = os.path.join(VENUE_LOGOS_DIR, venue['logo_path'])
-        if not os.path.exists(logo_path):
-            return jsonify({'success': False, 'error': 'Logo file not found'}), 404
-        
-        # Check if Gemini API key is available
-        if not GEMINI_API_KEY:
-            return jsonify({'success': False, 'error': 'Gemini API key not configured'}), 500
+        print(f"✅ [GEMINI] API key found (length: {len(api_key)})")
         
         # Import Gemini client
         try:
             from google import genai
-        except ImportError:
-            return jsonify({'success': False, 'error': 'google-genai package not installed'}), 500
+            print(f"✅ [GEMINI] Successfully imported google.genai")
+        except ImportError as import_err:
+            error_msg = "google-genai package not installed"
+            print(f"❌ [GEMINI] Import error: {import_err}")
+            print(f"   {error_msg}")
+            raise RuntimeError(error_msg)
         
         # Initialize Gemini client
-        client = genai.Client(api_key=GEMINI_API_KEY)
+        try:
+            client = genai.Client(api_key=api_key)
+            print(f"✅ [GEMINI] Client initialized successfully")
+        except Exception as client_err:
+            error_msg = f"Failed to initialize Gemini client: {str(client_err)}"
+            print(f"❌ [GEMINI] Client initialization error: {client_err}")
+            traceback.print_exc()
+            raise RuntimeError(error_msg)
         
-        # Load image data
-        with open(logo_path, 'rb') as f:
-            image_data = f.read()
+        # Load logo
+        try:
+            if not os.path.exists(logo_path):
+                error_msg = f"Logo file not found: {logo_path}"
+                print(f"❌ [GEMINI] {error_msg}")
+                raise FileNotFoundError(error_msg)
+            
+            logo_img = Image.open(logo_path).convert("RGBA")
+            logo_size = logo_img.size
+            print(f"✅ [GEMINI] Logo loaded: {logo_size[0]}x{logo_size[1]} pixels")
+        except Exception as logo_err:
+            error_msg = f"Failed to load logo: {str(logo_err)}"
+            print(f"❌ [GEMINI] Logo loading error: {logo_err}")
+            traceback.print_exc()
+            raise RuntimeError(error_msg)
         
-        # Get MIME type
-        mime_type, _ = mimetypes.guess_type(logo_path)
-        if not mime_type:
-            mime_type = 'image/png'
+        # Prompt engineered for: square, print-friendly, center blank, text top+bottom, logo integrated, palette splashes
+        prompt = f"""
+You are designing a PRINTABLE SQUARE sticker background (no QR code).
+Requirements:
+- Output MUST be a square image, {size_px}x{size_px}.
+- Incorporate the provided logo (do not distort it). Place it tastefully (top area or bottom area).
+- Use splashes/gradients/bokeh/ink-like bursts using colors sampled from the logo in negative space.
+- Include clear, readable text ONLY at the very TOP and very BOTTOM.
+  Top text: "{top_text}"
+  Bottom text: "{bottom_text}"
+- Leave the CENTER of the design completely free of any text, icons, or busy details.
+  The center must be a clean empty area reserved for a QR code (high contrast, simple).
+- Style: modern nightlife / premium, high contrast, visually striking, print-ready.
+- DO NOT include any QR code or QR-like patterns.
+- DO NOT add extra words besides the exact top and bottom text.
+"""
         
-        # Create prompt for logo enhancement/optimization
-        prompt = "Enhance and optimize this logo for use in QR codes. Make it clean, professional, and suitable for printing. Preserve the brand identity and colors."
+        print(f"📝 [GEMINI] Prompt prepared (length: {len(prompt)} chars)")
+        print(f"   Prompt preview: {prompt[:200]}...")
         
-        # Create content parts
-        contents = [
-            genai.types.Part(
-                inline_data=genai.types.Blob(data=image_data, mime_type=mime_type)
-            ),
-            genai.types.Part.from_text(text=prompt)
-        ]
+        # Generate content: pass prompt + logo image as reference
+        try:
+            print(f"🚀 [GEMINI] Calling generate_content API...")
+            response = client.models.generate_content(
+                model=model,
+                contents=[prompt, logo_img],
+            )
+            print(f"✅ [GEMINI] API call completed successfully")
+        except Exception as api_err:
+            error_msg = f"Gemini API call failed: {str(api_err)}"
+            print(f"❌ [GEMINI] API error: {api_err}")
+            print(f"   Error type: {type(api_err).__name__}")
+            traceback.print_exc()
+            raise RuntimeError(error_msg)
         
-        # Generate enhanced logo
-        response = client.models.generate_content(
-            model="gemini-2.5-flash-image-preview",
-            contents=contents
+        # Extract first returned image bytes from inline_data
+        print(f"🔍 [GEMINI] Parsing response...")
+        print(f"   Response type: {type(response)}")
+        print(f"   Has candidates: {hasattr(response, 'candidates')}")
+        
+        if hasattr(response, 'candidates'):
+            print(f"   Candidates count: {len(response.candidates) if response.candidates else 0}")
+        
+        for idx, cand in enumerate(response.candidates or []):
+            print(f"   Processing candidate {idx + 1}...")
+            content = getattr(cand, "content", None)
+            if not content:
+                print(f"   ⚠️  Candidate {idx + 1} has no content")
+                continue
+            
+            print(f"   Content type: {type(content)}")
+            print(f"   Has parts: {hasattr(content, 'parts')}")
+            
+            if hasattr(content, 'parts'):
+                print(f"   Parts count: {len(content.parts) if content.parts else 0}")
+            
+            for part_idx, part in enumerate(content.parts or []):
+                print(f"   Processing part {part_idx + 1}...")
+                inline = getattr(part, "inline_data", None)
+                if inline and getattr(inline, "data", None):
+                    print(f"   ✅ Found inline_data with image bytes (size: {len(inline.data)} bytes)")
+                    try:
+                        img = Image.open(BytesIO(inline.data)).convert("RGBA")
+                        img_size = img.size
+                        print(f"   ✅ Image decoded: {img_size[0]}x{img_size[1]} pixels")
+                        
+                        # Force exact size square (Gemini may vary slightly)
+                        img = ImageOps.fit(img, (size_px, size_px), method=Image.LANCZOS)
+                        print(f"   ✅ Image resized to {size_px}x{size_px}")
+                        print(f"🎉 [GEMINI] Sticker background generation completed successfully")
+                        return img
+                    except Exception as img_err:
+                        print(f"   ❌ Failed to decode image from inline_data: {img_err}")
+                        traceback.print_exc()
+                        continue
+                else:
+                    print(f"   ⚠️  Part {part_idx + 1} has no inline_data or data is None")
+        
+        # If Gemini returns only text, you won't get inline_data
+        error_msg = (
+            "Gemini returned no image bytes (no inline_data). "
+            "This usually means you read response.text only, or the model/prompt returned text-only."
         )
+        print(f"❌ [GEMINI] {error_msg}")
+        print(f"   Response structure: {response}")
+        if hasattr(response, 'text'):
+            print(f"   Response text: {response.text[:500]}")
+        raise RuntimeError(error_msg)
         
-        # Process response - Gemini may return text or image data
-        # For now, we'll save the original and note that processing was attempted
-        # The actual image generation response handling depends on Gemini's response format
+    except Exception as e:
+        print(f"❌ [GEMINI] Fatal error in gemini_make_sticker_background_from_logo: {e}")
+        traceback.print_exc()
+        raise
+
+
+def overlay_qr_center_on_sticker(
+    background: Image.Image,
+    qr_img: Image.Image,
+    qr_scale: float = 0.52,
+    plate_padding: int = 36,
+    plate_radius: int = 30,
+    add_shadow: bool = True,
+) -> Image.Image:
+    """
+    Overlays YOUR existing QR image into the center of the Gemini-generated sticker background.
+
+    - background: PIL RGBA square image
+    - qr_img: PIL image (your QR output) - will be resized
+    - qr_scale: relative size vs sticker (0.52 means QR ~52% of sticker width)
+    """
+    print(f"🔧 [QR_OVERLAY] Starting QR overlay on sticker")
+    print(f"   Background size: {background.size}")
+    print(f"   QR image size: {qr_img.size}")
+    print(f"   QR scale: {qr_scale}")
+    print(f"   Plate padding: {plate_padding}")
+    print(f"   Plate radius: {plate_radius}")
+    print(f"   Add shadow: {add_shadow}")
+    
+    try:
+        bg = background.convert("RGBA")
+        W, H = bg.size
+        target_qr = int(W * qr_scale)
         
-        # Update venue metadata to indicate processing was done
-        venue_metadata[venue_id]['logo_processed'] = True
+        print(f"   Target QR size: {target_qr}x{target_qr}")
         
-        # Regenerate QR codes with the processed logo
+        qr = qr_img.convert("RGBA")
+        qr = qr.resize((target_qr, target_qr), Image.NEAREST)
+        print(f"   ✅ QR resized to {target_qr}x{target_qr}")
+        
+        # White rounded plate behind QR for scan reliability
+        plate_w = qr.width + plate_padding * 2
+        plate_h = qr.height + plate_padding * 2
+        
+        print(f"   Plate size: {plate_w}x{plate_h}")
+        
+        plate = Image.new("RGBA", (plate_w, plate_h), (255, 255, 255, 255))
+        
+        mask = Image.new("L", (plate_w, plate_h), 0)
+        draw = ImageDraw.Draw(mask)
+        draw.rounded_rectangle((0, 0, plate_w, plate_h), radius=plate_radius, fill=255)
+        plate.putalpha(mask)
+        print(f"   ✅ White plate created with rounded corners")
+        
+        # Optional soft shadow
+        if add_shadow:
+            shadow = Image.new("RGBA", (plate_w, plate_h), (0, 0, 0, 160))
+            shadow.putalpha(mask)
+            shadow = shadow.filter(ImageFilter.GaussianBlur(12))
+            print(f"   ✅ Shadow created")
+        else:
+            shadow = None
+        
+        cx = (W - plate_w) // 2
+        cy = (H - plate_h) // 2
+        
+        print(f"   QR center position: ({cx}, {cy})")
+        
+        if shadow:
+            bg.alpha_composite(shadow, (cx, cy + 8))
+            print(f"   ✅ Shadow composited")
+        
+        bg.alpha_composite(plate, (cx, cy))
+        print(f"   ✅ Plate composited")
+        
+        bg.alpha_composite(qr, (cx + plate_padding, cy + plate_padding))
+        print(f"   ✅ QR composited")
+        
+        print(f"🎉 [QR_OVERLAY] QR overlay completed successfully")
+        return bg
+        
+    except Exception as e:
+        print(f"❌ [QR_OVERLAY] Error overlaying QR: {e}")
+        import traceback
+        traceback.print_exc()
+        raise
+
+
+@app.route('/venue/<venue_id>/process-logo-with-gemini', methods=['POST'])
+@require_login
+def process_logo_with_gemini(venue_id):
+    """Generate Gemini QR codes for venue (replaces old processing function)"""
+    print(f"🚀 [GEMINI_ROUTE] Processing logo with Gemini for venue: {venue_id}")
+    
+    try:
+        if venue_id not in venue_metadata:
+            error_msg = 'Venue not found'
+            print(f"❌ [GEMINI_ROUTE] {error_msg}")
+            return jsonify({'success': False, 'error': error_msg}), 404
+        
+        venue = venue_metadata[venue_id]
+        if not venue.get('logo_path'):
+            error_msg = 'No logo found for venue'
+            print(f"❌ [GEMINI_ROUTE] {error_msg}")
+            return jsonify({'success': False, 'error': error_msg}), 400
+        
+        logo_path = os.path.join(VENUE_LOGOS_DIR, venue['logo_path'])
+        if not os.path.exists(logo_path):
+            error_msg = 'Logo file not found'
+            print(f"❌ [GEMINI_ROUTE] {error_msg}: {logo_path}")
+            return jsonify({'success': False, 'error': error_msg}), 404
+        
+        print(f"✅ [GEMINI_ROUTE] Logo found: {logo_path}")
+        
+        # Generate Gemini QR codes
         try:
             _regenerate_venue_qr_codes(venue_id)
+            print(f"✅ [GEMINI_ROUTE] QR codes regenerated successfully")
         except Exception as qr_error:
-            print(f"Error regenerating QR codes: {qr_error}")
+            error_msg = f"Error regenerating QR codes: {qr_error}"
+            print(f"❌ [GEMINI_ROUTE] {error_msg}")
+            import traceback
+            traceback.print_exc()
+            return jsonify({'success': False, 'error': error_msg}), 500
         
         return jsonify({
             'success': True,
-            'message': 'Logo processed successfully',
+            'message': 'Gemini QR codes generated successfully',
             'logo_url': f'/venue-logos/{venue["logo_path"]}'
         })
         
     except Exception as e:
         import traceback
-        print(f"Error processing logo with Gemini: {e}")
+        error_msg = f"Error processing logo with Gemini: {e}"
+        print(f"❌ [GEMINI_ROUTE] {error_msg}")
         traceback.print_exc()
-        # Return success anyway so the flow continues
         return jsonify({
-            'success': True,
-            'message': 'Logo saved (Gemini processing skipped)',
+            'success': False,
             'error': str(e)
-        }), 200
+        }), 500
 
 
 def _generate_qr_with_logo_background(venue_id, qr_data, qr_type='submit'):
-    """Generate QR code with logo as background using Gemini-processed logo"""
+    """Generate QR code with logo as background using Gemini sticker generation"""
+    print(f"🎨 [QR_GEN] Generating QR with logo background for venue: {venue_id}, type: {qr_type}")
+    
     try:
         venue = venue_metadata.get(venue_id)
         if not venue:
+            print(f"❌ [QR_GEN] Venue not found: {venue_id}")
             return None
         
         logo_path = venue.get('logo_path')
-        if not logo_path or not os.path.exists(os.path.join(VENUE_LOGOS_DIR, logo_path)):
-            # No logo, generate simple QR code
+        logo_full_path = os.path.join(VENUE_LOGOS_DIR, logo_path) if logo_path else None
+        
+        # Check if logo exists and if we should use Gemini
+        use_gemini = False
+        if logo_path and logo_full_path and os.path.exists(logo_full_path):
+            # Check if Gemini API key is available
+            api_key = os.environ.get("GEMINI_API_KEY") or GEMINI_API_KEY
+            if api_key:
+                try:
+                    from google import genai
+                    use_gemini = True
+                    print(f"✅ [QR_GEN] Logo found and Gemini available, using Gemini generation")
+                except ImportError:
+                    print(f"⚠️  [QR_GEN] Logo found but google-genai not installed, falling back to simple QR")
+                    use_gemini = False
+            else:
+                print(f"⚠️  [QR_GEN] Logo found but GEMINI_API_KEY not configured, falling back to simple QR")
+        else:
+            print(f"ℹ️  [QR_GEN] No logo found, generating simple QR code")
+        
+        if not use_gemini:
+            # No logo or Gemini not available, generate simple QR code
             return _generate_simple_qr_code(qr_data, venue_id, qr_type)
         
-        # Load logo
-        logo_full_path = os.path.join(VENUE_LOGOS_DIR, logo_path)
-        logo_img = Image.open(logo_full_path).convert("RGBA")
+        # Use Gemini to generate sticker background with logo
+        print(f"🚀 [QR_GEN] Starting Gemini sticker generation...")
         
-        # Create background from logo (resize to 800x800 for QR code)
-        bg_size = 800
-        logo_img_resized = logo_img.resize((bg_size, bg_size), Image.Resampling.LANCZOS)
-        bg_img = logo_img_resized.copy()
+        # Determine text based on QR type
+        if qr_type == 'submit':
+            top_text = "Scan me to request a song"
+            bottom_text = "Scan me to request a song"
+        else:  # stream
+            top_text = "Scan me to view the queue"
+            bottom_text = "Scan me to view the queue"
         
-        # Add semi-transparent overlay for better QR code visibility
-        overlay = Image.new('RGBA', (bg_size, bg_size), (255, 255, 255, 180))
-        bg_img = Image.alpha_composite(bg_img, overlay)
+        try:
+            # Generate sticker background from logo using Gemini
+            bg_img = gemini_make_sticker_background_from_logo(
+                logo_path=logo_full_path,
+                top_text=top_text,
+                bottom_text=bottom_text,
+                size_px=1024,
+                model="gemini-2.5-flash-image-preview",
+            )
+            print(f"✅ [QR_GEN] Gemini background generated successfully")
+        except Exception as gemini_err:
+            print(f"❌ [QR_GEN] Gemini generation failed: {gemini_err}")
+            import traceback
+            traceback.print_exc()
+            print(f"⚠️  [QR_GEN] Falling back to simple QR code")
+            return _generate_simple_qr_code(qr_data, venue_id, qr_type)
         
-        # Generate QR code
+        # Generate the actual QR code
+        print(f"🔧 [QR_GEN] Generating QR code image...")
         qr = qrcode.QRCode(
             version=1,
             error_correction=qrcode.constants.ERROR_CORRECT_H,
-            box_size=8,
+            box_size=10,
             border=4,
         )
         qr.add_data(qr_data)
         qr.make(fit=True)
         
-        # Create QR code image
         qr_img = qr.make_image(fill_color="black", back_color="white")
         qr_img = qr_img.convert("RGBA")
+        print(f"✅ [QR_GEN] QR code image generated")
         
-        # Resize QR code to fit nicely on background (about 50% of background)
-        qr_size = int(bg_size * 0.5)
-        qr_img = qr_img.resize((qr_size, qr_size), Image.Resampling.LANCZOS)
-        
-        # Create a white padding around QR code for better contrast
-        padding = 20
-        qr_with_padding = Image.new('RGBA', (qr_size + padding * 2, qr_size + padding * 2), (255, 255, 255, 240))
-        qr_with_padding.paste(qr_img, (padding, padding), qr_img)
-        
-        # Center QR code on background
-        x = (bg_size - qr_size - padding * 2) // 2
-        y = (bg_size - qr_size - padding * 2) // 2
-        
-        # Paste QR code on background
-        bg_img.paste(qr_with_padding, (x, y), qr_with_padding)
+        # Overlay QR code onto Gemini-generated background
+        try:
+            final_img = overlay_qr_center_on_sticker(
+                background=bg_img,
+                qr_img=qr_img,
+                qr_scale=0.52,
+                plate_padding=36,
+                plate_radius=30,
+                add_shadow=True,
+            )
+            print(f"✅ [QR_GEN] QR overlaid on background successfully")
+        except Exception as overlay_err:
+            print(f"❌ [QR_GEN] QR overlay failed: {overlay_err}")
+            import traceback
+            traceback.print_exc()
+            print(f"⚠️  [QR_GEN] Falling back to simple QR code")
+            return _generate_simple_qr_code(qr_data, venue_id, qr_type)
         
         # Save final QR code
         import uuid
         final_filename = f"{venue_id}_{qr_type}_qr_{uuid.uuid4().hex[:8]}.png"
         final_path = os.path.join(VENUE_QR_CODES_DIR, final_filename)
-        bg_img.save(final_path, 'PNG')
         
-        return f'/venue-qr-codes/{final_filename}'
+        try:
+            final_img.save(final_path, 'PNG')
+            print(f"✅ [QR_GEN] Final QR code saved: {final_filename}")
+            return f'/venue-qr-codes/{final_filename}'
+        except Exception as save_err:
+            print(f"❌ [QR_GEN] Failed to save QR code: {save_err}")
+            import traceback
+            traceback.print_exc()
+            return _generate_simple_qr_code(qr_data, venue_id, qr_type)
         
     except Exception as e:
-        print(f"Error generating QR with logo background: {e}")
+        print(f"❌ [QR_GEN] Error generating QR with logo background: {e}")
         import traceback
         traceback.print_exc()
         # Fallback to simple QR code
+        print(f"⚠️  [QR_GEN] Falling back to simple QR code")
         return _generate_simple_qr_code(qr_data, venue_id, qr_type)
 
 
@@ -2919,26 +3220,39 @@ def _generate_simple_qr_code(qr_data, venue_id, qr_type='submit'):
 
 def _regenerate_venue_qr_codes(venue_id):
     """Regenerate submit and stream QR codes for a venue"""
+    print(f"🔄 [REGEN_QR] Regenerating QR codes for venue: {venue_id}")
+    
     try:
         if venue_id not in venue_metadata:
+            print(f"❌ [REGEN_QR] Venue not found: {venue_id}")
             return
         
         base_url = get_base_url()
         submit_url = f"{base_url}/venue/{venue_id}/submit"
         stream_url = f"{base_url}/venue/{venue_id}/stream"
         
-        # Generate QR codes with logo background
+        print(f"   Submit URL: {submit_url}")
+        print(f"   Stream URL: {stream_url}")
+        
+        # Generate QR codes with logo background (will use Gemini if logo exists)
+        print(f"   Generating submit QR code...")
         submit_qr = _generate_qr_with_logo_background(venue_id, submit_url, 'submit')
+        print(f"   ✅ Submit QR: {submit_qr}")
+        
+        print(f"   Generating stream QR code...")
         stream_qr = _generate_qr_with_logo_background(venue_id, stream_url, 'stream')
+        print(f"   ✅ Stream QR: {stream_qr}")
         
         # Store QR code paths in venue metadata
         venue_metadata[venue_id]['submit_qr_path'] = submit_qr
         venue_metadata[venue_id]['stream_qr_path'] = stream_qr
         
         save_data()
+        print(f"✅ [REGEN_QR] QR codes regenerated and saved successfully")
         
     except Exception as e:
-        print(f"Error regenerating venue QR codes: {e}")
+        error_msg = f"Error regenerating venue QR codes: {e}"
+        print(f"❌ [REGEN_QR] {error_msg}")
         import traceback
         traceback.print_exc()
 

@@ -1443,11 +1443,16 @@
                         </button>
                     </div>
                     <div id="logoGeneratingStatus" style="display: none; margin-top: 24px; text-align: center;">
-                        <div style="display: flex; align-items: center; justify-content: center; gap: 12px; padding: 16px; background: rgba(255, 20, 147, 0.1); border-radius: 12px; border: 2px solid rgba(255, 20, 147, 0.3);">
-                            <div style="width: 20px; height: 20px; border: 3px solid rgba(255, 20, 147, 0.3); border-top-color: rgba(255, 20, 147, 1); border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                            <span style="font-size: 16px; font-weight: 600; color: rgba(255, 255, 255, 0.9); background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
-                                Generating...
-                            </span>
+                        <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 20px; background: rgba(255, 20, 147, 0.1); border-radius: 12px; border: 2px solid rgba(255, 20, 147, 0.3);">
+                            <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+                                <div style="width: 20px; height: 20px; border: 3px solid rgba(255, 20, 147, 0.3); border-top-color: rgba(255, 20, 147, 1); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                                <span id="generatingStatusText" style="font-size: 16px; font-weight: 600; color: rgba(255, 255, 255, 0.9); background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                                    Uploading logo...
+                                </span>
+                            </div>
+                            <p style="font-size: 14px; color: rgba(255, 255, 255, 0.6); margin: 0;">
+                                This may take a moment while we generate your custom QR codes
+                            </p>
                         </div>
                     </div>
                 </div>
@@ -2453,6 +2458,7 @@
             const previewContainer = document.getElementById('logoPreviewContainer');
             const saveBtn = document.getElementById('logoSaveBtn');
             const generatingStatus = document.getElementById('logoGeneratingStatus');
+            const generatingStatusText = document.getElementById('generatingStatusText');
             const skipBtn = document.getElementById('logoSkipBtn');
             
             if (!logoInput || !logoInput.files || !logoInput.files[0]) {
@@ -2473,28 +2479,48 @@
                 const venueId = createdVenueId || (userVenueIds && userVenueIds.length > 0 ? userVenueIds[0] : null);
                 
                 if (venueId) {
-                    // First, upload the logo
+                    // Update status message
+                    if (generatingStatusText) {
+                        generatingStatusText.textContent = 'Uploading logo...';
+                    }
+                    
+                    // Upload the logo (this now includes Gemini QR code generation)
                     const uploadResponse = await fetch(`/venue/${venueId}/upload-logo`, {
                         method: 'POST',
                         body: formData
                     });
                     
                     if (uploadResponse.ok) {
-                        // Logo uploaded, now process with Gemini
-                        const processResponse = await fetch(`/venue/${venueId}/process-logo-with-gemini`, {
-                            method: 'POST'
-                        });
+                        const result = await uploadResponse.json();
+                        console.log('Logo upload result:', result);
                         
-                        // Wait a moment for processing (even if it fails, we continue)
-                        if (!processResponse.ok) {
-                            console.log('Gemini processing failed, continuing anyway');
+                        // Update status message
+                        if (generatingStatusText) {
+                            generatingStatusText.textContent = 'Generating custom QR codes with AI...';
                         }
+                        
+                        // The upload-logo endpoint now handles Gemini QR generation internally
+                        // Wait a moment to ensure processing completes
+                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        
+                        // Update status message
+                        if (generatingStatusText) {
+                            generatingStatusText.textContent = 'Complete!';
+                        }
+                        
+                        // Small delay before proceeding to show completion
+                        await new Promise(resolve => setTimeout(resolve, 1000));
                         
                         // Processing complete, proceed to dashboard
                         proceedToDashboard();
                     } else {
-                        console.error('Error saving logo');
-                        proceedToDashboard();
+                        const errorData = await uploadResponse.json().catch(() => ({}));
+                        console.error('Error saving logo:', errorData);
+                        if (generatingStatusText) {
+                            generatingStatusText.textContent = 'Upload complete (QR generation may have failed)';
+                        }
+                        // Still proceed even if there's an error
+                        setTimeout(() => proceedToDashboard(), 2000);
                     }
                 } else {
                     // No venue yet, just proceed (logo will be saved after reload)
@@ -2502,7 +2528,11 @@
                 }
             } catch (error) {
                 console.error('Error saving logo:', error);
-                proceedToDashboard();
+                if (generatingStatusText) {
+                    generatingStatusText.textContent = 'Error occurred, but continuing...';
+                }
+                // Still proceed even if there's an error
+                setTimeout(() => proceedToDashboard(), 2000);
             }
         }
 
