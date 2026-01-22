@@ -925,11 +925,17 @@ def create_venue():
             table_name = f'Table {i + 1}'
             table_submit_url = f"{base_url}/venue/{venue_id}/table/{table_id}/submit"
             
+            # Generate QR code with Gemini background if logo exists, otherwise simple QR
+            table_qr_code = _generate_qr_with_logo_background(venue_id, table_submit_url, 'table')
+            if not table_qr_code:
+                # Fallback to simple QR if generation failed
+                table_qr_code = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={table_submit_url}"
+            
             venue_tables[venue_id][table_id] = {
                 'name': table_name,
                 'created_at': datetime.now().isoformat(),
                 'submit_url': table_submit_url,
-                'qr_code': f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={table_submit_url}"
+                'qr_code': table_qr_code
             }
             
             # Initialize empty request list for this table
@@ -2544,11 +2550,17 @@ def create_table(venue_id):
         base_url = get_base_url()
         submit_url = f"{base_url}/venue/{venue_id}/table/{table_id}/submit"
         
+        # Generate QR code with Gemini background if logo exists, otherwise simple QR
+        table_qr_code = _generate_qr_with_logo_background(venue_id, submit_url, 'table')
+        if not table_qr_code:
+            # Fallback to simple QR if generation failed
+            table_qr_code = f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={submit_url}"
+        
         venue_tables[venue_id][table_id] = {
             'name': table_name or f'Table {table_id}',
             'created_at': datetime.now().isoformat(),
             'submit_url': submit_url,
-            'qr_code': f"https://api.qrserver.com/v1/create-qr-code/?size=300x300&data={submit_url}"
+            'qr_code': table_qr_code
         }
         
         # Initialize empty request list for this table
@@ -3180,6 +3192,9 @@ def _generate_qr_with_logo_background(venue_id, qr_data, qr_type='submit'):
         if qr_type == 'submit':
             top_text = "Scan me to request a song"
             bottom_text = "Scan me to request a song"
+        elif qr_type == 'table':
+            top_text = "Scan me to request a song"
+            bottom_text = "Scan me to request a song"
         else:  # stream
             top_text = "Scan me to view the queue"
             bottom_text = "Scan me to view the queue"
@@ -3290,7 +3305,7 @@ def _generate_simple_qr_code(qr_data, venue_id, qr_type='submit'):
 
 
 def _regenerate_venue_qr_codes(venue_id):
-    """Regenerate submit and stream QR codes for a venue"""
+    """Regenerate submit, stream, and all table QR codes for a venue"""
     print(f"🔄 [REGEN_QR] Regenerating QR codes for venue: {venue_id}")
     
     try:
@@ -3317,6 +3332,22 @@ def _regenerate_venue_qr_codes(venue_id):
         # Store QR code paths in venue metadata
         venue_metadata[venue_id]['submit_qr_path'] = submit_qr
         venue_metadata[venue_id]['stream_qr_path'] = stream_qr
+        
+        # Regenerate all existing table QR codes
+        if venue_id in venue_tables:
+            tables = venue_tables[venue_id]
+            print(f"   Regenerating {len(tables)} table QR codes...")
+            for table_id, table_data in tables.items():
+                table_submit_url = table_data.get('submit_url')
+                if table_submit_url:
+                    print(f"   Generating QR for table {table_id} ({table_data.get('name', 'Unnamed')})...")
+                    table_qr = _generate_qr_with_logo_background(venue_id, table_submit_url, 'table')
+                    if table_qr:
+                        venue_tables[venue_id][table_id]['qr_code'] = table_qr
+                        print(f"   ✅ Table {table_id} QR updated")
+                    else:
+                        print(f"   ⚠️  Table {table_id} QR generation failed, keeping existing")
+            print(f"   ✅ All table QR codes regenerated")
         
         save_data()
         print(f"✅ [REGEN_QR] QR codes regenerated and saved successfully")
