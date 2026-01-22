@@ -3113,8 +3113,8 @@
             
             if (!message) {
                 document.getElementById('demoQueueStatus').textContent = 'Please enter what the song should be about.';
-                return;
-            }
+                    return;
+                }
 
             if (!currentDemoId) {
                 document.getElementById('demoQueueStatus').textContent = 'Demo not initialized. Please generate a venue demo first.';
@@ -3218,7 +3218,7 @@
             if (currentDemoAudio) {
                 currentDemoAudio.pause();
                 currentDemoAudio = null;
-            }
+        }
 
             // Pause background music while the demo song is playing
             if (typeof backgroundAudio !== 'undefined' && backgroundAudio && !backgroundAudio.paused) {
