@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Logs - whatsthat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0f172a;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .header h1 {
+            font-size: 24px;
+            color: #fff;
+        }
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+        .btn {
+            padding: 10px 20px;
+            background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            text-decoration: none;
+            display: inline-block;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(255, 20, 147, 0.4);
+        }
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        .log-container {
+            background: #0a0e1a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 20px;
+            overflow-x: auto;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .log-content {
+            font-size: 12px;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .log-line {
+            margin-bottom: 2px;
+        }
+        .log-line.error {
+            color: #ff6b6b;
+        }
+        .log-line.warning {
+            color: #ffd93d;
+        }
+        .log-line.success {
+            color: #6bcf7f;
+        }
+        .log-line.info {
+            color: #74b9ff;
+        }
+        .log-file-path {
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.5);
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📝 Application Logs</h1>
+            <div class="header-actions">
+                <a href="/debug/logs/download" class="btn">Download Logs</a>
+                <a href="/venues" class="btn btn-secondary">Back to Dashboard</a>
+            </div>
+        </div>
+        <div class="log-container">
+            <div class="log-content" id="logContent">{{ log_content }}</div>
+            <div class="log-file-path">Log file: {{ log_file }}</div>
+        </div>
+    </div>
+    <script>
+        // Color code log lines
+        const logContent = document.getElementById('logContent');
+        const lines = logContent.textContent.split('\n');
+        logContent.innerHTML = lines.map(line => {
+            let className = '';
+            if (line.includes('❌') || line.includes('ERROR') || line.includes('Error')) {
+                className = 'error';
+            } else if (line.includes('⚠️') || line.includes('WARNING') || line.includes('Warning')) {
+                className = 'warning';
+            } else if (line.includes('✅') || line.includes('SUCCESS') || line.includes('Success')) {
+                className = 'success';
+            } else if (line.includes('ℹ️') || line.includes('INFO') || line.includes('Info')) {
+                className = 'info';
+            }
+            return `<div class="log-line ${className}">${line}</div>`;
+        }).join('');
+        
+        // Auto-scroll to bottom
+        logContent.scrollTop = logContent.scrollHeight;
+    </script>
+</body>
+</html>

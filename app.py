@@ -23,6 +23,8 @@ from typing import Optional
 from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy import JSON
 import mimetypes
+import logging
+from logging.handlers import RotatingFileHandler
 
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'your-secret-key-change-in-production-' + str(hash('whatsthat')))
@@ -172,6 +174,31 @@ AUDIO_DIR = os.path.join(DATA_BASE_DIR, "audio")
 IMG_DIR = os.path.join(BASE_DIR, "img")
 VENUE_LOGOS_DIR = os.path.join(DATA_BASE_DIR, "venue_logos")
 VENUE_QR_CODES_DIR = os.path.join(DATA_BASE_DIR, "venue_qr_codes")
+
+# Setup file-based logging for debugging
+LOG_DIR = os.path.join(DATA_BASE_DIR, "logs")
+os.makedirs(LOG_DIR, exist_ok=True)
+LOG_FILE = os.path.join(LOG_DIR, "app.log")
+
+# Configure logging to file (rotating, max 10MB, keep 5 backups)
+file_handler = RotatingFileHandler(LOG_FILE, maxBytes=10*1024*1024, backupCount=5)
+file_handler.setLevel(logging.DEBUG)
+file_formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
+file_handler.setFormatter(file_formatter)
+
+# Also log to console
+console_handler = logging.StreamHandler()
+console_handler.setLevel(logging.INFO)
+console_formatter = logging.Formatter('%(message)s')
+console_handler.setFormatter(console_formatter)
+
+# Get root logger and add handlers
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.DEBUG)
+root_logger.addHandler(file_handler)
+root_logger.addHandler(console_handler)
+
+print(f"📝 Logging to file: {LOG_FILE}")
 os.makedirs(MESSAGES_DIR, exist_ok=True)
 os.makedirs(AUDIO_DIR, exist_ok=True)
 os.makedirs(IMG_DIR, exist_ok=True)
@@ -3150,6 +3177,38 @@ def overlay_qr_center_on_sticker(
         traceback.print_exc()
         raise
 
+
+@app.route('/debug/logs', methods=['GET'])
+@require_login
+def view_logs():
+    """View recent application logs"""
+    try:
+        lines = request.args.get('lines', 100, type=int)
+        lines = min(lines, 1000)  # Max 1000 lines
+        
+        if os.path.exists(LOG_FILE):
+            with open(LOG_FILE, 'r', encoding='utf-8', errors='ignore') as f:
+                all_lines = f.readlines()
+                recent_lines = all_lines[-lines:] if len(all_lines) > lines else all_lines
+                log_content = ''.join(recent_lines)
+        else:
+            log_content = "Log file not found. Logging may not be initialized yet."
+        
+        return render_template('debug_logs.html', log_content=log_content, log_file=LOG_FILE)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+@app.route('/debug/logs/download', methods=['GET'])
+@require_login
+def download_logs():
+    """Download log file"""
+    try:
+        if os.path.exists(LOG_FILE):
+            return send_from_directory(LOG_DIR, "app.log", as_attachment=True)
+        else:
+            return jsonify({'error': 'Log file not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 @app.route('/venue/<venue_id>/process-logo-with-gemini', methods=['POST'])
 @require_login
