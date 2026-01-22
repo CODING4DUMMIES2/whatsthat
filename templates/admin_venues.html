@@ -1361,6 +1361,31 @@
                 font-size: 14px;
             }
         }
+        
+        /* Dark dropdown styling */
+        .dark-dropdown {
+            background: rgba(44, 46, 50, 0.95) !important;
+            color: white !important;
+        }
+        
+        .dark-dropdown option {
+            background: rgba(44, 46, 50, 0.95) !important;
+            color: white !important;
+            padding: 8px 12px;
+        }
+        
+        .dark-dropdown option:hover,
+        .dark-dropdown option:checked,
+        .dark-dropdown option:focus {
+            background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%) !important;
+            color: white !important;
+        }
+        
+        /* For browsers that support styling selected option */
+        .dark-dropdown:focus option:checked {
+            background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%) !important;
+            color: white !important;
+        }
     </style>
 </head>
 <body>
@@ -1479,7 +1504,7 @@
                 
                 <div style="margin-bottom: 24px;">
                     <label style="display: block; font-size: 14px; color: rgba(255,255,255,0.9); margin-bottom: 8px; text-align: left;">Select Venue:</label>
-                    <select id="customQrVenueSelect" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; font-size: 16px; margin-bottom: 24px;">
+                    <select id="customQrVenueSelect" class="dark-dropdown" style="width: 100%; padding: 12px 16px; background: rgba(44, 46, 50, 0.95); border: 2px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; font-size: 16px; margin-bottom: 24px; cursor: pointer;">
                         <option value="">Loading venues...</option>
                     </select>
                 </div>
@@ -1716,9 +1741,9 @@
                         </h2>
                         <div id="streamVenueSelector" style="display:flex; align-items:center; gap:6px;" onclick="event.stopPropagation();">
                             <label for="streamVenueSelect" style="font-size:12px; color:rgba(226,232,240,0.85);">Venue:</label>
-                            <select id="streamVenueSelect"
+                            <select id="streamVenueSelect" class="dark-dropdown"
                                     onchange="onStreamVenueChange(this.value)"
-                                    style="padding:6px 12px; border-radius:999px; border:1px solid rgba(248,250,252,0.3); background:linear-gradient(135deg,#FF1493 0%,#8B2BE2 100%); color:#F9FAFB; font-size:13px; font-weight:600; cursor:pointer; outline:none;">
+                                    style="padding:6px 12px; border-radius:999px; border:1px solid rgba(248,250,252,0.3); background:rgba(44, 46, 50, 0.95); color:#F9FAFB; font-size:13px; font-weight:600; cursor:pointer; outline:none;">
                                 <option value="">Select venue</option>
                                 {% if user_venue_ids %}
                                     {% for venue_id in user_venue_ids %}
