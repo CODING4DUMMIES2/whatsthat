@@ -127,6 +127,19 @@ class SongTitle(db.Model):
     title = db.Column(db.String(255), nullable=False)
 
 @app.before_request
+def log_upload_requests():
+    """Log all requests to upload-logo route"""
+    if '/upload-logo' in request.path and request.method == 'POST':
+        import sys
+        print(f"\n🔍 [REQUEST_LOG] ========== UPLOAD REQUEST DETECTED ==========", flush=True)
+        print(f"🔍 [REQUEST_LOG] Path: {request.path}", flush=True)
+        print(f"🔍 [REQUEST_LOG] Method: {request.method}", flush=True)
+        print(f"🔍 [REQUEST_LOG] Has files: {'logo' in request.files}", flush=True)
+        print(f"🔍 [REQUEST_LOG] User in session: {session.get('user_id')}", flush=True)
+        sys.stdout.flush()
+        sys.stderr.flush()
+
+@app.before_request
 def make_session_permanent():
     """Make sessions permanent if user chose to stay logged in"""
     # Only make permanent if user is logged in and chose to remember
@@ -2682,17 +2695,32 @@ def get_live_tables_status(venue_id):
         return jsonify({'success': False, 'error': str(e)}), 500
 
 
+@app.before_request
+def log_upload_requests():
+    """Log all requests to upload-logo route"""
+    if request.path.startswith('/venue/') and 'upload-logo' in request.path:
+        import sys
+        print(f"🔍 [REQUEST_LOG] ========== UPLOAD REQUEST DETECTED ==========")
+        print(f"🔍 [REQUEST_LOG] Path: {request.path}")
+        print(f"🔍 [REQUEST_LOG] Method: {request.method}")
+        print(f"🔍 [REQUEST_LOG] Has files: {'logo' in request.files}")
+        print(f"🔍 [REQUEST_LOG] User in session: {session.get('user_id')}")
+        sys.stdout.flush()
+
 @app.route('/venue/<venue_id>/upload-logo', methods=['POST'])
 @require_login
 def upload_venue_logo(venue_id):
     """Upload logo for a venue and generate Gemini QR codes"""
     import sys
     sys.stdout.flush()  # Force flush to ensure logs appear immediately
-    print(f"📤 [LOGO_UPLOAD] ========== STARTING LOGO UPLOAD ==========")
-    print(f"📤 [LOGO_UPLOAD] Venue ID: {venue_id}")
-    print(f"📤 [LOGO_UPLOAD] Request method: {request.method}")
-    print(f"📤 [LOGO_UPLOAD] Has files: {'logo' in request.files}")
+    sys.stderr.flush()
+    print(f"\n📤 [LOGO_UPLOAD] ========== STARTING LOGO UPLOAD ==========", flush=True)
+    print(f"📤 [LOGO_UPLOAD] Venue ID: {venue_id}", flush=True)
+    print(f"📤 [LOGO_UPLOAD] Request method: {request.method}", flush=True)
+    print(f"📤 [LOGO_UPLOAD] Has files: {'logo' in request.files}", flush=True)
+    print(f"📤 [LOGO_UPLOAD] User: {session.get('user_id')}", flush=True)
     sys.stdout.flush()
+    sys.stderr.flush()
     
     try:
         if venue_id not in venue_metadata:
