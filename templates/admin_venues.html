@@ -2495,29 +2495,29 @@
                         console.log('Logo upload result:', result);
                         
                         // Update status message - generation happens on server side
+                        // The server waits synchronously for Gemini generation, so when this response
+                        // arrives, generation should be complete. But we'll show a message anyway.
                         if (generatingStatusText) {
-                            generatingStatusText.textContent = 'Generating custom QR codes with AI...';
+                            generatingStatusText.textContent = 'Generating custom QR codes with AI... This may take 10-30 seconds...';
                         }
                         
                         // The upload-logo endpoint handles Gemini QR generation synchronously
-                        // It should complete before returning, but add a small buffer
-                        // Check if generation was successful from response
+                        // It waits for all Gemini API calls to complete before returning
+                        // So when we get this response, generation is already done
                         if (result.qr_generated) {
                             console.log('QR codes generated successfully');
+                            if (generatingStatusText) {
+                                generatingStatusText.textContent = 'Complete! All QR codes generated.';
+                            }
                         } else {
                             console.log('QR generation may have failed, but continuing...');
+                            if (generatingStatusText) {
+                                generatingStatusText.textContent = 'Complete (using simple QR codes)';
+                            }
                         }
                         
-                        // Wait a bit to show the generating message (generation happens server-side)
-                        await new Promise(resolve => setTimeout(resolve, 3000));
-                        
-                        // Update status message
-                        if (generatingStatusText) {
-                            generatingStatusText.textContent = 'Complete!';
-                        }
-                        
-                        // Small delay before proceeding to show completion
-                        await new Promise(resolve => setTimeout(resolve, 1500));
+                        // Small delay to show completion message
+                        await new Promise(resolve => setTimeout(resolve, 2000));
                         
                         // Processing complete, proceed to dashboard
                         proceedToDashboard();

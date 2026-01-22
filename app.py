@@ -2777,15 +2777,20 @@ def upload_venue_logo(venue_id):
         print(f"✅ [LOGO_UPLOAD] Venue metadata updated with logo path")
         
         # Regenerate QR codes with Gemini (if available) or fallback to simple QR
+        # IMPORTANT: This is synchronous and will wait for all Gemini generation to complete
         print(f"🔄 [LOGO_UPLOAD] Regenerating QR codes with new logo...")
         print(f"   Logo path: {logo_path}")
         print(f"   Logo exists: {os.path.exists(logo_path)}")
+        print(f"   ⏳ This may take 10-30 seconds while Gemini generates backgrounds...")
         
         qr_generation_start = datetime.now()
         try:
+            # This function will wait for all Gemini API calls to complete
+            # It generates submit, stream, and all table QR codes synchronously
             _regenerate_venue_qr_codes(venue_id)
             qr_generation_duration = (datetime.now() - qr_generation_start).total_seconds()
             print(f"✅ [LOGO_UPLOAD] QR codes regenerated successfully (took {qr_generation_duration:.2f}s)")
+            print(f"   All Gemini image generation completed")
         except Exception as qr_error:
             qr_generation_duration = (datetime.now() - qr_generation_start).total_seconds()
             error_msg = f"Error regenerating QR codes after logo upload: {qr_error}"
@@ -2922,15 +2927,33 @@ Requirements:
             print(f"   Model: {model}")
             print(f"   Contents: prompt (len={len(prompt)}) + logo image ({logo_img.size})")
             
-            # For image generation, we need to specify response_modalities
+            # For image generation, we need to specify response_modalities using proper types
+            try:
+                from google.genai.types import GenerateContentConfig, Modality, ImageConfig
+                
+                config = GenerateContentConfig(
+                    response_modalities=[Modality.IMAGE, Modality.TEXT],
+                    image_config=ImageConfig(
+                        aspect_ratio="1:1",  # Square for sticker
+                        image_size="1K"  # 1024x1024
+                    )
+                )
+                print(f"   Using GenerateContentConfig with IMAGE and TEXT modalities")
+            except ImportError:
+                # Fallback if types aren't available - try dict format
+                print(f"   ⚠️  GenerateContentConfig not available, trying dict format")
+                config = {
+                    "response_modalities": ["IMAGE", "TEXT"]
+                }
+            
+            # Make the API call - this is synchronous and will wait for completion
             response = client.models.generate_content(
                 model=model,
                 contents=[prompt, logo_img],
-                config={
-                    "response_modalities": ["IMAGE", "TEXT"]
-                }
+                config=config
             )
             print(f"✅ [GEMINI] API call completed successfully")
+            print(f"   Response received, checking for image data...")
         except Exception as api_err:
             error_msg = f"Gemini API call failed: {str(api_err)}"
             print(f"❌ [GEMINI] API error: {api_err}")
