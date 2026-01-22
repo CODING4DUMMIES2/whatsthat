@@ -2972,10 +2972,10 @@
                                     if (venueInfo.tables && venueInfo.tables.length > 0) {
                                         const tablesContainer = document.getElementById(`tables-${venueId}`);
                                         if (tablesContainer) {
+                                            const tableQrImages = tablesContainer.querySelectorAll('.table-qr img');
                                             venueInfo.tables.forEach((table, idx) => {
-                                                const tableQrImg = tablesContainer.querySelector(`img[alt="Table QR"]`);
-                                                if (tableQrImg && table.qr_code) {
-                                                    tableQrImg.src = table.qr_code + '?t=' + timestamp;
+                                                if (tableQrImages[idx] && table.qr_code) {
+                                                    tableQrImages[idx].src = table.qr_code + '?t=' + timestamp;
                                                 }
                                             });
                                         }
