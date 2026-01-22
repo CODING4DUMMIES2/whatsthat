@@ -2494,14 +2494,22 @@
                         const result = await uploadResponse.json();
                         console.log('Logo upload result:', result);
                         
-                        // Update status message
+                        // Update status message - generation happens on server side
                         if (generatingStatusText) {
                             generatingStatusText.textContent = 'Generating custom QR codes with AI...';
                         }
                         
-                        // The upload-logo endpoint now handles Gemini QR generation internally
-                        // Wait a moment to ensure processing completes
-                        await new Promise(resolve => setTimeout(resolve, 2000));
+                        // The upload-logo endpoint handles Gemini QR generation synchronously
+                        // It should complete before returning, but add a small buffer
+                        // Check if generation was successful from response
+                        if (result.qr_generated) {
+                            console.log('QR codes generated successfully');
+                        } else {
+                            console.log('QR generation may have failed, but continuing...');
+                        }
+                        
+                        // Wait a bit to show the generating message (generation happens server-side)
+                        await new Promise(resolve => setTimeout(resolve, 3000));
                         
                         // Update status message
                         if (generatingStatusText) {
@@ -2509,7 +2517,7 @@
                         }
                         
                         // Small delay before proceeding to show completion
-                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        await new Promise(resolve => setTimeout(resolve, 1500));
                         
                         // Processing complete, proceed to dashboard
                         proceedToDashboard();

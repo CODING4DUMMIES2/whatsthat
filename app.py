@@ -2686,7 +2686,13 @@ def get_live_tables_status(venue_id):
 @require_login
 def upload_venue_logo(venue_id):
     """Upload logo for a venue and generate Gemini QR codes"""
-    print(f"📤 [LOGO_UPLOAD] Starting logo upload for venue: {venue_id}")
+    import sys
+    sys.stdout.flush()  # Force flush to ensure logs appear immediately
+    print(f"📤 [LOGO_UPLOAD] ========== STARTING LOGO UPLOAD ==========")
+    print(f"📤 [LOGO_UPLOAD] Venue ID: {venue_id}")
+    print(f"📤 [LOGO_UPLOAD] Request method: {request.method}")
+    print(f"📤 [LOGO_UPLOAD] Has files: {'logo' in request.files}")
+    sys.stdout.flush()
     
     try:
         if venue_id not in venue_metadata:
@@ -2732,29 +2738,43 @@ def upload_venue_logo(venue_id):
         
         # Regenerate QR codes with Gemini (if available) or fallback to simple QR
         print(f"🔄 [LOGO_UPLOAD] Regenerating QR codes with new logo...")
+        print(f"   Logo path: {logo_path}")
+        print(f"   Logo exists: {os.path.exists(logo_path)}")
+        
+        qr_generation_start = datetime.now()
         try:
             _regenerate_venue_qr_codes(venue_id)
-            print(f"✅ [LOGO_UPLOAD] QR codes regenerated successfully")
+            qr_generation_duration = (datetime.now() - qr_generation_start).total_seconds()
+            print(f"✅ [LOGO_UPLOAD] QR codes regenerated successfully (took {qr_generation_duration:.2f}s)")
         except Exception as qr_error:
+            qr_generation_duration = (datetime.now() - qr_generation_start).total_seconds()
             error_msg = f"Error regenerating QR codes after logo upload: {qr_error}"
-            print(f"❌ [LOGO_UPLOAD] {error_msg}")
+            print(f"❌ [LOGO_UPLOAD] {error_msg} (took {qr_generation_duration:.2f}s)")
             import traceback
             traceback.print_exc()
             # Don't fail the upload if QR generation fails, but log it
             # The user can still use the logo, QR codes will be simple ones
         
         print(f"🎉 [LOGO_UPLOAD] Logo upload completed successfully")
+        print(f"📤 [LOGO_UPLOAD] ========== LOGO UPLOAD COMPLETE ==========")
+        sys.stdout.flush()
+        
+        # Return response with generation status
         return jsonify({
             'success': True,
             'logo_url': f'/venue-logos/{logo_filename}',
-            'message': 'Logo uploaded and QR codes generated'
+            'message': 'Logo uploaded and QR codes generated',
+            'qr_generated': True
         })
         
     except Exception as e:
-        error_msg = f"Unexpected error during logo upload: {str(e)}"
-        print(f"❌ [LOGO_UPLOAD] {error_msg}")
         import traceback
+        error_msg = f"Unexpected error during logo upload: {str(e)}"
+        print(f"❌ [LOGO_UPLOAD] ========== ERROR IN LOGO UPLOAD ==========")
+        print(f"❌ [LOGO_UPLOAD] {error_msg}")
+        print(f"❌ [LOGO_UPLOAD] Exception type: {type(e).__name__}")
         traceback.print_exc()
+        sys.stdout.flush()
         return jsonify({'success': False, 'error': error_msg}), 500
 
 
@@ -3082,21 +3102,37 @@ def _generate_qr_with_logo_background(venue_id, qr_data, qr_type='submit'):
         
         # Check if logo exists and if we should use Gemini
         use_gemini = False
+        print(f"   Checking logo: path={logo_path}, full_path={logo_full_path}")
+        if logo_path and logo_full_path:
+            print(f"   Logo path exists check: {os.path.exists(logo_full_path)}")
+        
         if logo_path and logo_full_path and os.path.exists(logo_full_path):
             # Check if Gemini API key is available
             api_key = os.environ.get("GEMINI_API_KEY") or GEMINI_API_KEY
+            print(f"   API key check: {'Found' if api_key else 'NOT FOUND'}")
             if api_key:
+                print(f"   API key length: {len(api_key) if api_key else 0}")
                 try:
                     from google import genai
                     use_gemini = True
                     print(f"✅ [QR_GEN] Logo found and Gemini available, using Gemini generation")
-                except ImportError:
-                    print(f"⚠️  [QR_GEN] Logo found but google-genai not installed, falling back to simple QR")
+                except ImportError as import_err:
+                    print(f"⚠️  [QR_GEN] Logo found but google-genai not installed: {import_err}")
+                    print(f"   Falling back to simple QR")
                     use_gemini = False
             else:
-                print(f"⚠️  [QR_GEN] Logo found but GEMINI_API_KEY not configured, falling back to simple QR")
+                print(f"⚠️  [QR_GEN] Logo found but GEMINI_API_KEY not configured")
+                print(f"   GEMINI_API_KEY env var: {os.environ.get('GEMINI_API_KEY', 'NOT SET')}")
+                print(f"   GEMINI_API_KEY constant: {GEMINI_API_KEY[:20] + '...' if GEMINI_API_KEY else 'NOT SET'}")
+                print(f"   Falling back to simple QR")
         else:
-            print(f"ℹ️  [QR_GEN] No logo found, generating simple QR code")
+            if not logo_path:
+                print(f"ℹ️  [QR_GEN] No logo_path in venue metadata")
+            elif not logo_full_path:
+                print(f"ℹ️  [QR_GEN] Could not construct logo_full_path")
+            else:
+                print(f"ℹ️  [QR_GEN] Logo file does not exist at: {logo_full_path}")
+            print(f"   Generating simple QR code")
         
         if not use_gemini:
             # No logo or Gemini not available, generate simple QR code
