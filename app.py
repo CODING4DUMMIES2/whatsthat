@@ -2927,31 +2927,65 @@ Requirements:
             print(f"   Model: {model}")
             print(f"   Contents: prompt (len={len(prompt)}) + logo image ({logo_img.size})")
             
-            # For image generation, we need to specify response_modalities using proper types
+            # For image generation, try different config formats
+            # First try without config (some models work without it)
+            response = None
+            config_attempts = []
+            
+            # Attempt 1: Try with GenerateContentConfig types
             try:
                 from google.genai.types import GenerateContentConfig, Modality, ImageConfig
-                
                 config = GenerateContentConfig(
                     response_modalities=[Modality.IMAGE, Modality.TEXT],
                     image_config=ImageConfig(
-                        aspect_ratio="1:1",  # Square for sticker
-                        image_size="1K"  # 1024x1024
+                        aspect_ratio="1:1",
+                        image_size="1K"
                     )
                 )
-                print(f"   Using GenerateContentConfig with IMAGE and TEXT modalities")
-            except ImportError:
-                # Fallback if types aren't available - try dict format
-                print(f"   ⚠️  GenerateContentConfig not available, trying dict format")
-                config = {
-                    "response_modalities": ["IMAGE", "TEXT"]
-                }
+                print(f"   Attempt 1: Using GenerateContentConfig with IMAGE and TEXT modalities")
+                response = client.models.generate_content(
+                    model=model,
+                    contents=[prompt, logo_img],
+                    config=config
+                )
+                config_attempts.append("GenerateContentConfig: SUCCESS")
+            except Exception as e1:
+                config_attempts.append(f"GenerateContentConfig: FAILED - {str(e1)[:100]}")
+                print(f"   ⚠️  GenerateContentConfig failed: {e1}")
+                
+                # Attempt 2: Try with dict format
+                try:
+                    config = {
+                        "response_modalities": ["IMAGE", "TEXT"]
+                    }
+                    print(f"   Attempt 2: Trying dict format config")
+                    response = client.models.generate_content(
+                        model=model,
+                        contents=[prompt, logo_img],
+                        config=config
+                    )
+                    config_attempts.append("Dict config: SUCCESS")
+                except Exception as e2:
+                    config_attempts.append(f"Dict config: FAILED - {str(e2)[:100]}")
+                    print(f"   ⚠️  Dict config failed: {e2}")
+                    
+                    # Attempt 3: Try without config (some API versions don't need it)
+                    try:
+                        print(f"   Attempt 3: Trying without config parameter")
+                        response = client.models.generate_content(
+                            model=model,
+                            contents=[prompt, logo_img]
+                        )
+                        config_attempts.append("No config: SUCCESS")
+                    except Exception as e3:
+                        config_attempts.append(f"No config: FAILED - {str(e3)[:100]}")
+                        print(f"   ❌ All config attempts failed")
+                        raise e3
             
-            # Make the API call - this is synchronous and will wait for completion
-            response = client.models.generate_content(
-                model=model,
-                contents=[prompt, logo_img],
-                config=config
-            )
+            if not response:
+                raise RuntimeError("Failed to get response from Gemini API after all attempts")
+            
+            print(f"   ✅ Config attempt successful: {[a for a in config_attempts if 'SUCCESS' in a]}")
             print(f"✅ [GEMINI] API call completed successfully")
             print(f"   Response received, checking for image data...")
         except Exception as api_err:

@@ -1463,6 +1463,73 @@
         </div>
     </div>
 
+    <!-- Custom QR Code Test Interface -->
+    <div id="customQrInterface" style="position: fixed; inset: 0; z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); background: rgba(0, 0, 0, 0.5);">
+        <div style="background: rgba(15, 23, 42, 0.95); border-radius: 24px; padding: 48px 56px; max-width: 700px; width: 90%; box-shadow: 0 40px 110px rgba(0,0,0,0.85); border: 1px solid rgba(167,139,250,0.3); position: relative; max-height: 90vh; overflow-y: auto;">
+            <div style="position: absolute; top: 24px; right: 24px;">
+                <button onclick="hideCustomQrInterface()" style="background: transparent; border: none; color: rgba(255,255,255,0.7); font-size: 24px; cursor: pointer; padding: 8px; line-height: 1;">×</button>
+            </div>
+            <div style="margin-top: 20px; text-align: center;">
+                <h2 style="font-size: 28px; font-weight: 800; margin: 0 0 16px 0; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                    Custom QR Code Generator
+                </h2>
+                <p style="font-size: 16px; color: rgba(255,255,255,0.7); margin: 0 0 32px 0;">
+                    Test Gemini QR code generation with your venue logo
+                </p>
+                
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; font-size: 14px; color: rgba(255,255,255,0.9); margin-bottom: 8px; text-align: left;">Select Venue:</label>
+                    <select id="customQrVenueSelect" style="width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.1); border: 2px solid rgba(255,255,255,0.2); border-radius: 12px; color: white; font-size: 16px; margin-bottom: 24px;">
+                        <option value="">Loading venues...</option>
+                    </select>
+                </div>
+                
+                <div style="margin-bottom: 24px;">
+                    <label style="display: block; font-size: 14px; color: rgba(255,255,255,0.9); margin-bottom: 8px; text-align: left;">Upload Logo (if not already uploaded):</label>
+                    <input type="file" id="customQrLogoInput" accept="image/*" style="display: none;" onchange="handleCustomQrLogoPreview(event)">
+                    <label for="customQrLogoInput" style="display: inline-block; padding: 14px 32px; background: rgba(255,255,255,0.1); border: 2px dashed rgba(255,255,255,0.3); border-radius: 12px; color: white; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; width: 100%; text-align: center;" onmouseover="this.style.borderColor='rgba(255, 20, 147, 0.8)'; this.style.background='rgba(255,255,255,0.15)'" onmouseout="this.style.borderColor='rgba(255,255,255,0.3)'; this.style.background='rgba(255,255,255,0.1)'">
+                        Choose Logo File
+                    </label>
+                    <div id="customQrLogoPreview" style="display: none; margin-top: 16px;">
+                        <img id="customQrLogoPreviewImg" src="" alt="Logo Preview" style="max-width: 200px; max-height: 200px; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2);">
+                    </div>
+                </div>
+                
+                <div id="customQrGeneratingStatus" style="display: none; margin-top: 24px; text-align: center;">
+                    <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; padding: 20px; background: rgba(255, 20, 147, 0.1); border-radius: 12px; border: 2px solid rgba(255, 20, 147, 0.3);">
+                        <div style="display: flex; align-items: center; justify-content: center; gap: 12px;">
+                            <div style="width: 20px; height: 20px; border: 3px solid rgba(255, 20, 147, 0.3); border-top-color: rgba(255, 20, 147, 1); border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                            <span id="customQrStatusText" style="font-size: 16px; font-weight: 600; color: rgba(255, 255, 255, 0.9); background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">
+                                Generating QR codes...
+                            </span>
+                        </div>
+                        <p style="font-size: 14px; color: rgba(255, 255, 255, 0.6); margin: 0;">
+                            This may take 10-30 seconds while Gemini generates backgrounds...
+                        </p>
+                    </div>
+                </div>
+                
+                <div id="customQrResults" style="display: none; margin-top: 24px;">
+                    <h3 style="font-size: 20px; font-weight: 700; margin: 0 0 16px 0; color: white;">Generated QR Codes:</h3>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+                        <div style="text-align: center;">
+                            <p style="font-size: 14px; color: rgba(255,255,255,0.7); margin-bottom: 8px;">Submit QR</p>
+                            <img id="customQrSubmitResult" src="" alt="Submit QR" style="max-width: 100%; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2);">
+                        </div>
+                        <div style="text-align: center;">
+                            <p style="font-size: 14px; color: rgba(255,255,255,0.7); margin-bottom: 8px;">Stream QR</p>
+                            <img id="customQrStreamResult" src="" alt="Stream QR" style="max-width: 100%; border-radius: 12px; border: 2px solid rgba(255,255,255,0.2);">
+                        </div>
+                    </div>
+                </div>
+                
+                <button id="customQrGenerateBtn" onclick="generateCustomQrCodes()" style="padding: 14px 32px; background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%); border: none; border-radius: 12px; color: white; font-size: 18px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 20px rgba(255, 20, 147, 0.4); transition: all 0.2s; width: 100%; margin-top: 24px;" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 25px rgba(255, 20, 147, 0.5)'" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 6px 20px rgba(255, 20, 147, 0.4)'">
+                    Generate QR Codes
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Dashboard Explanation Screen (After Logo Upload) -->
     <div id="dashboardExplanationScreen" style="position: fixed; inset: 0; z-index: 3000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); background: rgba(0, 0, 0, 0.3);">
         <div id="dashboardExplanationSquare" style="background: rgba(15, 23, 42, 0.95); border-radius: 24px; padding: 48px 56px; max-width: 600px; width: 90%; box-shadow: 0 40px 110px rgba(0,0,0,0.85); border: 1px solid rgba(167,139,250,0.3); position: relative; opacity: 0; transform: scale(0.9); transition: opacity 0.8s ease-out, transform 0.8s ease-out;">
@@ -1535,6 +1602,12 @@
                         <span class="sidebar-button-text">
                             Stream
                             <span class="help-icon" onclick="showHelp(event, 'sidebar-stream')">?</span>
+                        </span>
+                    </button>
+                    <button class="sidebar-button" onclick="showCustomQrInterface()">
+                        <span class="sidebar-button-icon">🎨</span>
+                        <span class="sidebar-button-text">
+                            Custom QR Code
                         </span>
                     </button>
                     <a href="/settings" class="sidebar-button">
@@ -2546,6 +2619,148 @@
 
         function skipLogo() {
             proceedToDashboard();
+        }
+
+        // Custom QR Code Interface Functions
+        function showCustomQrInterface() {
+            const modal = document.getElementById('customQrInterface');
+            if (!modal) return;
+            
+            modal.style.display = 'flex';
+            
+            // Load venues into select
+            const select = document.getElementById('customQrVenueSelect');
+            if (select) {
+                select.innerHTML = '<option value="">Select a venue...</option>';
+                if (userVenueIds && userVenueIds.length > 0) {
+                    userVenueIds.forEach(venueId => {
+                        const venue = venuesData[venueId];
+                        if (venue) {
+                            const option = document.createElement('option');
+                            option.value = venueId;
+                            option.textContent = venue.name || `Venue ${venueId}`;
+                            select.appendChild(option);
+                        }
+                    });
+                }
+            }
+            
+            // Reset UI
+            document.getElementById('customQrGeneratingStatus').style.display = 'none';
+            document.getElementById('customQrResults').style.display = 'none';
+            document.getElementById('customQrLogoPreview').style.display = 'none';
+            document.getElementById('customQrLogoInput').value = '';
+        }
+
+        function hideCustomQrInterface() {
+            const modal = document.getElementById('customQrInterface');
+            if (modal) {
+                modal.style.display = 'none';
+            }
+        }
+
+        function handleCustomQrLogoPreview(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('customQrLogoPreview');
+                    const previewImg = document.getElementById('customQrLogoPreviewImg');
+                    if (preview && previewImg) {
+                        previewImg.src = e.target.result;
+                        preview.style.display = 'block';
+                    }
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+
+        async function generateCustomQrCodes() {
+            const venueSelect = document.getElementById('customQrVenueSelect');
+            const logoInput = document.getElementById('customQrLogoInput');
+            const generatingStatus = document.getElementById('customQrGeneratingStatus');
+            const statusText = document.getElementById('customQrStatusText');
+            const results = document.getElementById('customQrResults');
+            const generateBtn = document.getElementById('customQrGenerateBtn');
+            
+            if (!venueSelect || !venueSelect.value) {
+                alert('Please select a venue');
+                return;
+            }
+            
+            const venueId = venueSelect.value;
+            
+            // Hide results, show generating
+            if (results) results.style.display = 'none';
+            if (generatingStatus) generatingStatus.style.display = 'block';
+            if (generateBtn) generateBtn.disabled = true;
+            if (statusText) statusText.textContent = 'Uploading logo and generating QR codes...';
+            
+            try {
+                // First upload logo if provided
+                if (logoInput && logoInput.files && logoInput.files[0]) {
+                    const formData = new FormData();
+                    formData.append('logo', logoInput.files[0]);
+                    
+                    const uploadResponse = await fetch(`/venue/${venueId}/upload-logo`, {
+                        method: 'POST',
+                        body: formData
+                    });
+                    
+                    if (!uploadResponse.ok) {
+                        const error = await uploadResponse.json().catch(() => ({}));
+                        throw new Error(error.error || 'Failed to upload logo');
+                    }
+                    
+                    if (statusText) statusText.textContent = 'Logo uploaded, generating QR codes with AI... This may take 10-30 seconds...';
+                } else {
+                    // No new logo, just regenerate existing
+                    if (statusText) statusText.textContent = 'Regenerating QR codes with existing logo... This may take 10-30 seconds...';
+                    
+                    const processResponse = await fetch(`/venue/${venueId}/process-logo-with-gemini`, {
+                        method: 'POST'
+                    });
+                    
+                    if (!processResponse.ok) {
+                        const error = await processResponse.json().catch(() => ({}));
+                        throw new Error(error.error || 'Failed to process with Gemini');
+                    }
+                }
+                
+                // Wait a moment for processing
+                await new Promise(resolve => setTimeout(resolve, 2000));
+                
+                // Reload venue data to get new QR codes
+                await loadVenuesData();
+                
+                const venue = venuesData[venueId];
+                if (venue) {
+                    if (statusText) statusText.textContent = 'Complete!';
+                    
+                    // Show results
+                    if (results) {
+                        const submitImg = document.getElementById('customQrSubmitResult');
+                        const streamImg = document.getElementById('customQrStreamResult');
+                        
+                        if (submitImg && venue.submit_qr) {
+                            submitImg.src = venue.submit_qr;
+                        }
+                        if (streamImg && venue.stream_qr) {
+                            streamImg.src = venue.stream_qr;
+                        }
+                        
+                        results.style.display = 'block';
+                    }
+                }
+                
+            } catch (error) {
+                console.error('Error generating custom QR codes:', error);
+                if (statusText) statusText.textContent = `Error: ${error.message}`;
+                alert(`Error: ${error.message}`);
+            } finally {
+                if (generatingStatus) generatingStatus.style.display = 'none';
+                if (generateBtn) generateBtn.disabled = false;
+            }
         }
 
         async function proceedToDashboard() {
