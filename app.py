@@ -2158,94 +2158,141 @@ def onboarding_complete():
 @app.route('/signup', methods=['GET', 'POST'])
 def signup():
     """User signup page"""
-    if request.method == 'POST':
-        data = request.get_json() if request.is_json else request.form.to_dict()
-        email = data.get('email', '').strip().lower()
-        password = data.get('password', '').strip()
-        name = data.get('name', '').strip()
-        
-        if not email or not password:
-            if request.is_json:
-                return jsonify({'success': False, 'error': 'Email and password are required'}), 400
-            return render_template('signup.html', error='Email and password are required')
-        
-        global users
-        users = load_users()
-        
-        # Prevent signup with admin email
-        if email.lower() == ADMIN_EMAIL.lower():
-            if request.is_json:
-                return jsonify({'success': False, 'error': 'This email is reserved'}), 400
-            return render_template('signup.html', error='This email is reserved')
-        
-        if email in users:
-            if request.is_json:
-                return jsonify({'success': False, 'error': 'Email already registered'}), 400
-            return render_template('signup.html', error='Email already registered')
-        
-        # Check if email is already pending verification
-        unverified = load_unverified_users()
-        if email in unverified:
-            # Resend verification email
-            tokens = load_verification_tokens()
-            if email in tokens:
-                token = tokens[email]['token']
-                send_verification_email(email, token, unverified[email].get('name'))
+    try:
+        if request.method == 'POST':
+            data = request.get_json() if request.is_json else request.form.to_dict()
+            email = data.get('email', '').strip().lower()
+            password = data.get('password', '').strip()
+            name = data.get('name', '').strip()
+            
+            if not email or not password:
                 if request.is_json:
-                    return jsonify({
-                        'success': True,
-                        'message': 'Verification email resent. Please check your inbox.',
-                        'requires_verification': True
-                    })
-                return render_template('signup.html', 
-                    message='Verification email resent. Please check your inbox.',
-                    email=email)
-        
-        # Create verification token
-        token = secrets.token_urlsafe(32)
-        expires_at = (datetime.now() + timedelta(hours=24)).isoformat()
-        
-        # Store unverified user
-        password_hash = hash_password(password)
-        unverified[email] = {
-            'email': email,
-            'name': name or email.split('@')[0],
-            'password_hash': password_hash,
-            'created_at': datetime.now().isoformat(),
-            'remember_me': data.get('remember_me', True)
-        }
-        save_unverified_users(unverified)
-        
-        # Store verification token
-        tokens = load_verification_tokens()
-        tokens[email] = {
-            'token': token,
-            'email': email,
-            'created_at': datetime.now().isoformat(),
-            'expires_at': expires_at
-        }
-        save_verification_tokens(tokens)
-        
-        # Send verification email
-        email_sent = send_verification_email(email, token, name or email.split('@')[0])
-        
-        if not email_sent:
+                    return jsonify({'success': False, 'error': 'Email and password are required'}), 400
+                return render_template('signup.html', error='Email and password are required')
+            
+            global users
+            users = load_users()
+            
+            # Prevent signup with admin email
+            if email.lower() == ADMIN_EMAIL.lower():
+                if request.is_json:
+                    return jsonify({'success': False, 'error': 'This email is reserved'}), 400
+                return render_template('signup.html', error='This email is reserved')
+            
+            if email in users:
+                if request.is_json:
+                    return jsonify({'success': False, 'error': 'Email already registered'}), 400
+                return render_template('signup.html', error='Email already registered')
+            
+            # Check if email is already pending verification
+            try:
+                unverified = load_unverified_users()
+            except Exception as e:
+                print(f"❌ Error loading unverified users: {e}")
+                unverified = {}
+            
+            if email in unverified:
+                # Resend verification email
+                try:
+                    tokens = load_verification_tokens()
+                    if email in tokens:
+                        token = tokens[email]['token']
+                        send_verification_email(email, token, unverified[email].get('name'))
+                        if request.is_json:
+                            return jsonify({
+                                'success': True,
+                                'message': 'Verification email resent. Please check your inbox.',
+                                'requires_verification': True
+                            })
+                        return render_template('signup.html', 
+                            message='Verification email resent. Please check your inbox.',
+                            email=email)
+                except Exception as e:
+                    print(f"❌ Error resending verification email: {e}")
+                    import traceback
+                    traceback.print_exc()
+                    if request.is_json:
+                        return jsonify({'success': False, 'error': f'Error: {str(e)}'}), 500
+                    return render_template('signup.html', error=f'Error: {str(e)}')
+            
+            # Create verification token
+            token = secrets.token_urlsafe(32)
+            expires_at = (datetime.now() + timedelta(hours=24)).isoformat()
+            
+            # Store unverified user
+            password_hash = hash_password(password)
+            unverified[email] = {
+                'email': email,
+                'name': name or email.split('@')[0],
+                'password_hash': password_hash,
+                'created_at': datetime.now().isoformat(),
+                'remember_me': data.get('remember_me', True)
+            }
+            
+            try:
+                save_unverified_users(unverified)
+            except Exception as e:
+                print(f"❌ Error saving unverified user: {e}")
+                import traceback
+                traceback.print_exc()
+                if request.is_json:
+                    return jsonify({'success': False, 'error': 'Failed to save user data. Please try again.'}), 500
+                return render_template('signup.html', error='Failed to save user data. Please try again.')
+            
+            # Store verification token
+            try:
+                tokens = load_verification_tokens()
+                tokens[email] = {
+                    'token': token,
+                    'email': email,
+                    'created_at': datetime.now().isoformat(),
+                    'expires_at': expires_at
+                }
+                save_verification_tokens(tokens)
+            except Exception as e:
+                print(f"❌ Error saving verification token: {e}")
+                import traceback
+                traceback.print_exc()
+                if request.is_json:
+                    return jsonify({'success': False, 'error': 'Failed to create verification token. Please try again.'}), 500
+                return render_template('signup.html', error='Failed to create verification token. Please try again.')
+            
+            # Send verification email
+            try:
+                email_sent = send_verification_email(email, token, name or email.split('@')[0])
+            except Exception as e:
+                print(f"❌ Error sending verification email: {e}")
+                import traceback
+                traceback.print_exc()
+                if request.is_json:
+                    return jsonify({'success': False, 'error': f'Failed to send verification email: {str(e)}'}), 500
+                return render_template('signup.html', error=f'Failed to send verification email: {str(e)}')
+            
+            if not email_sent:
+                if request.is_json:
+                    return jsonify({'success': False, 'error': 'Failed to send verification email. Please check SMTP configuration.'}), 500
+                return render_template('signup.html', error='Failed to send verification email. Please check SMTP configuration.')
+            
+            print(f"📧 Verification email sent to '{email}'")
+            
             if request.is_json:
-                return jsonify({'success': False, 'error': 'Failed to send verification email. Please try again later.'}), 500
-            return render_template('signup.html', error='Failed to send verification email. Please try again later.')
-        
-        print(f"📧 Verification email sent to '{email}'")
-        
+                return jsonify({
+                    'success': True,
+                    'message': 'Please check your email to verify your account.',
+                    'requires_verification': True
+                })
+            
+            return render_template('signup.html', 
+                message='Please check your email to verify your account. Click the link in the email to complete signup.',
+                email=email)
+    except Exception as e:
+        print(f"❌ Unexpected error in signup: {e}")
+        import traceback
+        traceback.print_exc()
+        # Always return JSON for JSON requests, even on unexpected errors
         if request.is_json:
-            return jsonify({
-                'success': True,
-                'message': 'Please check your email to verify your account.',
-                'requires_verification': True
-            })
-        
-        return render_template('signup.html', 
-            message='Please check your email to verify your account. Click the link in the email to complete signup.',
-            email=email)
+            return jsonify({'success': False, 'error': f'An error occurred: {str(e)}'}), 500
+        return render_template('signup.html', error=f'An error occurred: {str(e)}')
     
     # Pre-fill from query string when coming from landing-page demo
     prefill_venue_name = request.args.get('venue_name', '').strip()
