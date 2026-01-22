@@ -2941,6 +2941,9 @@
                     if (result.success) {
                         if (statusText) statusText.textContent = 'Saved! Updating QR codes...';
                         
+                        // Wait a moment to ensure backend has finished saving
+                        await new Promise(resolve => setTimeout(resolve, 500));
+                        
                         // Fetch updated venue info to get all QR codes (including tables)
                         const venueInfoResponse = await fetch(`/venue/${venueId}/info`);
                         if (venueInfoResponse.ok) {
