@@ -1019,42 +1019,44 @@
         }
 
         .moments-feature-card h2 {
-            text-align: center;
+            text-align: right;
             font-size: 42px;
-            margin-bottom: 16px;
+            margin-bottom: 24px;
             font-weight: 900;
             color: white;
         }
 
         .moments-feature-subtitle {
-            text-align: center;
+            text-align: right;
             color: rgba(255, 255, 255, 0.7);
             font-size: 16px;
-            margin-top: 10px;
+            margin-top: 24px;
         }
 
         .moments-features {
             list-style: none;
             padding: 0;
-            margin: 30px 0 0;
+            margin: 0;
             display: flex;
             flex-direction: column;
             gap: 18px;
+            text-align: right;
         }
 
         .moments-features li {
             position: relative;
-            padding-left: 36px;
+            padding-right: 36px;
             color: rgba(255, 255, 255, 0.9);
             font-size: 18px;
             font-weight: 600;
             line-height: 1.6;
+            text-align: right;
         }
 
         .moments-features li::before {
             content: '';
             position: absolute;
-            left: 0;
+            right: 0;
             top: 50%;
             transform: translateY(-50%);
             width: 10px;
@@ -2827,12 +2829,12 @@
             <div class="moments-parallax-container">
                 <div class="moments-feature-card">
                     <h2>Built for Real Venues, Not Playlists</h2>
-                    <p class="moments-feature-subtitle">The system is designed around how bars and restaurants actually run, not just play songs.</p>
                     <ul class="moments-features">
                         <li>Works with your existing speakers, TVs, and streaming setup.</li>
                         <li>Staff approval and safety controls keep the room on-brand and under control.</li>
                         <li>One shared queue for the whole venue so the night feels organized, not chaotic.</li>
                     </ul>
+                    <p class="moments-feature-subtitle">The system is designed around how bars and restaurants actually run, not just play songs.</p>
                 </div>
             </div>
         </div>
