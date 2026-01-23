@@ -1160,6 +1160,86 @@
             animation: shimmer 6s linear infinite;
         }
 
+        /* Setup Content Wrapper - No Glass (for setupSection4) */
+        .setup-content-wrapper-no-glass {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: 60px;
+            align-items: start;
+            margin: 60px auto 0;
+            padding: 50px 60px;
+            background: transparent;
+            border: none;
+            box-shadow: none;
+            border-radius: 0;
+            position: relative;
+            max-width: 1200px;
+            width: 100%;
+            box-sizing: border-box;
+            min-height: 629px;
+            z-index: 0;
+        }
+
+        .setup-content-wrapper-no-glass::before {
+            display: none;
+        }
+
+        /* Modern Bullet List (Green Circular Icons) */
+        .modern-bullet-list {
+            list-style: none;
+            padding: 0;
+            margin: 30px 0;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .modern-bullet-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            color: rgba(255, 255, 255, 0.9);
+            font-size: 18px;
+            line-height: 1.6;
+        }
+
+        .bullet-icon {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #4ade80;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* Modern CTA Button (Green) */
+        .modern-cta-button {
+            padding: 14px 32px;
+            border-radius: 12px;
+            background: #4ade80;
+            border: none;
+            color: white;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(74, 222, 128, 0.3);
+        }
+
+        .modern-cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(74, 222, 128, 0.5);
+            background: #22c55e;
+        }
+
+        .modern-cta-button:active {
+            transform: translateY(0);
+        }
+
         .setup-image-container {
             display: flex;
             align-items: center;
@@ -1355,9 +1435,13 @@
 
         /* Hide legacy duplicate sections (used only as visual reference) */
         #setupSection2,
-        #setupSection3,
-        #setupSection4 {
+        #setupSection3 {
             display: none;
+        }
+
+        /* Show setupSection4 with new design */
+        #setupSection4 {
+            display: block;
         }
 
         .keepsake-item {
@@ -2761,29 +2845,33 @@
 
         <!-- Live Song Queue Section -->
         <div class="keepsake-section setup-section-4" id="setupSection4">
-            <div class="setup-content-wrapper">
+            <div class="setup-content-wrapper-no-glass">
                 <div class="setup-image-container">
-                    <img src="/img/live-queue-screenshot.png" alt="Live Queue Screenshot" style="width: 100%; height: auto; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);">
+                    <img src="/img/live-queue-screenshot.png" alt="Live Queue Screenshot" style="width: 100%; height: auto; border-radius: 16px;">
                 </div>
                 <div class="setup-content-container">
                     <h2 style="color: white; font-size: 48px; margin-bottom: 20px; font-weight: 900;">Live Song Queue</h2>
                     <p style="color: rgba(255, 255, 255, 0.8); font-size: 20px; line-height: 1.5; margin-bottom: 30px;">
                         Songs play automatically in the order they're requested, creating a smooth, hands-off music flow.
                     </p>
-                    <div class="setup-checklist">
-                        <div class="checklist-item">
-                            <div class="checklist-number">1</div>
-                            <div class="checklist-text">Songs generate and enter the queue</div>
-                        </div>
-                        <div class="checklist-item">
-                            <div class="checklist-number">2</div>
-                            <div class="checklist-text">Playback starts when each song reaches its turn</div>
-                        </div>
-                        <div class="checklist-item">
-                            <div class="checklist-number">3</div>
-                            <div class="checklist-text">Staff can monitor or manage the queue live</div>
-                        </div>
-                    </div>
+                    <ul class="modern-bullet-list">
+                        <li>
+                            <span class="bullet-icon"></span>
+                            <span>Songs generate and enter the queue</span>
+                        </li>
+                        <li>
+                            <span class="bullet-icon"></span>
+                            <span>Playback starts when each song reaches its turn</span>
+                        </li>
+                        <li>
+                            <span class="bullet-icon"></span>
+                            <span>Staff can monitor or manage the queue live</span>
+                        </li>
+                    </ul>
+                    <button class="modern-cta-button" onclick="window.location.href='/signup'">
+                        <span style="margin-right: 8px;">♪</span>
+                        Start Your Queue
+                    </button>
                 </div>
             </div>
             <div class="setup-navigation-wrapper">
