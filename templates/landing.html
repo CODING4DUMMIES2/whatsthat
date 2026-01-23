@@ -20,29 +20,7 @@
             overflow-x: hidden;
         }
 
-        /* Content Background GIF (below hero) */
-        .content-background-wrapper {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            z-index: -2;
-            pointer-events: none;
-            overflow: hidden;
-        }
-
-        .content-background-wrapper img {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.3;
-            transform: translate(-48.5%, -50%) scale(1);
-            animation: slowGif 3s ease-in-out infinite;
-        }
+        /* Content Background GIF - Removed, now only in hero */
 
         @keyframes slowGif {
             0%, 100% {
@@ -191,27 +169,58 @@
             box-shadow: 0 6px 20px rgba(255, 20, 147, 0.5);
         }
 
-        /* Hero Section */
+        /* Hero Section - Two Column Layout */
         .hero {
-            text-align: center;
             padding: 80px 20px;
             margin-bottom: 100px;
             min-height: 700px;
-            display: flex;
-            flex-direction: column;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
             align-items: center;
-            justify-content: center;
             position: relative;
-            overflow: visible;
+            overflow: hidden;
             background: transparent;
-            width: 100vw;
-            margin-left: calc(-50vw + 50%);
-            margin-right: calc(-50vw + 50%);
+            max-width: 1200px;
+            margin-left: auto;
+            margin-right: auto;
+            width: 100%;
+        }
+
+        /* Hero Background GIF - Only in hero section */
+        .hero-background-wrapper {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .hero-background-wrapper img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 120%;
+            height: 120%;
+            object-fit: cover;
+            opacity: 0.3;
+            transform: translate(-50%, -50%);
+            animation: slowGif 3s ease-in-out infinite;
         }
 
         .hero > * {
             position: relative;
             z-index: 1;
+        }
+
+        /* Left Column - Text Content */
+        .hero-content-left {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
 
         .hero-headline {
@@ -220,24 +229,36 @@
             margin-bottom: 30px;
             line-height: 1.2;
             color: white;
+            text-align: left;
         }
 
         .hero-subtitle {
             font-size: 20px;
             color: rgba(255, 255, 255, 0.7);
-            max-width: 800px;
-            margin: 0 auto 20px;
+            margin-bottom: 20px;
             line-height: 1.6;
             font-weight: 400;
+            text-align: left;
         }
 
         .hero-outcome {
             font-size: 18px;
             color: rgba(255, 255, 255, 0.85);
-            max-width: 760px;
-            margin: 0 auto 50px;
+            margin-bottom: 0;
             line-height: 1.6;
             font-weight: 500;
+            text-align: left;
+        }
+
+        /* Right Column - Form Card */
+        .hero-form-card {
+            background: white;
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            max-width: 500px;
+            width: 100%;
+            margin-left: auto;
         }
 
         .hero-input-container {
@@ -2400,8 +2421,29 @@
                 font-size: 14px;
             }
 
+            .hero {
+                grid-template-columns: 1fr;
+                gap: 40px;
+                padding: 60px 20px;
+            }
+
+            .hero-content-left {
+                text-align: center;
+            }
+
             .hero-headline {
                 font-size: 36px;
+                text-align: center;
+            }
+
+            .hero-subtitle,
+            .hero-outcome {
+                text-align: center;
+            }
+
+            .hero-form-card {
+                margin: 0 auto;
+                max-width: 100%;
             }
 
             .hero-input-container {
@@ -2541,58 +2583,66 @@
     <div class="container">
         <!-- Hero Section -->
         <div class="hero">
-                <h1 class="hero-headline">Turn Tables Into Live Music Experiences.</h1>
-            <p class="hero-subtitle">
-                Try it with your venue name and see how guests create songs in real time.
-            </p>
-            <p class="hero-outcome">
-                Keep guests at their tables longer. Increase drink orders. Create moments people record and share.
-            </p>
+            <div class="hero-background-wrapper">
+                <img src="/img/background.gif" alt="Background animation">
+            </div>
             
-            <div class="frosted-glass" style="max-width: 500px; margin: 30px auto 0; padding: 40px;">
-                <h2 style="font-size: 32px; margin-bottom: 10px; color: white; font-weight: 900; text-align: center;">Let's Set This Up for Your Venue</h2>
-                <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 30px; font-size: 16px; text-align: center;">We'll send your QR kit and demo link.</p>
+            <!-- Left Column - Text Content -->
+            <div class="hero-content-left">
+                <h1 class="hero-headline">Turn Tables Into Live Music Experiences.</h1>
+                <p class="hero-subtitle">
+                    Try it with your venue name and see how guests create songs in real time.
+                </p>
+                <p class="hero-outcome">
+                    Keep guests at their tables longer. Increase drink orders. Create moments people record and share.
+                </p>
+            </div>
+            
+            <!-- Right Column - Form Card -->
+            <div class="hero-form-card">
+                <h2 style="font-size: 32px; margin-bottom: 10px; color: #1A1C1E; font-weight: 900; text-align: center;">Let's Set This Up for Your Venue</h2>
+                <p style="color: #666; margin-bottom: 30px; font-size: 16px; text-align: center;">We'll send your QR kit and demo link.</p>
             
                 <form id="demoForm" onsubmit="generateDemo(event)">
                     <div style="margin-bottom: 20px;">
-                        <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">Venue name *</label>
+                        <label style="display: block; color: #1A1C1E; margin-bottom: 8px; font-weight: 600;">Venue name *</label>
                         <input 
                             type="text" 
                             id="venueNameInput" 
                             required 
                             placeholder="The Bar"
-                            style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none;"
+                            style="width: 100%; padding: 14px 16px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 8px; color: #1A1C1E; font-size: 16px; outline: none; box-sizing: border-box;"
                         />
-                            </div>
+                    </div>
                     
                     <div style="margin-bottom: 20px;">
-                        <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">City *</label>
+                        <label style="display: block; color: #1A1C1E; margin-bottom: 8px; font-weight: 600;">City *</label>
                         <input 
                             type="text" 
                             id="cityInput" 
                             required 
                             placeholder="Austin, TX"
-                            style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none;"
+                            style="width: 100%; padding: 14px 16px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 8px; color: #1A1C1E; font-size: 16px; outline: none; box-sizing: border-box;"
                         />
-                        </div>
+                    </div>
                     
                     <div style="margin-bottom: 20px;">
-                        <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">Business email *</label>
+                        <label style="display: block; color: #1A1C1E; margin-bottom: 8px; font-weight: 600;">Business email *</label>
                         <input 
                             type="email" 
                             id="businessEmailInput" 
                             required 
                             placeholder="owner@venue.com"
-                            style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none;"
+                            style="width: 100%; padding: 14px 16px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 8px; color: #1A1C1E; font-size: 16px; outline: none; box-sizing: border-box;"
                         />
-                </div>
+                    </div>
                 
                     <button type="submit" class="cta-button" style="width: 100%; padding: 16px; font-size: 18px;">
                         Generate My Venue Demo
                     </button>
                 </form>
-                </div>
             </div>
+        </div>
             
         <!-- Demo Experience Section -->
         <div id="demoExperience" style="display: none; margin-top: 80px; margin-bottom: 100px;">
@@ -2651,10 +2701,6 @@
             </div>
         </div>
 
-        <!-- Content Background Wrapper -->
-        <div class="content-background-wrapper">
-            <img src="/img/background.gif" alt="Background animation">
-        </div>
 
         <!-- How It Works -->
         <div class="how-it-works animate-on-scroll">
