@@ -671,12 +671,16 @@ The whatsthat Team
         msg.attach(part1)
         msg.attach(part2)
         
+        # Remove spaces from password (Gmail App Passwords shouldn't have spaces)
+        smtp_password_clean = SMTP_PASSWORD.replace(' ', '')
+        print(f"   Password length: {len(smtp_password_clean)} characters (after removing spaces)")
+        
         print(f"   Connecting to SMTP server...")
         server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
         print(f"   Starting TLS...")
         server.starttls()
-        print(f"   Logging in...")
-        server.login(SMTP_EMAIL, SMTP_PASSWORD)
+        print(f"   Logging in with email: {SMTP_EMAIL}")
+        server.login(SMTP_EMAIL, smtp_password_clean)
         print(f"   Sending message...")
         server.send_message(msg)
         print(f"   Closing connection...")
