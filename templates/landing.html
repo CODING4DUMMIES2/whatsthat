@@ -987,23 +987,28 @@
             transform: translateY(0);
         }
 
-        /* Moments Section - simple wrapper */
+        /* Moments Section - full viewport width wrapper */
         .moments-section {
-            margin: 120px auto 140px;
-            max-width: 1200px;
-            padding: 0 20px;
+            margin: 120px 0 140px 0;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+            padding: 0;
         }
 
         /* Parallax Container / Window Wrapper */
         .moments-parallax-container {
             border-radius: 20px;
             overflow: hidden; /* CARD IS THE WINDOW */
+            max-width: 100%;
+            width: 100%;
         }
 
         /* Feature Card - FULL WIDTH WINDOW WITH BACKGROUND IMAGE */
         .moments-feature-card {
             width: 100%;
-            padding: 60px 50px;
+            max-width: 100%;
+            padding: 60px 100px;
             border-radius: 20px;
             background-image: url('/img/venues-background.png');
             background-size: cover;
