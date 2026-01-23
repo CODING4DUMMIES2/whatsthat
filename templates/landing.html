@@ -1184,7 +1184,7 @@
             display: none;
         }
 
-        /* Modern Bullet List (Green Circular Icons) */
+        /* Modern Bullet List (Pink-to-Purple Circular Icons) */
         .modern-bullet-list {
             list-style: none;
             padding: 0;
@@ -1207,16 +1207,16 @@
             width: 24px;
             height: 24px;
             border-radius: 50%;
-            background: #4ade80;
+            background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%);
             flex-shrink: 0;
             margin-top: 2px;
         }
 
-        /* Modern CTA Button (Green) */
+        /* Modern CTA Button (Pink-to-Purple Gradient) */
         .modern-cta-button {
             padding: 14px 32px;
             border-radius: 12px;
-            background: #4ade80;
+            background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%);
             border: none;
             color: white;
             font-size: 18px;
@@ -1227,13 +1227,13 @@
             justify-content: center;
             margin-top: 20px;
             transition: all 0.3s ease;
-            box-shadow: 0 4px 15px rgba(74, 222, 128, 0.3);
+            box-shadow: 0 4px 15px rgba(255, 20, 147, 0.4);
         }
 
         .modern-cta-button:hover {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(74, 222, 128, 0.5);
-            background: #22c55e;
+            box-shadow: 0 6px 20px rgba(255, 20, 147, 0.6);
+            background: linear-gradient(135deg, #FF69B4 0%, #9370DB 100%);
         }
 
         .modern-cta-button:active {
@@ -1433,15 +1433,46 @@
             position: relative;
         }
 
-        /* Hide legacy duplicate sections (used only as visual reference) */
+        /* Show all setup sections with staggered layout */
+        #setupSection1,
         #setupSection2,
-        #setupSection3 {
-            display: none;
-        }
-
-        /* Show setupSection4 with new design */
+        #setupSection3,
         #setupSection4 {
             display: block;
+        }
+
+        /* Staggered layout - alternating image/text positions */
+        #setupSection1 .setup-content-wrapper-no-glass {
+            grid-template-columns: 1.2fr 1fr; /* image left, text right */
+        }
+
+        #setupSection2 .setup-content-wrapper-no-glass {
+            grid-template-columns: 1fr 1.2fr; /* text left, image right */
+        }
+
+        #setupSection3 .setup-content-wrapper-no-glass {
+            grid-template-columns: 1.2fr 1fr; /* image left, text right */
+        }
+
+        #setupSection4 .setup-content-wrapper-no-glass {
+            grid-template-columns: 1fr 1.2fr; /* text left, image right */
+        }
+
+        /* Reverse order for alternating sections */
+        #setupSection2 .setup-content-wrapper-no-glass .setup-image-container {
+            order: 2;
+        }
+
+        #setupSection2 .setup-content-wrapper-no-glass .setup-content-container {
+            order: 1;
+        }
+
+        #setupSection4 .setup-content-wrapper-no-glass .setup-image-container {
+            order: 2;
+        }
+
+        #setupSection4 .setup-content-wrapper-no-glass .setup-content-container {
+            order: 1;
         }
 
         .keepsake-item {
@@ -2720,125 +2751,99 @@
         <div class="setup-sections-container">
         <!-- Create Your Venue Section -->
         <div class="keepsake-section setup-section-1" id="setupSection1">
-            <div class="setup-content-wrapper">
+            <div class="setup-content-wrapper-no-glass">
                 <div class="setup-image-container">
-                    <img src="/img/setup-screenshot.png" alt="Setup Screenshot" style="width: 100%; height: auto; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);">
-                    </div>
+                    <img src="/img/setup-screenshot.png" alt="Setup Screenshot" style="width: 100%; height: auto; border-radius: 16px;">
+                </div>
                 <div class="setup-content-container">
                     <h2 style="color: white; font-size: 48px; margin-bottom: 20px; font-weight: 900;">Create Your Venue</h2>
                     <p style="color: rgba(255, 255, 255, 0.8); font-size: 20px; line-height: 1.5; margin-bottom: 30px;">
                         Set up your venue, define your tables, and generate QR codes guests will use to request songs.
                     </p>
-                    <div class="setup-checklist">
-                        <div class="checklist-item">
-                            <div class="checklist-number">1</div>
-                            <div class="checklist-text">Enter your venue name</div>
+                    <ul class="modern-bullet-list">
+                        <li>
+                            <span class="bullet-icon"></span>
+                            <span>Enter your venue name</span>
+                        </li>
+                        <li>
+                            <span class="bullet-icon"></span>
+                            <span>Set how many tables you need</span>
+                        </li>
+                        <li>
+                            <span class="bullet-icon"></span>
+                            <span>Generate printable QR codes</span>
+                        </li>
+                    </ul>
+                    <button class="modern-cta-button" onclick="window.location.href='/signup'">
+                        <span style="margin-right: 8px;">♪</span>
+                        Create Your Venue
+                    </button>
                 </div>
-                        <div class="checklist-item">
-                            <div class="checklist-number">2</div>
-                            <div class="checklist-text">Set how many tables you need</div>
             </div>
-                        <div class="checklist-item">
-                            <div class="checklist-number">3</div>
-                            <div class="checklist-text">Generate printable QR codes</div>
         </div>
-                    </div>
-                    <div class="setup-navigation-wrapper">
-                        <div class="setup-navigation">
-                            <div class="setup-back-button">
-                                <button onclick="scrollToPreviousSetup()" aria-label="Previous step">Prev</button>
-                    </div>
-                            <div class="setup-next-button">
-                                <button onclick="scrollToNextSetup()" aria-label="Next step">Next →</button>
-                </div>
-                            <div class="setup-download-button">
-                                <button onclick="downloadSetupGuide()" aria-label="Download Setup Guide">Download Setup Guide</button>
-                        </div>
-                    </div>
-                    </div>
-                </div>
-                    </div>
 
         <!-- Set Your Music Rules Section -->
         <div class="keepsake-section setup-section-2" id="setupSection2">
-            <div class="setup-content-wrapper">
-                <div class="setup-image-container">
-                    <img src="/img/settings-screenshot.png" alt="Settings Screenshot" style="width: 100%; height: auto; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);">
-                        </div>
+            <div class="setup-content-wrapper-no-glass">
                 <div class="setup-content-container">
                     <h2 style="color: white; font-size: 48px; margin-bottom: 20px; font-weight: 900;">Set Your Music Rules</h2>
                     <p style="color: rgba(255, 255, 255, 0.8); font-size: 20px; line-height: 1.5; margin-bottom: 30px;">
                         Choose which genres guests can request and control whether lyrics stay clean or explicit.
                     </p>
-                    <div class="setup-checklist">
-                        <div class="checklist-item">
-                            <div class="checklist-number">1</div>
-                            <div class="checklist-text">Select allowed music genres</div>
-                        </div>
-                        <div class="checklist-item">
-                            <div class="checklist-number">2</div>
-                            <div class="checklist-text">Set explicit or non-explicit lyrics</div>
-                        </div>
-                        <div class="checklist-item">
-                            <div class="checklist-number">3</div>
-                            <div class="checklist-text">Save your venue settings</div>
-                    </div>
+                    <ul class="modern-bullet-list">
+                        <li>
+                            <span class="bullet-icon"></span>
+                            <span>Select allowed music genres</span>
+                        </li>
+                        <li>
+                            <span class="bullet-icon"></span>
+                            <span>Set explicit or non-explicit lyrics</span>
+                        </li>
+                        <li>
+                            <span class="bullet-icon"></span>
+                            <span>Save your venue settings</span>
+                        </li>
+                    </ul>
+                    <button class="modern-cta-button" onclick="window.location.href='/signup'">
+                        <span style="margin-right: 8px;">♪</span>
+                        Configure Settings
+                    </button>
                 </div>
-                        </div>
-                    </div>
-            <div class="setup-navigation-wrapper">
-                <div class="setup-navigation">
-                    <div class="setup-back-button">
-                        <button onclick="scrollToSetupSection1()" aria-label="Previous step">← Previous</button>
-                    </div>
-                    <div class="setup-next-button">
-                        <button onclick="scrollToSetupSection3()" aria-label="Next step">Next →</button>
-                    </div>
-                    <div class="setup-download-button">
-                        <button onclick="downloadSetupGuide()" aria-label="Download Setup Guide">Download Setup Guide</button>
-                    </div>
+                <div class="setup-image-container">
+                    <img src="/img/settings-screenshot.png" alt="Settings Screenshot" style="width: 100%; height: auto; border-radius: 16px;">
                 </div>
             </div>
         </div>
 
         <!-- Guests Request a Song Section -->
         <div class="keepsake-section setup-section-3" id="setupSection3">
-            <div class="setup-content-wrapper">
+            <div class="setup-content-wrapper-no-glass">
                 <div class="setup-image-container">
-                    <img src="/img/guest-request-screenshot.png" alt="Guest Request Screenshot" style="width: 100%; height: auto; border-radius: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.3);">
+                    <img src="/img/guest-request-screenshot.png" alt="Guest Request Screenshot" style="width: 100%; height: auto; border-radius: 16px;">
                 </div>
                 <div class="setup-content-container">
                     <h2 style="color: white; font-size: 48px; margin-bottom: 20px; font-weight: 900;">Guests Request a Song</h2>
                     <p style="color: rgba(255, 255, 255, 0.8); font-size: 20px; line-height: 1.5; margin-bottom: 30px;">
                         Guests describe the song they want to hear, and a custom, original track is created for your venue.
                     </p>
-                    <div class="setup-checklist">
-                        <div class="checklist-item">
-                            <div class="checklist-number">1</div>
-                            <div class="checklist-text">Describe the song idea or moment</div>
-                </div>
-                        <div class="checklist-item">
-                            <div class="checklist-number">2</div>
-                            <div class="checklist-text">Optionally select a genre (if enabled)</div>
-                </div>
-                        <div class="checklist-item">
-                            <div class="checklist-number">3</div>
-                            <div class="checklist-text">Submit the request to the live queue</div>
-            </div>
-                    </div>
-                </div>
-            </div>
-            <div class="setup-navigation-wrapper">
-                <div class="setup-navigation">
-                    <div class="setup-back-button">
-                        <button onclick="scrollToSetupSection2()" aria-label="Previous step">← Previous</button>
-                    </div>
-                    <div class="setup-next-button">
-                        <button onclick="scrollToSetupSection4()" aria-label="Next step">Next →</button>
-                    </div>
-                    <div class="setup-download-button">
-                        <button onclick="downloadSetupGuide()" aria-label="Download Setup Guide">Download Setup Guide</button>
-                    </div>
+                    <ul class="modern-bullet-list">
+                        <li>
+                            <span class="bullet-icon"></span>
+                            <span>Describe the song idea or moment</span>
+                        </li>
+                        <li>
+                            <span class="bullet-icon"></span>
+                            <span>Optionally select a genre (if enabled)</span>
+                        </li>
+                        <li>
+                            <span class="bullet-icon"></span>
+                            <span>Submit the request to the live queue</span>
+                        </li>
+                    </ul>
+                    <button class="modern-cta-button" onclick="window.location.href='/signup'">
+                        <span style="margin-right: 8px;">♪</span>
+                        Start Requesting Songs
+                    </button>
                 </div>
             </div>
         </div>
@@ -2846,9 +2851,6 @@
         <!-- Live Song Queue Section -->
         <div class="keepsake-section setup-section-4" id="setupSection4">
             <div class="setup-content-wrapper-no-glass">
-                <div class="setup-image-container">
-                    <img src="/img/live-queue-screenshot.png" alt="Live Queue Screenshot" style="width: 100%; height: auto; border-radius: 16px;">
-                </div>
                 <div class="setup-content-container">
                     <h2 style="color: white; font-size: 48px; margin-bottom: 20px; font-weight: 900;">Live Song Queue</h2>
                     <p style="color: rgba(255, 255, 255, 0.8); font-size: 20px; line-height: 1.5; margin-bottom: 30px;">
@@ -2873,15 +2875,8 @@
                         Start Your Queue
                     </button>
                 </div>
-            </div>
-            <div class="setup-navigation-wrapper">
-                <div class="setup-navigation">
-                    <div class="setup-back-button">
-                        <button onclick="scrollToSetupSection3()" aria-label="Previous step">← Previous</button>
-                    </div>
-                    <div class="setup-download-button">
-                        <button onclick="downloadSetupGuide()" aria-label="Download Setup Guide">Download Setup Guide</button>
-                    </div>
+                <div class="setup-image-container">
+                    <img src="/img/live-queue-screenshot.png" alt="Live Queue Screenshot" style="width: 100%; height: auto; border-radius: 16px;">
                 </div>
             </div>
         </div>
