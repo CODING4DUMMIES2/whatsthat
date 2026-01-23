@@ -169,25 +169,29 @@
             box-shadow: 0 6px 20px rgba(255, 20, 147, 0.5);
         }
 
-        /* Hero Section - Two Column Layout */
+        /* Hero Section - Large Horizontal Card */
         .hero {
             padding: 80px 20px;
             margin-bottom: 100px;
-            min-height: 700px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 60px;
+            display: flex;
+            justify-content: center;
             align-items: center;
+            position: relative;
+        }
+
+        /* Large Horizontal Card Container */
+        .hero-card-container {
+            width: 100%;
+            max-width: 1400px;
+            min-height: 600px;
+            border-radius: 32px;
             position: relative;
             overflow: hidden;
             background: transparent;
-            max-width: 1200px;
-            margin-left: auto;
-            margin-right: auto;
-            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
-        /* Hero Background GIF - Only in hero section */
+        /* GIF Background - Only inside the card */
         .hero-background-wrapper {
             position: absolute;
             top: 0;
@@ -197,6 +201,7 @@
             z-index: 0;
             pointer-events: none;
             overflow: hidden;
+            border-radius: 32px;
         }
 
         .hero-background-wrapper img {
@@ -211,9 +216,16 @@
             animation: slowGif 3s ease-in-out infinite;
         }
 
-        .hero > * {
+        /* Content inside card - Two Column Layout */
+        .hero-card-content {
             position: relative;
             z-index: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 60px;
+            align-items: center;
+            padding: 60px;
+            min-height: 600px;
         }
 
         /* Left Column - Text Content */
@@ -2448,10 +2460,15 @@
                 font-size: 14px;
             }
 
-            .hero {
+            .hero-card-container {
+                max-width: 100%;
+                border-radius: 24px;
+            }
+
+            .hero-card-content {
                 grid-template-columns: 1fr;
                 gap: 40px;
-                padding: 60px 20px;
+                padding: 40px 20px;
             }
 
             .hero-content-left {
@@ -2610,64 +2627,70 @@
     <div class="container">
         <!-- Hero Section -->
         <div class="hero">
-            <div class="hero-background-wrapper">
-                <img src="/img/background.gif" alt="Background animation">
-            </div>
-            
-            <!-- Left Column - Text Content -->
-            <div class="hero-content-left">
-                <h1 class="hero-headline">Turn Tables Into Live Music Experiences.</h1>
-                <p class="hero-subtitle">
-                    Try it with your venue name and see how guests create songs in real time.
-                </p>
-                <p class="hero-outcome">
-                    Keep guests at their tables longer. Increase drink orders. Create moments people record and share.
-                </p>
-            </div>
-            
-            <!-- Right Column - Form Card -->
-            <div class="hero-form-card">
-                <h2 style="font-size: 32px; margin-bottom: 10px; color: white; font-weight: 900; text-align: center;">Let's Set This Up for Your Venue</h2>
-                <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 30px; font-size: 16px; text-align: center;">We'll send your QR kit and demo link.</p>
-            
-                <form id="demoForm" onsubmit="generateDemo(event)">
-                    <div style="margin-bottom: 20px;">
-                        <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">Venue name *</label>
-                        <input 
-                            type="text" 
-                            id="venueNameInput" 
-                            required 
-                            placeholder="The Bar"
-                            style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none; box-sizing: border-box;"
-                        />
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">City *</label>
-                        <input 
-                            type="text" 
-                            id="cityInput" 
-                            required 
-                            placeholder="Austin, TX"
-                            style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none; box-sizing: border-box;"
-                        />
-                    </div>
-                    
-                    <div style="margin-bottom: 20px;">
-                        <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">Business email *</label>
-                        <input 
-                            type="email" 
-                            id="businessEmailInput" 
-                            required 
-                            placeholder="owner@venue.com"
-                            style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none; box-sizing: border-box;"
-                        />
-                    </div>
+            <div class="hero-card-container">
+                <!-- GIF Background - Only inside the card -->
+                <div class="hero-background-wrapper">
+                    <img src="/img/background.gif" alt="Background animation">
+                </div>
                 
-                    <button type="submit" class="cta-button" style="width: 100%; padding: 16px; font-size: 18px;">
-                        Generate My Venue Demo
-                    </button>
-                </form>
+                <!-- Content inside card - Two Column Layout -->
+                <div class="hero-card-content">
+                    <!-- Left Column - Text Content -->
+                    <div class="hero-content-left">
+                        <h1 class="hero-headline">Turn Tables Into Live Music Experiences.</h1>
+                        <p class="hero-subtitle">
+                            Try it with your venue name and see how guests create songs in real time.
+                        </p>
+                        <p class="hero-outcome">
+                            Keep guests at their tables longer. Increase drink orders. Create moments people record and share.
+                        </p>
+                    </div>
+                    
+                    <!-- Right Column - Form Card -->
+                    <div class="hero-form-card">
+                        <h2 style="font-size: 32px; margin-bottom: 10px; color: white; font-weight: 900; text-align: center;">Let's Set This Up for Your Venue</h2>
+                        <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 30px; font-size: 16px; text-align: center;">We'll send your QR kit and demo link.</p>
+                    
+                        <form id="demoForm" onsubmit="generateDemo(event)">
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">Venue name *</label>
+                                <input 
+                                    type="text" 
+                                    id="venueNameInput" 
+                                    required 
+                                    placeholder="The Bar"
+                                    style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none; box-sizing: border-box;"
+                                />
+                            </div>
+                            
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">City *</label>
+                                <input 
+                                    type="text" 
+                                    id="cityInput" 
+                                    required 
+                                    placeholder="Austin, TX"
+                                    style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none; box-sizing: border-box;"
+                                />
+                            </div>
+                            
+                            <div style="margin-bottom: 20px;">
+                                <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">Business email *</label>
+                                <input 
+                                    type="email" 
+                                    id="businessEmailInput" 
+                                    required 
+                                    placeholder="owner@venue.com"
+                                    style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none; box-sizing: border-box;"
+                                />
+                            </div>
+                        
+                            <button type="submit" class="cta-button" style="width: 100%; padding: 16px; font-size: 18px;">
+                                Generate My Venue Demo
+                            </button>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
             
