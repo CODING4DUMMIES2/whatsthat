@@ -1056,7 +1056,8 @@
             position: relative;
             z-index: 2;
             /* Window effect - background visible through this card only, no glass */
-            /* Text is locked to this card and moves with it */
+            /* Text is locked to this card and moves with it - card scrolls normally */
+            transform: translateZ(0); /* Force hardware acceleration */
         }
 
         .moments-feature-card h2 {
@@ -1067,7 +1068,8 @@
             color: white;
             position: relative;
             z-index: 3;
-            /* Text moves with card - no fixed positioning */
+            /* Text is inside card, moves with card on scroll */
+            transform: translateZ(0);
         }
 
         .moments-feature-subtitle {
@@ -1077,7 +1079,8 @@
             margin-top: 10px;
             position: relative;
             z-index: 3;
-            /* Text moves with card - no fixed positioning */
+            /* Text is inside card, moves with card on scroll */
+            transform: translateZ(0);
         }
 
         .moments-features {
@@ -1089,7 +1092,8 @@
             gap: 18px;
             position: relative;
             z-index: 3;
-            /* Text moves with card - no fixed positioning */
+            /* Text is inside card, moves with card on scroll */
+            transform: translateZ(0);
         }
 
         .moments-features li {
@@ -1100,7 +1104,8 @@
             font-weight: 600;
             line-height: 1.6;
             z-index: 3;
-            /* Text moves with card - no fixed positioning */
+            /* Text is inside card, moves with card on scroll */
+            transform: translateZ(0);
         }
 
         .moments-features li::before {
