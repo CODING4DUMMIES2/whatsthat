@@ -600,11 +600,20 @@ def save_verification_tokens(tokens):
 def send_verification_email(email, token, name):
     """Send verification email using SMTP"""
     try:
+        print(f"📧 [EMAIL] Attempting to send verification email to {email}")
+        print(f"   SMTP_SERVER: {SMTP_SERVER}")
+        print(f"   SMTP_PORT: {SMTP_PORT}")
+        print(f"   SMTP_EMAIL configured: {'Yes' if SMTP_EMAIL else 'No'}")
+        print(f"   SMTP_PASSWORD configured: {'Yes' if SMTP_PASSWORD else 'No'}")
+        print(f"   APP_BASE_URL: {APP_BASE_URL}")
+        
         if not SMTP_EMAIL or not SMTP_PASSWORD:
-            print(f"❌ SMTP credentials not configured")
+            error_msg = "SMTP credentials not configured. Please set SMTP_EMAIL and SMTP_PASSWORD environment variables."
+            print(f"❌ [EMAIL] {error_msg}")
             return False
         
         verification_url = f"{APP_BASE_URL}/verify-email?token={token}"
+        print(f"   Verification URL: {verification_url}")
         
         msg = MIMEMultipart('alternative')
         msg['Subject'] = 'Verify your whatsthat account'
@@ -662,16 +671,34 @@ The whatsthat Team
         msg.attach(part1)
         msg.attach(part2)
         
+        print(f"   Connecting to SMTP server...")
         server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        print(f"   Starting TLS...")
         server.starttls()
+        print(f"   Logging in...")
         server.login(SMTP_EMAIL, SMTP_PASSWORD)
+        print(f"   Sending message...")
         server.send_message(msg)
+        print(f"   Closing connection...")
         server.quit()
         
-        print(f"✅ Verification email sent to {email}")
+        print(f"✅ [EMAIL] Verification email sent successfully to {email}")
         return True
+    except smtplib.SMTPAuthenticationError as e:
+        error_msg = f"SMTP authentication failed. Check your SMTP_EMAIL and SMTP_PASSWORD. For Gmail, use an App Password, not your regular password. Error: {str(e)}"
+        print(f"❌ [EMAIL] {error_msg}")
+        import traceback
+        traceback.print_exc()
+        return False
+    except smtplib.SMTPException as e:
+        error_msg = f"SMTP error occurred: {str(e)}"
+        print(f"❌ [EMAIL] {error_msg}")
+        import traceback
+        traceback.print_exc()
+        return False
     except Exception as e:
-        print(f"❌ Error sending verification email: {e}")
+        error_msg = f"Unexpected error sending verification email: {str(e)}"
+        print(f"❌ [EMAIL] {error_msg}")
         import traceback
         traceback.print_exc()
         return False
