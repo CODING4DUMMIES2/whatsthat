@@ -101,17 +101,6 @@
             isolation: isolate;
         }
         
-        /* Ensure other sections are above the background */
-        .how-it-works,
-        .venue-control-section,
-        .keepsake-section,
-        .venue-types-section,
-        .setup-section,
-        .faq-section,
-        .cta-section {
-            position: relative;
-            z-index: 2;
-        }
 
         .hero {
             z-index: 0;
@@ -998,68 +987,29 @@
             transform: translateY(0);
         }
 
-        /* Background Image - Fixed, huge, but clipped to card only */
-        .moments-section::before {
-            content: '';
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw !important;
-            min-width: 100vw;
-            height: 200vh;
-            background-image: url('/img/venues-background.png');
-            background-size: cover;
-            background-position: center top;
-            background-repeat: no-repeat;
-            z-index: 0;
-            will-change: transform, clip-path;
-            /* Background moves slower than section scroll */
-            transform: translateY(var(--parallax-offset, 0));
-            /* Clip to only show through the card - EXACTLY matches card dimensions */
-            clip-path: polygon(var(--clip-path, 0% 0%, 0% 0%, 0% 0%, 0% 0%));
-            -webkit-clip-path: polygon(var(--clip-path, 0% 0%, 0% 0%, 0% 0%, 0% 0%));
-            transition: clip-path 0.1s linear;
-        }
-
-        /* Moments Section - Acts as window viewport */
+        /* Moments Section - simple wrapper */
         .moments-section {
-            position: relative;
-            width: 100vw;
-            margin-left: calc(-50vw + 50%);
-            margin-right: calc(-50vw + 50%);
-            min-height: 800px;
-            overflow: visible;
-            margin-top: 120px;
-            margin-bottom: 140px;
-            z-index: 1;
+            margin: 120px auto 140px;
+            max-width: 1200px;
+            padding: 0 20px;
         }
 
-        /* Parallax Container - Full width for card */
+        /* Parallax Container / Window Wrapper */
         .moments-parallax-container {
-            position: relative;
-            z-index: 1;
-            min-height: 800px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 80px 20px;
-            width: 100%;
-            max-width: 100%;
+            border-radius: 20px;
+            overflow: hidden; /* CARD IS THE WINDOW */
         }
 
-        /* Feature Card - Acts as the window, shows background through it - FULL WIDTH */
+        /* Feature Card - FULL WIDTH WINDOW WITH BACKGROUND IMAGE */
         .moments-feature-card {
             width: 100%;
-            max-width: 100%;
-            padding: 40px 50px;
+            padding: 60px 50px;
             border-radius: 20px;
-            background: transparent;
+            background-image: url('/img/venues-background.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed; /* window effect */
             position: relative;
-            z-index: 2;
-            /* Window effect - background visible through this card only, no glass */
-            /* Text is locked to this card and moves with it - card scrolls normally */
-            transform: translateZ(0); /* Force hardware acceleration */
-            /* Card dimensions define the window - clip-path matches this exactly */
             box-sizing: border-box;
         }
 
@@ -1069,10 +1019,6 @@
             margin-bottom: 16px;
             font-weight: 900;
             color: white;
-            position: relative;
-            z-index: 3;
-            /* Text is inside card, moves with card on scroll */
-            transform: translateZ(0);
         }
 
         .moments-feature-subtitle {
@@ -1080,10 +1026,6 @@
             color: rgba(255, 255, 255, 0.7);
             font-size: 16px;
             margin-top: 10px;
-            position: relative;
-            z-index: 3;
-            /* Text is inside card, moves with card on scroll */
-            transform: translateZ(0);
         }
 
         .moments-features {
@@ -1093,10 +1035,6 @@
             display: flex;
             flex-direction: column;
             gap: 18px;
-            position: relative;
-            z-index: 3;
-            /* Text is inside card, moves with card on scroll */
-            transform: translateZ(0);
         }
 
         .moments-features li {
@@ -1106,9 +1044,6 @@
             font-size: 18px;
             font-weight: 600;
             line-height: 1.6;
-            z-index: 3;
-            /* Text is inside card, moves with card on scroll */
-            transform: translateZ(0);
         }
 
         .moments-features li::before {
@@ -3744,67 +3679,6 @@
             }
         }
 
-        // Parallax Scroll Effect for Moments Section - Window Effect
-        function initParallaxEffect() {
-            const momentsSection = document.querySelector('.moments-section');
-            const card = document.querySelector('.moments-feature-card');
-            if (!momentsSection || !card) return;
-            
-            // Wait for layout to be ready
-            setTimeout(() => {
-                function updateParallax() {
-                    // Get fresh card dimensions every frame
-                    const cardRect = card.getBoundingClientRect();
-                    const sectionRect = momentsSection.getBoundingClientRect();
-                    const windowHeight = window.innerHeight;
-                    const sectionTop = sectionRect.top;
-                    
-                    // Calculate parallax offset
-                    const scrollRatio = (windowHeight - sectionTop) / (windowHeight + sectionRect.height);
-                    const translateY = scrollRatio * -30; // Background moves slower than section
-                    momentsSection.style.setProperty('--parallax-offset', `${translateY}%`);
-                    
-                    // Calculate clip-path to EXACTLY match the card dimensions
-                    // Use getBoundingClientRect for pixel-perfect measurements
-                    const cardTop = cardRect.top;
-                    const cardLeft = cardRect.left;
-                    const cardRight = cardRect.right;
-                    const cardBottom = cardRect.bottom;
-                    const viewportWidth = window.innerWidth;
-                    const viewportHeight = window.innerHeight;
-                    
-                    // Convert to percentages for clip-path - EXACT card dimensions
-                    const clipTopPercent = (cardTop / viewportHeight) * 100;
-                    const clipLeftPercent = (cardLeft / viewportWidth) * 100;
-                    const clipRightPercent = (cardRight / viewportWidth) * 100;
-                    const clipBottomPercent = (cardBottom / viewportHeight) * 100;
-                    
-                    // Create clip-path polygon matching EXACT card rectangle
-                    // Use high precision to ensure perfect match
-                    const clipPath = `${clipLeftPercent.toFixed(3)}% ${clipTopPercent.toFixed(3)}%, ${clipRightPercent.toFixed(3)}% ${clipTopPercent.toFixed(3)}%, ${clipRightPercent.toFixed(3)}% ${clipBottomPercent.toFixed(3)}%, ${clipLeftPercent.toFixed(3)}% ${clipBottomPercent.toFixed(3)}%`;
-                    
-                    momentsSection.style.setProperty('--clip-path', clipPath);
-                }
-
-                // Update on scroll and resize
-                window.addEventListener('scroll', updateParallax, { passive: true });
-                window.addEventListener('resize', updateParallax);
-                
-                // Use requestAnimationFrame for smooth, continuous updates
-                function smoothUpdate() {
-                    updateParallax();
-                    requestAnimationFrame(smoothUpdate);
-                }
-                smoothUpdate();
-                
-                // Also update when card position might change
-                const resizeObserver = new ResizeObserver(() => {
-                    updateParallax();
-                });
-                resizeObserver.observe(card);
-                resizeObserver.observe(momentsSection);
-            }, 100); // Small delay to ensure DOM is ready
-        }
 
         // Scroll Animation Observer
         function initScrollAnimations() {
@@ -3876,7 +3750,6 @@
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
                 initScrollAnimations();
-                initParallaxEffect();
                 // Init How It Works swiper
                 showHowItWorksStep(0);
                 initHowItWorksSwipe();
@@ -3885,7 +3758,6 @@
             });
         } else {
             initScrollAnimations();
-            initParallaxEffect();
             showHowItWorksStep(0);
             initHowItWorksSwipe();
             initBackgroundAudio();
