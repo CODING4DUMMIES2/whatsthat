@@ -96,9 +96,21 @@
             margin: 0 auto;
             padding: 0 20px;
             position: relative;
-            z-index: 0;
+            z-index: 1;
             padding-top: 80px;
             isolation: isolate;
+        }
+        
+        /* Ensure other sections are above the background */
+        .how-it-works,
+        .venue-control-section,
+        .keepsake-section,
+        .venue-types-section,
+        .setup-section,
+        .faq-section,
+        .cta-section {
+            position: relative;
+            z-index: 2;
         }
 
         .hero {
@@ -986,20 +998,7 @@
             transform: translateY(0);
         }
 
-        /* Moments Section - Parallax Window Effect */
-        .moments-section {
-            position: relative;
-            width: 100vw;
-            margin-left: calc(-50vw + 50%);
-            margin-right: calc(-50vw + 50%);
-            min-height: 800px;
-            overflow: hidden;
-            margin-top: 120px;
-            margin-bottom: 140px;
-            /* This section acts as a window */
-        }
-
-        /* Background Image - Fixed behind the section, spans full width */
+        /* Background Image - Fixed, spans full width, behind everything */
         .moments-section::before {
             content: '';
             position: fixed;
@@ -1007,18 +1006,31 @@
             left: 0;
             width: 100vw !important;
             min-width: 100vw;
-            height: 150vh;
+            height: 200vh;
             background-image: url('/img/venues-background.png');
             background-size: cover;
             background-position: center top;
             background-repeat: no-repeat;
-            z-index: 0;
+            z-index: -1;
             will-change: transform;
             /* Background moves slower than section scroll */
             transform: translateY(var(--parallax-offset, 0));
         }
 
-        /* Parallax Container - Acts as Window */
+        /* Moments Section - Acts as window viewport */
+        .moments-section {
+            position: relative;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+            min-height: 800px;
+            overflow: visible;
+            margin-top: 120px;
+            margin-bottom: 140px;
+            z-index: 1;
+        }
+
+        /* Parallax Container - Centers the window */
         .moments-parallax-container {
             position: relative;
             z-index: 1;
@@ -1029,15 +1041,17 @@
             padding: 80px 20px;
         }
 
+        /* Feature Card - Acts as the window, shows background through it */
         .moments-feature-card {
             max-width: 900px;
             padding: 40px 50px;
             border-radius: 20px;
-            background: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
             position: relative;
             z-index: 2;
+            /* Window effect - background visible through this card */
         }
 
         .moments-feature-card h2 {
