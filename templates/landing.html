@@ -986,13 +986,56 @@
             transform: translateY(0);
         }
 
-        /* Moments Section */
+        /* Moments Section - Parallax Window Effect */
+        .moments-section {
+            position: relative;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+            min-height: 600px;
+            overflow: hidden;
+            margin-top: 120px;
+            margin-bottom: 140px;
+        }
+
+        /* Background Image - Fixed for Parallax */
+        .moments-section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 200%;
+            background-image: url('C:\\Users\\DELL\\Downloads\\ChatGPT Image Jan 23, 2026, 09_40_37 PM.png');
+            background-size: cover;
+            background-position: center top;
+            background-repeat: no-repeat;
+            z-index: 0;
+            will-change: transform;
+            transform: translateY(var(--parallax-offset, 0));
+            transition: transform 0.1s ease-out;
+        }
+
+        /* Parallax Container - Acts as Window */
+        .moments-parallax-container {
+            position: relative;
+            z-index: 1;
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 80px 20px;
+        }
+
         .moments-feature-card {
             max-width: 900px;
-            /* Drop this section a bit lower on the page so it doesn't crowd the How It Works nav */
-            margin: 120px auto 140px;
             padding: 40px 50px;
             border-radius: 20px;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 2;
         }
 
         .moments-feature-card h2 {
@@ -2800,15 +2843,17 @@
                 </div>
 
         <!-- Built for Venues Section -->
-        <div class="moments-section animate-on-scroll" id="features">
-            <div class="frosted-glass moments-feature-card">
-                <h2>Built for Real Venues, Not Playlists</h2>
-                <p class="moments-feature-subtitle">The system is designed around how bars and restaurants actually run, not just play songs.</p>
-                <ul class="moments-features">
-                    <li>Works with your existing speakers, TVs, and streaming setup.</li>
-                    <li>Staff approval and safety controls keep the room on-brand and under control.</li>
-                    <li>One shared queue for the whole venue so the night feels organized, not chaotic.</li>
-                </ul>
+        <div class="moments-section" id="features">
+            <div class="moments-parallax-container">
+                <div class="moments-feature-card">
+                    <h2>Built for Real Venues, Not Playlists</h2>
+                    <p class="moments-feature-subtitle">The system is designed around how bars and restaurants actually run, not just play songs.</p>
+                    <ul class="moments-features">
+                        <li>Works with your existing speakers, TVs, and streaming setup.</li>
+                        <li>Staff approval and safety controls keep the room on-brand and under control.</li>
+                        <li>One shared queue for the whole venue so the night feels organized, not chaotic.</li>
+                    </ul>
+                </div>
             </div>
         </div>
 
@@ -3657,6 +3702,38 @@
             if (!isActive) {
                 faqItem.classList.add('active');
             }
+        }
+
+        // Parallax Scroll Effect for Moments Section
+        function initParallaxEffect() {
+            const momentsSection = document.querySelector('.moments-section');
+            if (!momentsSection) return;
+
+            const background = momentsSection.querySelector('::before') || momentsSection;
+            
+            function updateParallax() {
+                const rect = momentsSection.getBoundingClientRect();
+                const windowHeight = window.innerHeight;
+                const sectionTop = rect.top;
+                const sectionHeight = rect.height;
+                
+                // Calculate scroll progress (0 to 1 as section enters/exits viewport)
+                const scrollProgress = Math.max(0, Math.min(1, 
+                    (windowHeight - sectionTop) / (windowHeight + sectionHeight)
+                ));
+                
+                // Move background based on scroll (parallax effect)
+                // The background moves slower than the section, creating the window effect
+                const translateY = scrollProgress * -50; // Adjust speed here
+                
+                // Apply transform to the ::before pseudo-element via CSS variable
+                momentsSection.style.setProperty('--parallax-offset', `${translateY}%`);
+            }
+
+            // Update on scroll
+            window.addEventListener('scroll', updateParallax, { passive: true });
+            window.addEventListener('resize', updateParallax);
+            updateParallax(); // Initial call
         }
 
         // Scroll Animation Observer
