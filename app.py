@@ -2409,9 +2409,11 @@ def signup():
                 return render_template('signup.html', error=f'Failed to send verification email: {str(e)}')
             
             if not email_sent:
+                # Check logs for the actual error - it will be in server logs
+                error_msg = 'Failed to send verification email. Please check server logs for details. Common issues: Gmail App Password incorrect, 2FA not enabled, or email in spam folder.'
                 if request.is_json:
-                    return jsonify({'success': False, 'error': 'Failed to send verification email. Please check SMTP configuration.'}), 500
-                return render_template('signup.html', error='Failed to send verification email. Please check SMTP configuration.')
+                    return jsonify({'success': False, 'error': error_msg}), 500
+                return render_template('signup.html', error=error_msg)
             
             print(f"📧 Verification email sent to '{email}'")
             
