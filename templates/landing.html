@@ -998,7 +998,7 @@
             transform: translateY(0);
         }
 
-        /* Background Image - Fixed, spans full width, behind everything */
+        /* Background Image - Fixed, huge, but clipped to card only */
         .moments-section::before {
             content: '';
             position: fixed;
@@ -1011,10 +1011,13 @@
             background-size: cover;
             background-position: center top;
             background-repeat: no-repeat;
-            z-index: -1;
+            z-index: 0;
             will-change: transform;
             /* Background moves slower than section scroll */
             transform: translateY(var(--parallax-offset, 0));
+            /* Clip to only show through the card - will be set by JavaScript */
+            clip-path: polygon(var(--clip-path, 0% 0%, 0% 0%, 0% 0%, 0% 0%));
+            -webkit-clip-path: polygon(var(--clip-path, 0% 0%, 0% 0%, 0% 0%, 0% 0%));
         }
 
         /* Moments Section - Acts as window viewport */
@@ -1046,12 +1049,12 @@
             max-width: 900px;
             padding: 40px 50px;
             border-radius: 20px;
-            background: rgba(0, 0, 0, 0.3);
-            backdrop-filter: blur(5px);
-            -webkit-backdrop-filter: blur(5px);
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(3px);
+            -webkit-backdrop-filter: blur(3px);
             position: relative;
             z-index: 2;
-            /* Window effect - background visible through this card */
+            /* Window effect - background visible through this card only */
         }
 
         .moments-feature-card h2 {
