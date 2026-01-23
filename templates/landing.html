@@ -1052,12 +1052,10 @@
             max-width: 100%;
             padding: 40px 50px;
             border-radius: 20px;
-            background: rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(3px);
-            -webkit-backdrop-filter: blur(3px);
+            background: transparent;
             position: relative;
             z-index: 2;
-            /* Window effect - background visible through this card only */
+            /* Window effect - background visible through this card only, no glass */
         }
 
         .moments-feature-card h2 {
@@ -1066,6 +1064,8 @@
             margin-bottom: 16px;
             font-weight: 900;
             color: white;
+            position: relative;
+            z-index: 3;
         }
 
         .moments-feature-subtitle {
@@ -1073,6 +1073,8 @@
             color: rgba(255, 255, 255, 0.7);
             font-size: 16px;
             margin-top: 10px;
+            position: relative;
+            z-index: 3;
         }
 
         .moments-features {
@@ -1082,6 +1084,8 @@
             display: flex;
             flex-direction: column;
             gap: 18px;
+            position: relative;
+            z-index: 3;
         }
 
         .moments-features li {
@@ -1091,6 +1095,7 @@
             font-size: 18px;
             font-weight: 600;
             line-height: 1.6;
+            z-index: 3;
         }
 
         .moments-features li::before {
