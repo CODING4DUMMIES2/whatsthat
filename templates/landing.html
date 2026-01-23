@@ -3723,32 +3723,55 @@
         // Parallax Scroll Effect for Moments Section - Window Effect
         function initParallaxEffect() {
             const momentsSection = document.querySelector('.moments-section');
-            if (!momentsSection) return;
+            const card = document.querySelector('.moments-feature-card');
+            if (!momentsSection || !card) return;
             
             function updateParallax() {
-                const rect = momentsSection.getBoundingClientRect();
+                const sectionRect = momentsSection.getBoundingClientRect();
+                const cardRect = card.getBoundingClientRect();
                 const windowHeight = window.innerHeight;
-                const sectionTop = rect.top;
-                const sectionBottom = rect.bottom;
+                const sectionTop = sectionRect.top;
                 
-                // Calculate how much of the section is visible
-                const sectionVisibleTop = Math.max(0, windowHeight - sectionTop);
-                const sectionVisibleBottom = Math.max(0, sectionBottom);
-                const sectionVisible = Math.min(sectionVisibleTop, sectionVisibleBottom);
-                
-                // As section scrolls, background moves slower (parallax)
-                // This creates the "window" effect - section moves, revealing different parts of background
-                const scrollRatio = (windowHeight - sectionTop) / (windowHeight + rect.height);
+                // Calculate parallax offset
+                const scrollRatio = (windowHeight - sectionTop) / (windowHeight + sectionRect.height);
                 const translateY = scrollRatio * -30; // Background moves slower than section
-                
-                // Apply transform to the ::before pseudo-element via CSS variable
                 momentsSection.style.setProperty('--parallax-offset', `${translateY}%`);
+                
+                // Calculate clip-path to only show background through the card
+                // Get card position relative to viewport
+                const cardTop = cardRect.top;
+                const cardLeft = cardRect.left;
+                const cardWidth = cardRect.width;
+                const cardHeight = cardRect.height;
+                const viewportWidth = window.innerWidth;
+                const viewportHeight = window.innerHeight;
+                
+                // Convert to percentages for clip-path
+                const clipTop = (cardTop / viewportHeight) * 100;
+                const clipLeft = (cardLeft / viewportWidth) * 100;
+                const clipRight = ((cardLeft + cardWidth) / viewportWidth) * 100;
+                const clipBottom = ((cardTop + cardHeight) / viewportHeight) * 100;
+                
+                // Create clip-path polygon (rectangle matching card position)
+                // Add border-radius approximation (20px radius)
+                const radius = 20;
+                const radiusPercentX = (radius / viewportWidth) * 100;
+                const radiusPercentY = (radius / viewportHeight) * 100;
+                
+                // Simple rectangular clip (rounded corners are complex, using rectangle for now)
+                const clipPath = `${clipLeft}% ${clipTop}%, ${clipRight}% ${clipTop}%, ${clipRight}% ${clipBottom}%, ${clipLeft}% ${clipBottom}%`;
+                
+                momentsSection.style.setProperty('--clip-path', clipPath);
             }
 
-            // Update on scroll
+            // Update on scroll and resize
             window.addEventListener('scroll', updateParallax, { passive: true });
             window.addEventListener('resize', updateParallax);
             updateParallax(); // Initial call
+            
+            // Also update when card position might change
+            const resizeObserver = new ResizeObserver(updateParallax);
+            resizeObserver.observe(card);
         }
 
         // Scroll Animation Observer
