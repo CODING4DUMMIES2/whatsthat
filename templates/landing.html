@@ -1012,12 +1012,13 @@
             background-position: center top;
             background-repeat: no-repeat;
             z-index: 0;
-            will-change: transform;
+            will-change: transform, clip-path;
             /* Background moves slower than section scroll */
             transform: translateY(var(--parallax-offset, 0));
-            /* Clip to only show through the card - will be set by JavaScript */
+            /* Clip to only show through the card - EXACTLY matches card dimensions */
             clip-path: polygon(var(--clip-path, 0% 0%, 0% 0%, 0% 0%, 0% 0%));
             -webkit-clip-path: polygon(var(--clip-path, 0% 0%, 0% 0%, 0% 0%, 0% 0%));
+            transition: clip-path 0.1s linear;
         }
 
         /* Moments Section - Acts as window viewport */
@@ -3749,69 +3750,60 @@
             const card = document.querySelector('.moments-feature-card');
             if (!momentsSection || !card) return;
             
-            function updateParallax() {
-                const sectionRect = momentsSection.getBoundingClientRect();
-                const cardRect = card.getBoundingClientRect();
-                const windowHeight = window.innerHeight;
-                const sectionTop = sectionRect.top;
-                
-                // Calculate parallax offset
-                const scrollRatio = (windowHeight - sectionTop) / (windowHeight + sectionRect.height);
-                const translateY = scrollRatio * -30; // Background moves slower than section
-                momentsSection.style.setProperty('--parallax-offset', `${translateY}%`);
-                
-                // Calculate clip-path to EXACTLY match the card dimensions
-                // Get card position relative to viewport - use getBoundingClientRect for precise measurements
-                const cardTop = cardRect.top;
-                const cardLeft = cardRect.left;
-                const cardRight = cardRect.right;
-                const cardBottom = cardRect.bottom;
-                const viewportWidth = window.innerWidth;
-                const viewportHeight = window.innerHeight;
-                
-                // Convert to percentages for clip-path - EXACT card dimensions
-                // Calculate based on viewport dimensions
-                const clipTopPercent = (cardTop / viewportHeight) * 100;
-                const clipLeftPercent = (cardLeft / viewportWidth) * 100;
-                const clipRightPercent = (cardRight / viewportWidth) * 100;
-                const clipBottomPercent = (cardBottom / viewportHeight) * 100;
-                
-                // Create clip-path polygon matching EXACT card rectangle
-                // Round to 2 decimal places for precision
-                const clipPath = `${clipLeftPercent.toFixed(2)}% ${clipTopPercent.toFixed(2)}%, ${clipRightPercent.toFixed(2)}% ${clipTopPercent.toFixed(2)}%, ${clipRightPercent.toFixed(2)}% ${clipBottomPercent.toFixed(2)}%, ${clipLeftPercent.toFixed(2)}% ${clipBottomPercent.toFixed(2)}%`;
-                
-                momentsSection.style.setProperty('--clip-path', clipPath);
-                
-                // Debug logging (can remove later)
-                console.log('Card dimensions:', {
-                    top: cardTop,
-                    left: cardLeft,
-                    right: cardRight,
-                    bottom: cardBottom,
-                    width: cardRect.width,
-                    height: cardRect.height
-                });
-                console.log('Clip path:', clipPath);
-            }
+            // Wait for layout to be ready
+            setTimeout(() => {
+                function updateParallax() {
+                    // Get fresh card dimensions every frame
+                    const cardRect = card.getBoundingClientRect();
+                    const sectionRect = momentsSection.getBoundingClientRect();
+                    const windowHeight = window.innerHeight;
+                    const sectionTop = sectionRect.top;
+                    
+                    // Calculate parallax offset
+                    const scrollRatio = (windowHeight - sectionTop) / (windowHeight + sectionRect.height);
+                    const translateY = scrollRatio * -30; // Background moves slower than section
+                    momentsSection.style.setProperty('--parallax-offset', `${translateY}%`);
+                    
+                    // Calculate clip-path to EXACTLY match the card dimensions
+                    // Use getBoundingClientRect for pixel-perfect measurements
+                    const cardTop = cardRect.top;
+                    const cardLeft = cardRect.left;
+                    const cardRight = cardRect.right;
+                    const cardBottom = cardRect.bottom;
+                    const viewportWidth = window.innerWidth;
+                    const viewportHeight = window.innerHeight;
+                    
+                    // Convert to percentages for clip-path - EXACT card dimensions
+                    const clipTopPercent = (cardTop / viewportHeight) * 100;
+                    const clipLeftPercent = (cardLeft / viewportWidth) * 100;
+                    const clipRightPercent = (cardRight / viewportWidth) * 100;
+                    const clipBottomPercent = (cardBottom / viewportHeight) * 100;
+                    
+                    // Create clip-path polygon matching EXACT card rectangle
+                    // Use high precision to ensure perfect match
+                    const clipPath = `${clipLeftPercent.toFixed(3)}% ${clipTopPercent.toFixed(3)}%, ${clipRightPercent.toFixed(3)}% ${clipTopPercent.toFixed(3)}%, ${clipRightPercent.toFixed(3)}% ${clipBottomPercent.toFixed(3)}%, ${clipLeftPercent.toFixed(3)}% ${clipBottomPercent.toFixed(3)}%`;
+                    
+                    momentsSection.style.setProperty('--clip-path', clipPath);
+                }
 
-            // Update on scroll and resize
-            window.addEventListener('scroll', updateParallax, { passive: true });
-            window.addEventListener('resize', updateParallax);
-            
-            // Use requestAnimationFrame for smooth, continuous updates
-            let rafId = null;
-            function smoothUpdate() {
-                updateParallax();
-                rafId = requestAnimationFrame(smoothUpdate);
-            }
-            smoothUpdate();
-            
-            // Also update when card position might change
-            const resizeObserver = new ResizeObserver(() => {
-                updateParallax();
-            });
-            resizeObserver.observe(card);
-            resizeObserver.observe(momentsSection);
+                // Update on scroll and resize
+                window.addEventListener('scroll', updateParallax, { passive: true });
+                window.addEventListener('resize', updateParallax);
+                
+                // Use requestAnimationFrame for smooth, continuous updates
+                function smoothUpdate() {
+                    updateParallax();
+                    requestAnimationFrame(smoothUpdate);
+                }
+                smoothUpdate();
+                
+                // Also update when card position might change
+                const resizeObserver = new ResizeObserver(() => {
+                    updateParallax();
+                });
+                resizeObserver.observe(card);
+                resizeObserver.observe(momentsSection);
+            }, 100); // Small delay to ensure DOM is ready
         }
 
         // Scroll Animation Observer
