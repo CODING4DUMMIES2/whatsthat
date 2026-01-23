@@ -597,6 +597,85 @@ def save_verification_tokens(tokens):
     with open(VERIFICATION_TOKENS_FILE, 'w', encoding='utf-8') as f:
         json.dump(tokens, f, indent=2, default=str)
 
+def send_verification_email(email, token, name):
+    """Send verification email using SMTP"""
+    try:
+        if not SMTP_EMAIL or not SMTP_PASSWORD:
+            print(f"❌ SMTP credentials not configured")
+            return False
+        
+        verification_url = f"{APP_BASE_URL}/verify-email?token={token}"
+        
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = 'Verify your whatsthat account'
+        msg['From'] = SMTP_EMAIL
+        msg['To'] = email
+        
+        # Plain text version
+        text = f"""Hi {name or email.split('@')[0]},
+
+Welcome to whatsthat! Please verify your email address by clicking the link below:
+
+{verification_url}
+
+This link will expire in 24 hours.
+
+If you didn't create an account, you can safely ignore this email.
+
+Thanks,
+The whatsthat Team
+"""
+        
+        # HTML version
+        html = f"""<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body {{ font-family: Arial, sans-serif; line-height: 1.6; color: #333; }}
+        .container {{ max-width: 600px; margin: 0 auto; padding: 20px; }}
+        .button {{ display: inline-block; padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; }}
+        .footer {{ margin-top: 30px; font-size: 12px; color: #666; }}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Hi {name or email.split('@')[0]}!</h2>
+        <p>Welcome to whatsthat! Please verify your email address by clicking the button below:</p>
+        <p style="text-align: center; margin: 30px 0;">
+            <a href="{verification_url}" class="button">Verify Email Address</a>
+        </p>
+        <p>Or copy and paste this link into your browser:</p>
+        <p style="word-break: break-all; color: #667eea;">{verification_url}</p>
+        <p>This link will expire in 24 hours.</p>
+        <p>If you didn't create an account, you can safely ignore this email.</p>
+        <div class="footer">
+            <p>Thanks,<br>The whatsthat Team</p>
+        </div>
+    </div>
+</body>
+</html>
+"""
+        
+        part1 = MIMEText(text, 'plain')
+        part2 = MIMEText(html, 'html')
+        
+        msg.attach(part1)
+        msg.attach(part2)
+        
+        server = smtplib.SMTP(SMTP_SERVER, SMTP_PORT)
+        server.starttls()
+        server.login(SMTP_EMAIL, SMTP_PASSWORD)
+        server.send_message(msg)
+        server.quit()
+        
+        print(f"✅ Verification email sent to {email}")
+        return True
+    except Exception as e:
+        print(f"❌ Error sending verification email: {e}")
+        import traceback
+        traceback.print_exc()
+        return False
+
 def hash_password(password):
     """Hash a password"""
     return hashlib.sha256(password.encode()).hexdigest()
