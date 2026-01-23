@@ -992,35 +992,36 @@
             width: 100vw;
             margin-left: calc(-50vw + 50%);
             margin-right: calc(-50vw + 50%);
-            min-height: 600px;
+            min-height: 800px;
             overflow: hidden;
             margin-top: 120px;
             margin-bottom: 140px;
+            /* This section acts as a window */
         }
 
-        /* Background Image - Fixed for Parallax */
+        /* Background Image - Fixed behind the section, spans full width */
         .moments-section::before {
             content: '';
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
-            width: 100%;
-            height: 200%;
+            width: 100vw;
+            height: 150vh;
             background-image: url('C:\\Users\\DELL\\Downloads\\ChatGPT Image Jan 23, 2026, 09_40_37 PM.png');
             background-size: cover;
             background-position: center top;
             background-repeat: no-repeat;
             z-index: 0;
             will-change: transform;
+            /* Background moves slower than section scroll */
             transform: translateY(var(--parallax-offset, 0));
-            transition: transform 0.1s ease-out;
         }
 
         /* Parallax Container - Acts as Window */
         .moments-parallax-container {
             position: relative;
             z-index: 1;
-            min-height: 600px;
+            min-height: 800px;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1031,7 +1032,7 @@
             max-width: 900px;
             padding: 40px 50px;
             border-radius: 20px;
-            background: rgba(0, 0, 0, 0.4);
+            background: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(10px);
             -webkit-backdrop-filter: blur(10px);
             position: relative;
@@ -3704,27 +3705,26 @@
             }
         }
 
-        // Parallax Scroll Effect for Moments Section
+        // Parallax Scroll Effect for Moments Section - Window Effect
         function initParallaxEffect() {
             const momentsSection = document.querySelector('.moments-section');
             if (!momentsSection) return;
-
-            const background = momentsSection.querySelector('::before') || momentsSection;
             
             function updateParallax() {
                 const rect = momentsSection.getBoundingClientRect();
                 const windowHeight = window.innerHeight;
                 const sectionTop = rect.top;
-                const sectionHeight = rect.height;
+                const sectionBottom = rect.bottom;
                 
-                // Calculate scroll progress (0 to 1 as section enters/exits viewport)
-                const scrollProgress = Math.max(0, Math.min(1, 
-                    (windowHeight - sectionTop) / (windowHeight + sectionHeight)
-                ));
+                // Calculate how much of the section is visible
+                const sectionVisibleTop = Math.max(0, windowHeight - sectionTop);
+                const sectionVisibleBottom = Math.max(0, sectionBottom);
+                const sectionVisible = Math.min(sectionVisibleTop, sectionVisibleBottom);
                 
-                // Move background based on scroll (parallax effect)
-                // The background moves slower than the section, creating the window effect
-                const translateY = scrollProgress * -50; // Adjust speed here
+                // As section scrolls, background moves slower (parallax)
+                // This creates the "window" effect - section moves, revealing different parts of background
+                const scrollRatio = (windowHeight - sectionTop) / (windowHeight + rect.height);
+                const translateY = scrollRatio * -30; // Background moves slower than section
                 
                 // Apply transform to the ::before pseudo-element via CSS variable
                 momentsSection.style.setProperty('--parallax-offset', `${translateY}%`);
