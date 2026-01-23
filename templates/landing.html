@@ -250,15 +250,42 @@
             text-align: left;
         }
 
-        /* Right Column - Form Card */
+        /* Right Column - Form Card (Keep original frosted glass styling) */
         .hero-form-card {
-            background: white;
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 2px solid transparent;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
             border-radius: 24px;
             padding: 40px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+            position: relative;
             max-width: 500px;
             width: 100%;
             margin-left: auto;
+        }
+
+        .hero-form-card::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 24px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
         }
 
         .hero-input-container {
@@ -2600,40 +2627,40 @@
             
             <!-- Right Column - Form Card -->
             <div class="hero-form-card">
-                <h2 style="font-size: 32px; margin-bottom: 10px; color: #1A1C1E; font-weight: 900; text-align: center;">Let's Set This Up for Your Venue</h2>
-                <p style="color: #666; margin-bottom: 30px; font-size: 16px; text-align: center;">We'll send your QR kit and demo link.</p>
+                <h2 style="font-size: 32px; margin-bottom: 10px; color: white; font-weight: 900; text-align: center;">Let's Set This Up for Your Venue</h2>
+                <p style="color: rgba(255, 255, 255, 0.7); margin-bottom: 30px; font-size: 16px; text-align: center;">We'll send your QR kit and demo link.</p>
             
                 <form id="demoForm" onsubmit="generateDemo(event)">
                     <div style="margin-bottom: 20px;">
-                        <label style="display: block; color: #1A1C1E; margin-bottom: 8px; font-weight: 600;">Venue name *</label>
+                        <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">Venue name *</label>
                         <input 
                             type="text" 
                             id="venueNameInput" 
                             required 
                             placeholder="The Bar"
-                            style="width: 100%; padding: 14px 16px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 8px; color: #1A1C1E; font-size: 16px; outline: none; box-sizing: border-box;"
+                            style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none; box-sizing: border-box;"
                         />
                     </div>
                     
                     <div style="margin-bottom: 20px;">
-                        <label style="display: block; color: #1A1C1E; margin-bottom: 8px; font-weight: 600;">City *</label>
+                        <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">City *</label>
                         <input 
                             type="text" 
                             id="cityInput" 
                             required 
                             placeholder="Austin, TX"
-                            style="width: 100%; padding: 14px 16px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 8px; color: #1A1C1E; font-size: 16px; outline: none; box-sizing: border-box;"
+                            style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none; box-sizing: border-box;"
                         />
                     </div>
                     
                     <div style="margin-bottom: 20px;">
-                        <label style="display: block; color: #1A1C1E; margin-bottom: 8px; font-weight: 600;">Business email *</label>
+                        <label style="display: block; color: rgba(255, 255, 255, 0.9); margin-bottom: 8px; font-weight: 600;">Business email *</label>
                         <input 
                             type="email" 
                             id="businessEmailInput" 
                             required 
                             placeholder="owner@venue.com"
-                            style="width: 100%; padding: 14px 16px; background: #f5f5f5; border: 1px solid #ddd; border-radius: 8px; color: #1A1C1E; font-size: 16px; outline: none; box-sizing: border-box;"
+                            style="width: 100%; padding: 14px 16px; background: rgba(255, 255, 255, 0.1); border: 2px solid rgba(255, 255, 255, 0.2); border-radius: 8px; color: white; font-size: 16px; outline: none; box-sizing: border-box;"
                         />
                     </div>
                 
