@@ -681,12 +681,16 @@ The whatsthat Team
         server.starttls()
         print(f"   Logging in with email: {SMTP_EMAIL}")
         server.login(SMTP_EMAIL, smtp_password_clean)
-        print(f"   Sending message...")
-        server.send_message(msg)
+        print(f"   Sending message to: {email}")
+        print(f"   From: {SMTP_EMAIL}")
+        result = server.send_message(msg)
+        print(f"   SMTP send result: {result}")
         print(f"   Closing connection...")
         server.quit()
         
         print(f"✅ [EMAIL] Verification email sent successfully to {email}")
+        print(f"   📬 Check your inbox (and spam folder) at: {email}")
+        print(f"   🔗 Verification URL: {verification_url}")
         return True
     except smtplib.SMTPAuthenticationError as e:
         error_msg = f"SMTP authentication failed. Check your SMTP_EMAIL and SMTP_PASSWORD. For Gmail, use an App Password, not your regular password. Error: {str(e)}"
@@ -2514,6 +2518,45 @@ def verify_email():
     print(f"✅ Email verified and account created for '{email}'")
     
     return redirect(url_for('venues'))
+
+
+@app.route('/resend-verification', methods=['POST'])
+def resend_verification():
+    """Resend verification email"""
+    try:
+        data = request.get_json() if request.is_json else request.form.to_dict()
+        email = data.get('email', '').strip().lower()
+        
+        if not email:
+            return jsonify({'success': False, 'error': 'Email is required'}), 400
+        
+        unverified = load_unverified_users()
+        tokens = load_verification_tokens()
+        
+        if email not in unverified:
+            return jsonify({'success': False, 'error': 'No pending verification found for this email. Please sign up again.'}), 404
+        
+        if email not in tokens:
+            return jsonify({'success': False, 'error': 'Verification token not found. Please sign up again.'}), 404
+        
+        token = tokens[email]['token']
+        name = unverified[email].get('name', email.split('@')[0])
+        
+        email_sent = send_verification_email(email, token, name)
+        
+        if email_sent:
+            return jsonify({
+                'success': True,
+                'message': f'Verification email resent to {email}. Please check your inbox and spam folder.'
+            })
+        else:
+            return jsonify({'success': False, 'error': 'Failed to send verification email. Please check server logs.'}), 500
+            
+    except Exception as e:
+        print(f"❌ Error in resend_verification: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 
 @app.route('/login', methods=['GET', 'POST'])
