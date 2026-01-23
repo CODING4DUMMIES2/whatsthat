@@ -181,14 +181,16 @@
 
         /* Large Horizontal Card Container */
         .hero-card-container {
-            width: 100%;
-            max-width: 1400px;
+            width: 100vw;
+            max-width: 100%;
             min-height: 600px;
             border-radius: 32px;
             position: relative;
             overflow: hidden;
             background: transparent;
             box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
         }
 
         /* GIF Background - Only inside the card */
@@ -226,6 +228,8 @@
             align-items: center;
             padding: 60px;
             min-height: 600px;
+            max-width: 1400px;
+            margin: 0 auto;
         }
 
         /* Left Column - Text Content */
