@@ -1056,6 +1056,7 @@
             position: relative;
             z-index: 2;
             /* Window effect - background visible through this card only, no glass */
+            /* Text is locked to this card and moves with it */
         }
 
         .moments-feature-card h2 {
@@ -1066,6 +1067,7 @@
             color: white;
             position: relative;
             z-index: 3;
+            /* Text moves with card - no fixed positioning */
         }
 
         .moments-feature-subtitle {
@@ -1075,6 +1077,7 @@
             margin-top: 10px;
             position: relative;
             z-index: 3;
+            /* Text moves with card - no fixed positioning */
         }
 
         .moments-features {
@@ -1086,6 +1089,7 @@
             gap: 18px;
             position: relative;
             z-index: 3;
+            /* Text moves with card - no fixed positioning */
         }
 
         .moments-features li {
@@ -1096,6 +1100,7 @@
             font-weight: 600;
             line-height: 1.6;
             z-index: 3;
+            /* Text moves with card - no fixed positioning */
         }
 
         .moments-features li::before {
@@ -3758,15 +3763,18 @@
                 const viewportHeight = window.innerHeight;
                 
                 // Convert to percentages for clip-path - EXACT card dimensions
-                const clipTop = Math.max(0, (cardTop / viewportHeight) * 100);
-                const clipLeft = Math.max(0, (cardLeft / viewportWidth) * 100);
-                const clipRight = Math.min(100, (cardRight / viewportWidth) * 100);
-                const clipBottom = Math.min(100, (cardBottom / viewportHeight) * 100);
+                // Use Math.max/Math.min to ensure values stay within 0-100%
+                const clipTop = Math.max(0, Math.min(100, (cardTop / viewportHeight) * 100));
+                const clipLeft = Math.max(0, Math.min(100, (cardLeft / viewportWidth) * 100));
+                const clipRight = Math.max(0, Math.min(100, (cardRight / viewportWidth) * 100));
+                const clipBottom = Math.max(0, Math.min(100, (cardBottom / viewportHeight) * 100));
                 
                 // Create clip-path polygon matching EXACT card rectangle
-                const clipPath = `${clipLeft}% ${clipTop}%, ${clipRight}% ${clipTop}%, ${clipRight}% ${clipBottom}%, ${clipLeft}% ${clipBottom}%`;
-                
-                momentsSection.style.setProperty('--clip-path', clipPath);
+                // Ensure valid polygon (all points must be within bounds)
+                if (clipTop < clipBottom && clipLeft < clipRight) {
+                    const clipPath = `${clipLeft}% ${clipTop}%, ${clipRight}% ${clipTop}%, ${clipRight}% ${clipBottom}%, ${clipLeft}% ${clipBottom}%`;
+                    momentsSection.style.setProperty('--clip-path', clipPath);
+                }
             }
 
             // Update on scroll and resize
