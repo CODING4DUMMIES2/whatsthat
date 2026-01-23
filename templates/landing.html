@@ -3806,6 +3806,7 @@
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => {
                 initScrollAnimations();
+                initParallaxEffect();
                 // Init How It Works swiper
                 showHowItWorksStep(0);
                 initHowItWorksSwipe();
@@ -3814,6 +3815,7 @@
             });
         } else {
             initScrollAnimations();
+            initParallaxEffect();
             showHowItWorksStep(0);
             initHowItWorksSwipe();
             initBackgroundAudio();
