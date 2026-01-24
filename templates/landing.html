@@ -1105,51 +1105,46 @@
             font-size: 15px;
         }
 
-        /* Venue Control Section */
+        /* Venue Control Section - Blank Glass Card Placeholder */
         .venue-control-section {
-            margin-bottom: 100px;
+            margin: 120px auto 100px;
+            max-width: 1200px;
+            padding: 0 20px;
         }
 
-        .venue-control-section h2 {
-            text-align: center;
-            font-size: 42px;
-            margin-bottom: 20px;
-            font-weight: 900;
-            color: white;
+        .venue-control-placeholder {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border: 2px solid transparent;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border-radius: 24px;
+            position: relative;
+            min-height: 588px;
+            z-index: 0;
         }
 
-        .control-split {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 60px;
-            margin-top: 50px;
-            align-items: start;
-        }
-
-        .control-text-stack {
-            display: flex;
-            flex-direction: column;
-            gap: 30px;
-        }
-
-        .control-text-item {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-
-        .control-text-item h4 {
-            font-size: 22px;
-            color: white;
-            font-weight: 700;
-            margin: 0;
-        }
-
-        .control-text-item p {
-            color: rgba(255, 255, 255, 0.7);
-            font-size: 16px;
-            line-height: 1.5;
-            margin: 0;
+        .venue-control-placeholder::before {
+            content: '';
+            position: absolute;
+            inset: -3px;
+            border-radius: 24px;
+            padding: 2px;
+            background: linear-gradient(
+                90deg,
+                rgba(75, 0, 130, 0.3) 0%,
+                rgba(106, 90, 205, 0.8) 25%,
+                rgba(138, 43, 226, 1) 50%,
+                rgba(106, 90, 205, 0.8) 75%,
+                rgba(75, 0, 130, 0.3) 100%
+            );
+            background-size: 200% 100%;
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask-composite: exclude;
+            z-index: -1;
+            animation: shimmer 6s linear infinite;
         }
 
         .control-mock-ui {
@@ -2836,40 +2831,12 @@
             </div>
         </div>
 
-        <!-- Venue Control Section -->
+        <!-- Venue Control Section - Blank Glass Card Placeholder -->
         <div class="venue-control-section">
-            <h2>You Control What Plays</h2>
-            <p style="text-align: center; color: rgba(255, 255, 255, 0.7); margin-bottom: 50px; font-size: 18px;">
-                Full control over what plays, when it plays, and how it plays.
-            </p>
-            <div class="control-split">
-                <div class="control-text-stack">
-                    <div class="control-text-item">
-                        <h4>Shared Venue Queue</h4>
-                        <p>No chaos. One organized queue that staff can see and manage.</p>
-                    </div>
-                    <div class="control-text-item">
-                        <h4>Staff Approval</h4>
-                        <p>Approve, skip, or reorder songs before they play.</p>
-                    </div>
-                    <div class="control-text-item">
-                        <h4>Clean Mode</h4>
-                        <p>Automatic content filtering with custom banned word lists.</p>
-                    </div>
-                    <div class="control-text-item">
-                        <h4>Rate Limits</h4>
-                        <p>Control how many songs each table can request per hour.</p>
-                    </div>
-                    <div class="control-text-item">
-                        <h4>Genre Presets</h4>
-                        <p>Set themes: "Country Night", "EDM Late", "Chill Brunch"</p>
-                    </div>
-                </div>
-                <div class="control-mock-ui">
-                    <img src="/img/queue-management.png" alt="Queue Management" style="width: 100%; height: auto; border-radius: 12px; object-fit: contain;">
-                    </div>
-                    </div>
-                    </div>
+            <div class="venue-control-placeholder">
+                <!-- Blank placeholder card -->
+            </div>
+        </div>
 
         <!-- Setup Sections Container -->
         <div class="setup-sections-container">
