@@ -1965,43 +1965,31 @@
             line-height: 1.6;
         }
 
-        /* Venue Types Section */
+        /* Venue Types Section - With Background Image */
         .venue-types-section {
-            max-width: 1200px;
-            margin: 0 auto 100px;
-            padding: 50px 60px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px) saturate(180%);
-            -webkit-backdrop-filter: blur(20px) saturate(180%);
-            border: 2px solid transparent;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            border-radius: 24px;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+            margin-top: 120px;
+            margin-bottom: 100px;
+            padding: 60px 100px;
+            background-image: url('/img/venue-types-background.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            border-radius: 0;
             position: relative;
             text-align: center;
-            z-index: 0;
+            z-index: 1;
+            overflow: hidden;
         }
 
         .venue-types-section::before {
             content: '';
             position: absolute;
-            inset: -3px;
-            border-radius: 24px;
-            padding: 2px;
-            background: linear-gradient(
-                90deg,
-                rgba(75, 0, 130, 0.3) 0%,
-                rgba(106, 90, 205, 0.8) 25%,
-                rgba(138, 43, 226, 1) 50%,
-                rgba(106, 90, 205, 0.8) 75%,
-                rgba(75, 0, 130, 0.3) 100%
-            );
-            background-size: 200% 100%;
-            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            -webkit-mask-composite: xor;
-            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-            mask-composite: exclude;
-            z-index: -1;
-            animation: shimmer 6s linear infinite;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.3);
+            z-index: 0;
         }
 
         .venue-types-section h2 {
@@ -2027,6 +2015,7 @@
             margin: 40px auto 0;
             max-width: fit-content;
             width: auto;
+            z-index: 1;
         }
 
         .venue-tabs-wrapper::before {
