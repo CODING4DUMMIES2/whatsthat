@@ -180,23 +180,24 @@
             position: relative;
         }
 
-        /* Large Horizontal Card Container - FULL PAGE WIDTH */
-        .hero-card-container {
-            width: 100vw;
-            max-width: none;
-            min-height: 600px;
-            border: 2px solid transparent;
-            border-radius: 32px;
+        /* Hero Outer Wrapper - Contains shimmer border */
+        .hero {
+            padding: 80px 20px;
+            margin-bottom: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             position: relative;
-            overflow: hidden;
-            background: transparent;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            margin-left: calc(-50vw + 50%);
-            margin-right: calc(-50vw + 50%);
-            z-index: 0;
         }
 
-        .hero-card-container::before {
+        .hero-border-wrapper {
+            position: relative;
+            width: 100vw;
+            margin-left: calc(-50vw + 50%);
+            margin-right: calc(-50vw + 50%);
+        }
+
+        .hero-border-wrapper::before {
             content: '';
             position: absolute;
             inset: -3px;
@@ -217,6 +218,18 @@
             mask-composite: exclude;
             z-index: -1;
             animation: shimmer 6s linear infinite;
+        }
+
+        /* Large Horizontal Card Container - FULL PAGE WIDTH */
+        .hero-card-container {
+            width: 100%;
+            min-height: 600px;
+            border: 2px solid transparent;
+            border-radius: 32px;
+            position: relative;
+            overflow: hidden;
+            background: transparent;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
 
         /* GIF Background - Only inside the card */
@@ -2725,7 +2738,8 @@
     <div class="container">
         <!-- Hero Section -->
         <div class="hero">
-            <div class="hero-card-container">
+            <div class="hero-border-wrapper">
+                <div class="hero-card-container">
                 <!-- GIF Background - Only inside the card -->
                 <div class="hero-background-wrapper">
                     <img src="/img/background.gif" alt="Background animation">
@@ -2789,6 +2803,7 @@
                         </form>
                     </div>
                 </div>
+            </div>
             </div>
         </div>
             
