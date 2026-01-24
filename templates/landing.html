@@ -91,6 +91,7 @@
             animation: shimmer 6s linear infinite;
         }
 
+        /* Standard Container Width - 1200px */
         .container {
             max-width: 1200px;
             margin: 0 auto;
@@ -99,6 +100,34 @@
             z-index: 1;
             padding-top: 80px;
             isolation: isolate;
+        }
+        
+        /* Standard Section - 96px spacing */
+        .section-standard {
+            padding: 96px 0;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        /* Standardized Typography */
+        h2, .h2-standard {
+            font-size: 42px;
+            font-weight: 900;
+            line-height: 1.2;
+            color: white;
+            margin-bottom: 20px;
+        }
+        
+        p, .p-standard {
+            font-size: 18px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        .bullet-standard {
+            font-size: 18px;
+            line-height: 1.6;
+            color: rgba(255, 255, 255, 0.9);
         }
         
 
@@ -968,21 +997,25 @@
             font-weight: 600;
         }
 
-        .cta-button {
+        /* Primary CTA Button - Standard Style */
+        .cta-button, button[type="submit"] {
             display: inline-block;
-            padding: 18px 40px;
+            padding: 16px 32px;
             background: linear-gradient(135deg, #FF1493 0%, #8B2BE2 100%);
             color: white;
             text-decoration: none;
+            border: none;
             border-radius: 12px;
             font-size: 18px;
             font-weight: 600;
+            cursor: pointer;
             transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(255, 20, 147, 0.4);
         }
 
-        .cta-button:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 30px rgba(255, 20, 147, 0.6);
+        .cta-button:hover, button[type="submit"]:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 20, 147, 0.6);
         }
 
         .cta-buttons {
@@ -1027,11 +1060,10 @@
 
         /* Moments Section - full viewport width wrapper */
         .moments-section {
-            margin: 120px 0 140px 0;
+            padding: 96px 0;
             width: 100vw;
             margin-left: calc(-50vw + 50%);
             margin-right: calc(-50vw + 50%);
-            padding: 0;
         }
 
         /* Parallax Container / Window Wrapper */
@@ -1171,9 +1203,9 @@
 
         /* Venue Control Section - Blank Glass Card Placeholder */
         .venue-control-section {
-            margin: 120px auto 100px;
+            padding: 96px 20px;
             max-width: 1200px;
-            padding: 0 20px;
+            margin: 0 auto;
         }
 
         .venue-control-placeholder {
@@ -2027,8 +2059,8 @@
         /* Venue Types Section - With Background Image Contained */
         .venue-types-section {
             max-width: 1200px;
-            margin: 120px auto 100px;
-            padding: 50px 60px;
+            margin: 96px auto;
+            padding: 60px;
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(20px) saturate(180%);
             -webkit-backdrop-filter: blur(20px) saturate(180%);
@@ -2402,10 +2434,7 @@
 
         /* FAQ Section */
         .faq-section {
-            margin-bottom: 100px;
-            margin-top: 80px;
-            padding-top: 80px;
-            border-top: 2px solid rgba(255, 255, 255, 0.1);
+            padding: 96px 0;
         }
 
         .faq-section h2 {
@@ -2434,36 +2463,46 @@
             cursor: pointer;
             transition: all 0.3s;
             z-index: 0;
+        }
+        
+        /* Background image with 10% opacity layer */
+        .faq-item::after {
+            content: '';
+            position: absolute;
+            inset: 0;
             background-image: url('/img/faq-background.png');
             background-size: cover;
+            opacity: 0.1;
+            z-index: -2;
+            border-radius: 16px;
         }
 
         /* Progressive background positioning for each FAQ - NO PARALLAX */
-        .faq-item:nth-child(1) {
+        .faq-item:nth-child(1)::after {
             background-position: center 0%;
         }
 
-        .faq-item:nth-child(2) {
+        .faq-item:nth-child(2)::after {
             background-position: center 14%;
         }
 
-        .faq-item:nth-child(3) {
+        .faq-item:nth-child(3)::after {
             background-position: center 28%;
         }
 
-        .faq-item:nth-child(4) {
+        .faq-item:nth-child(4)::after {
             background-position: center 42%;
         }
 
-        .faq-item:nth-child(5) {
+        .faq-item:nth-child(5)::after {
             background-position: center 56%;
         }
 
-        .faq-item:nth-child(6) {
+        .faq-item:nth-child(6)::after {
             background-position: center 70%;
         }
 
-        .faq-item:nth-child(7) {
+        .faq-item:nth-child(7)::after {
             background-position: center 84%;
         }
 
