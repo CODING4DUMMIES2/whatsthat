@@ -2459,16 +2459,15 @@
             border: 2px solid transparent;
             border-radius: 16px;
             position: relative;
-            overflow: hidden;
+            overflow: visible;
             cursor: pointer;
             transition: all 0.3s;
             z-index: 0;
             background-image: url('/img/faq-background.png');
             background-size: cover;
-            background-attachment: fixed;
         }
 
-        /* Progressive background positioning for each FAQ */
+        /* Progressive background positioning for each FAQ - NO PARALLAX */
         .faq-item:nth-child(1) {
             background-position: center 0%;
         }
@@ -2567,6 +2566,8 @@
             padding: 0 25px;
             position: relative;
             z-index: 1;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 0 0 16px 16px;
         }
 
         .faq-item.active .faq-answer {
