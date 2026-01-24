@@ -2430,10 +2430,42 @@
             border: 2px solid transparent;
             border-radius: 16px;
             position: relative;
-            overflow: visible;
+            overflow: hidden;
             cursor: pointer;
             transition: all 0.3s;
             z-index: 0;
+            background-image: url('/img/faq-background.png');
+            background-size: cover;
+            background-attachment: fixed;
+        }
+
+        /* Progressive background positioning for each FAQ */
+        .faq-item:nth-child(1) {
+            background-position: center 0%;
+        }
+
+        .faq-item:nth-child(2) {
+            background-position: center 14%;
+        }
+
+        .faq-item:nth-child(3) {
+            background-position: center 28%;
+        }
+
+        .faq-item:nth-child(4) {
+            background-position: center 42%;
+        }
+
+        .faq-item:nth-child(5) {
+            background-position: center 56%;
+        }
+
+        .faq-item:nth-child(6) {
+            background-position: center 70%;
+        }
+
+        .faq-item:nth-child(7) {
+            background-position: center 84%;
         }
 
         .faq-item::before {
